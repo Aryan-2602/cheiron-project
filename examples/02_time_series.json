@@ -1,0 +1,314 @@
+{
+  "request": {
+    "query": "How has the number of trials for Pembrolizumab changed per year since 2015?",
+    "max_studies": 1000
+  },
+  "response": {
+    "visualization": {
+      "type": "time_series",
+      "title": "Pembrolizumab trials by start year",
+      "encoding": {
+        "x": {
+          "field": "start_year",
+          "label": "Start year",
+          "type": "temporal"
+        },
+        "y": {
+          "field": "trial_count",
+          "label": "Number of trials",
+          "type": "quantitative"
+        },
+        "color": null,
+        "nodes": null,
+        "edges": null
+      },
+      "data": [
+        {
+          "start_year": "2015",
+          "trial_count": 38,
+          "citations": [
+            {
+              "nct_id": "NCT02303366",
+              "excerpt": "\"Pilot Study of Stereotactic Ablation for Oligometastatic Breast Neoplasia in Combination With the Anti-PD-1 Antibody MK-3475\" \u2014 statusModule.startDateStruct.date: \"2015-09\"",
+              "url": "https://clinicaltrials.gov/study/NCT02303366"
+            },
+            {
+              "nct_id": "NCT02306850",
+              "excerpt": "\"Neoadjuvant Pembrolizumab for Unresectable Stage III and Unresectable Stage IV Melanoma\" \u2014 statusModule.startDateStruct.date: \"2015-01\"",
+              "url": "https://clinicaltrials.gov/study/NCT02306850"
+            },
+            {
+              "nct_id": "NCT02313272",
+              "excerpt": "\"Hypofractionated Stereotactic Irradiation (HFSRT) With Pembrolizumab and Bevacizumab for Recurrent High Grade Gliomas\" \u2014 statusModule.startDateStruct.date: \"2015-07-28\"",
+              "url": "https://clinicaltrials.gov/study/NCT02313272"
+            }
+          ],
+          "total_supporting_trials": 38
+        },
+        {
+          "start_year": "2016",
+          "trial_count": 63,
+          "citations": [
+            {
+              "nct_id": "NCT02509507",
+              "excerpt": "\"Trial to Evaluate the Safety of Talimogene Laherparepvec Injected Into Tumors Alone and in Combination With Systemic Pembrolizumab MK-3475-611/Keynote-611\" \u2014 statusModule.startDateStruct.date: \"2016-02-05\"",
+              "url": "https://clinicaltrials.gov/study/NCT02509507"
+            },
+            {
+              "nct_id": "NCT02512172",
+              "excerpt": "\"A Study of Enhancing Response to MK-3475 in Advanced Colorectal Cancer\" \u2014 statusModule.startDateStruct.date: \"2016-02-19\"",
+              "url": "https://clinicaltrials.gov/study/NCT02512172"
+            },
+            {
+              "nct_id": "NCT02546531",
+              "excerpt": "\"Defactinib Combined With Pembrolizumab and Gemcitabine in Patients With Advanced Cancer\" \u2014 statusModule.startDateStruct.date: \"2016-02-03\"",
+              "url": "https://clinicaltrials.gov/study/NCT02546531"
+            }
+          ],
+          "total_supporting_trials": 63
+        },
+        {
+          "start_year": "2017",
+          "trial_count": 87,
+          "citations": [
+            {
+              "nct_id": "NCT02635360",
+              "excerpt": "\"Pembrolizumab and Chemoradiation Treatment for Advanced Cervical Cancer\" \u2014 statusModule.startDateStruct.date: \"2017-02-09\"",
+              "url": "https://clinicaltrials.gov/study/NCT02635360"
+            },
+            {
+              "nct_id": "NCT02706353",
+              "excerpt": "\"APX005M in Combination With Systemic Pembrolizumab in Patients With Metastatic Melanoma\" \u2014 statusModule.startDateStruct.date: \"2017-06-02\"",
+              "url": "https://clinicaltrials.gov/study/NCT02706353"
+            },
+            {
+              "nct_id": "NCT02733159",
+              "excerpt": "\"Pembrolizumab in Patients With Non-Small Cell Lung Cancer and a Performance Status 2\" \u2014 statusModule.startDateStruct.date: \"2017-01-04\"",
+              "url": "https://clinicaltrials.gov/study/NCT02733159"
+            }
+          ],
+          "total_supporting_trials": 87
+        },
+        {
+          "start_year": "2018",
+          "trial_count": 101,
+          "citations": [
+            {
+              "nct_id": "NCT02719015",
+              "excerpt": "\"Dose Escalation and Cohort Expansion of Safety and Tolerability Study of Intratumoral rAd.CD40L (ISF35) in Combination of Systemic Pembrolizumab in Patients Wit...\" \u2014 statusModule.startDateStruct.date: \"2018-03\"",
+              "url": "https://clinicaltrials.gov/study/NCT02719015"
+            },
+            {
+              "nct_id": "NCT02834052",
+              "excerpt": "\"Pembrolizumab + Poly-ICLC in MRP Colon Cancer\" \u2014 statusModule.startDateStruct.date: \"2018-01-10\"",
+              "url": "https://clinicaltrials.gov/study/NCT02834052"
+            },
+            {
+              "nct_id": "NCT02842125",
+              "excerpt": "\"Safety and Efficacy of Intra-Arterial and Intra-Tumoral Ad-p53 With Capecitabine (Xeloda) or Anti-PD-1 in Liver Metastases of Solid Tumors and Recurrent Head an...\" \u2014 statusModule.startDateStruct.date: \"2018-11-20\"",
+              "url": "https://clinicaltrials.gov/study/NCT02842125"
+            }
+          ],
+          "total_supporting_trials": 101
+        },
+        {
+          "start_year": "2019",
+          "trial_count": 83,
+          "citations": [
+            {
+              "nct_id": "NCT03166254",
+              "excerpt": "\"Personalized Therapeutic Anti-tumor Vaccine With Pembrolizumab and Standard of Care Chemotherapy in Squamous Non-Small Cell Lung Cancer and Extensive Stage Smal...\" \u2014 statusModule.startDateStruct.date: \"2019-04-30\"",
+              "url": "https://clinicaltrials.gov/study/NCT03166254"
+            },
+            {
+              "nct_id": "NCT03331341",
+              "excerpt": "\"Doxorubicin Hydrochloride, Pembrolizumab, Vinblastine, and Dacarbazine in Treating Patients With Classical Hodgkin Lymphoma\" \u2014 statusModule.startDateStruct.date: \"2019-01-09\"",
+              "url": "https://clinicaltrials.gov/study/NCT03331341"
+            },
+            {
+              "nct_id": "NCT03432676",
+              "excerpt": "\"Epacadostat and Pembrolizumab in Treating Participants With Advanced Pancreatic Cancer\" \u2014 statusModule.startDateStruct.date: \"2019-07-31\"",
+              "url": "https://clinicaltrials.gov/study/NCT03432676"
+            }
+          ],
+          "total_supporting_trials": 83
+        },
+        {
+          "start_year": "2020",
+          "trial_count": 88,
+          "citations": [
+            {
+              "nct_id": "NCT03571360",
+              "excerpt": "\"CTA Expression/Methylation and Response to Pembrolizumab of NSCLC Patients\" \u2014 statusModule.startDateStruct.date: \"2020-02-10\"",
+              "url": "https://clinicaltrials.gov/study/NCT03571360"
+            },
+            {
+              "nct_id": "NCT03878524",
+              "excerpt": "\"Serial Measurements of Molecular and Architectural Responses to Therapy (SMMART) PRIME Trial\" \u2014 statusModule.startDateStruct.date: \"2020-04-01\"",
+              "url": "https://clinicaltrials.gov/study/NCT03878524"
+            },
+            {
+              "nct_id": "NCT03899857",
+              "excerpt": "\"Pembrolizumab for Newly Diagnosed Glioblastoma\" \u2014 statusModule.startDateStruct.date: \"2020-10-21\"",
+              "url": "https://clinicaltrials.gov/study/NCT03899857"
+            }
+          ],
+          "total_supporting_trials": 88
+        },
+        {
+          "start_year": "2021",
+          "trial_count": 87,
+          "citations": [
+            {
+              "nct_id": "NCT03448666",
+              "excerpt": "\"ECT-Pembrolizumab in Patients With Unresectable Melanoma With Superficial or Superficial and Visceral Metastases\" \u2014 statusModule.startDateStruct.date: \"2021-03-01\"",
+              "url": "https://clinicaltrials.gov/study/NCT03448666"
+            },
+            {
+              "nct_id": "NCT04171622",
+              "excerpt": "\"Lenvatinib and Pembrolizumab for the Treatment of Stage IVB Locally Advanced and Unresectable or Stage IVC Metastatic Anaplastic Thyroid Cancer\" \u2014 statusModule.startDateStruct.date: \"2021-11-04\"",
+              "url": "https://clinicaltrials.gov/study/NCT04171622"
+            },
+            {
+              "nct_id": "NCT04258683",
+              "excerpt": "\"A Study of Pembrolizumab Added to the Standard First-Line Therapy of Cyclophosphamide, Bortezomib, and Dexamethasone (CyBorD) for NDMM NTE\" \u2014 statusModule.startDateStruct.date: \"2021-02-17\"",
+              "url": "https://clinicaltrials.gov/study/NCT04258683"
+            }
+          ],
+          "total_supporting_trials": 87
+        },
+        {
+          "start_year": "2022",
+          "trial_count": 110,
+          "citations": [
+            {
+              "nct_id": "NCT03240211",
+              "excerpt": "\"Study of Pembrolizumab Combined With Decitabine and Pralatrexate in PTCL and CTCL\" \u2014 statusModule.startDateStruct.date: \"2022-02-02\"",
+              "url": "https://clinicaltrials.gov/study/NCT03240211"
+            },
+            {
+              "nct_id": "NCT04118868",
+              "excerpt": "\"Pembrolizumab Administered Via the Sofusa\u00ae DoseConnect\u2122 in Patients With Relapsed/Refractory Cutaneous T-cell Lymphoma.\" \u2014 statusModule.startDateStruct.date: \"2022-08-31\"",
+              "url": "https://clinicaltrials.gov/study/NCT04118868"
+            },
+            {
+              "nct_id": "NCT04348747",
+              "excerpt": "\"Dendritic Cell Vaccines Against Her2/Her3 and Pembrolizumab for the Treatment of Brain Metastasis From Triple Negative Breast Cancer or HER2+ Breast Cancer\" \u2014 statusModule.startDateStruct.date: \"2022-12-19\"",
+              "url": "https://clinicaltrials.gov/study/NCT04348747"
+            }
+          ],
+          "total_supporting_trials": 110
+        },
+        {
+          "start_year": "2023",
+          "trial_count": 101,
+          "citations": [
+            {
+              "nct_id": "NCT03760575",
+              "excerpt": "\"Pembrolizumab in Combination With Chemotherapy and Image-Guided Surgery for Malignant Pleural Mesothelioma (MPM)\" \u2014 statusModule.startDateStruct.date: \"2023-01-10\"",
+              "url": "https://clinicaltrials.gov/study/NCT03760575"
+            },
+            {
+              "nct_id": "NCT04565496",
+              "excerpt": "\"Phase 2 Study of Neoadjuvant PEMbrolizumab Before Radical PROstatectomy in High-risk Prostate Cancer Patients\" \u2014 statusModule.startDateStruct.date: \"2023-04-10\"",
+              "url": "https://clinicaltrials.gov/study/NCT04565496"
+            },
+            {
+              "nct_id": "NCT04616248",
+              "excerpt": "\"In Situ Immunomodulation With CDX-301, Radiation Therapy, CDX-1140 and Poly-ICLC in Patients w/ Unresectable and Metastatic Solid Tumors\" \u2014 statusModule.startDateStruct.date: \"2023-01-09\"",
+              "url": "https://clinicaltrials.gov/study/NCT04616248"
+            }
+          ],
+          "total_supporting_trials": 101
+        },
+        {
+          "start_year": "2024",
+          "trial_count": 82,
+          "citations": [
+            {
+              "nct_id": "NCT05231122",
+              "excerpt": "\"Pembrolizumab Combined With Bevacizumab With or Without Agonist Anti-CD40 CDX-1140 for the Treatment of Patients With Recurrent Ovarian Cancer\" \u2014 statusModule.startDateStruct.date: \"2024-03-12\"",
+              "url": "https://clinicaltrials.gov/study/NCT05231122"
+            },
+            {
+              "nct_id": "NCT05545969",
+              "excerpt": "\"Neoadjuvant Pembrolizumab and Lenvatinib for Mucosal Melanoma\" \u2014 statusModule.startDateStruct.date: \"2024-03\"",
+              "url": "https://clinicaltrials.gov/study/NCT05545969"
+            },
+            {
+              "nct_id": "NCT05700461",
+              "excerpt": "\"Drug Screening Using Novel IMD in Renal Cell Carcinoma\" \u2014 statusModule.startDateStruct.date: \"2024-12-01\"",
+              "url": "https://clinicaltrials.gov/study/NCT05700461"
+            }
+          ],
+          "total_supporting_trials": 82
+        },
+        {
+          "start_year": "2025",
+          "trial_count": 85,
+          "citations": [
+            {
+              "nct_id": "NCT05093231",
+              "excerpt": "\"Pembrolizumab With Olaparib as Combined Therapy in Metastatic Pancreatic Cancer\" \u2014 statusModule.startDateStruct.date: \"2025-02-26\"",
+              "url": "https://clinicaltrials.gov/study/NCT05093231"
+            },
+            {
+              "nct_id": "NCT05425576",
+              "excerpt": "\"OT-101 in Combination With Pembrolizumab in Subjects With Malignant Pleural Mesothelioma Failing to Respond to Checkpoint Inhibition\" \u2014 statusModule.startDateStruct.date: \"2025-06\"",
+              "url": "https://clinicaltrials.gov/study/NCT05425576"
+            },
+            {
+              "nct_id": "NCT05467748",
+              "excerpt": "\"EZH2 Inhibitor, Tulmimetostat, and PD-1 Blockade for Treatment of Advanced Non-small Cell Lung Cancer\" \u2014 statusModule.startDateStruct.date: \"2025-12-08\"",
+              "url": "https://clinicaltrials.gov/study/NCT05467748"
+            }
+          ],
+          "total_supporting_trials": 85
+        },
+        {
+          "start_year": "2026",
+          "trial_count": 50,
+          "citations": [
+            {
+              "nct_id": "NCT04901741",
+              "excerpt": "\"Olaptesed With Pembrolizumab and Nanoliposomal Irinotecan or Gemcitabine/Nab-Paclitaxel in MSS Pancreatic Cancer\" \u2014 statusModule.startDateStruct.date: \"2026-01\"",
+              "url": "https://clinicaltrials.gov/study/NCT04901741"
+            },
+            {
+              "nct_id": "NCT05077215",
+              "excerpt": "\"Efficacy and Safety of a Repurposed Drug Added to the Combination of Len Plus Pem in Advanced Endometrial Cancer\" \u2014 statusModule.startDateStruct.date: \"2026-12\"",
+              "url": "https://clinicaltrials.gov/study/NCT05077215"
+            },
+            {
+              "nct_id": "NCT06400160",
+              "excerpt": "\"Clinical Trial of TB511 in Advanced Solid Tumors\" \u2014 statusModule.startDateStruct.date: \"2026-03\"",
+              "url": "https://clinicaltrials.gov/study/NCT06400160"
+            }
+          ],
+          "total_supporting_trials": 50
+        }
+      ]
+    },
+    "meta": {
+      "filters": {
+        "intervention": "Pembrolizumab"
+      },
+      "source": "clinicaltrials.gov",
+      "data_as_of": "2026-08-07T09:00:05",
+      "total_studies_processed": 975,
+      "api_urls": [
+        "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=1000&query.intr=Pembrolizumab&countTotal=true"
+      ],
+      "query_interpretation": "Interpreted as a time trend question, grouped by start year, rendered as a time series.",
+      "assumptions": [
+        "I treated \"per year since 2015\" as a time trend grouped by study start year."
+      ],
+      "warnings": [
+        "Fetched 1,000 of 2,922 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",
+        "Restricted to trials starting from 2015 client-side (975 of 1,000 fetched trials, 1 excluded for having no start date); ClinicalTrials.gov has no live-verified date-range parameter."
+      ],
+      "sorting": "year ascending",
+      "time_granularity": "year"
+    }
+  }
+}

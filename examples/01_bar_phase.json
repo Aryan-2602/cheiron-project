@@ -1,0 +1,205 @@
+{
+  "request": {
+    "query": "How are lung cancer trials distributed across phases?",
+    "max_studies": 1000
+  },
+  "response": {
+    "visualization": {
+      "type": "bar_chart",
+      "title": "Lung cancer trials by phase",
+      "encoding": {
+        "x": {
+          "field": "phase",
+          "label": "Phase",
+          "type": "ordinal"
+        },
+        "y": {
+          "field": "trial_count",
+          "label": "Number of trials",
+          "type": "quantitative"
+        },
+        "color": null,
+        "nodes": null,
+        "edges": null
+      },
+      "data": [
+        {
+          "phase": "Early Phase 1",
+          "trial_count": 11,
+          "citations": [
+            {
+              "nct_id": "NCT00606970",
+              "excerpt": "\"Safety Assessment of Lactobacillus Fermented Extract in Cancer Patients Undergoing Chemotherapy\" \u2014 designModule.phases: [EARLY_PHASE1]",
+              "url": "https://clinicaltrials.gov/study/NCT00606970"
+            },
+            {
+              "nct_id": "NCT01086696",
+              "excerpt": "\"A Pilot Study of F-18 Paclitaxel (FPAC) PET for Evaluating Drug Delivery of Solid Tumors in Breast, Lung, Renal, and Adrenal Cancers\" \u2014 designModule.phases: [EARLY_PHASE1]",
+              "url": "https://clinicaltrials.gov/study/NCT01086696"
+            },
+            {
+              "nct_id": "NCT01666353",
+              "excerpt": "\"PET Quantitative Assessments of Solid Tumor Response to Immune Checkpoint Blockade Therapy\" \u2014 designModule.phases: [EARLY_PHASE1]",
+              "url": "https://clinicaltrials.gov/study/NCT01666353"
+            }
+          ],
+          "total_supporting_trials": 11
+        },
+        {
+          "phase": "Phase 1",
+          "trial_count": 211,
+          "citations": [
+            {
+              "nct_id": "NCT00002465",
+              "excerpt": "\"High-Dose Megestrol in Treating Patients With Metastatic Breast Cancer, Endometrial Cancer, or Mesothelioma\" \u2014 designModule.phases: [PHASE1, PHASE2]",
+              "url": "https://clinicaltrials.gov/study/NCT00002465"
+            },
+            {
+              "nct_id": "NCT00003046",
+              "excerpt": "\"Interleukin-12 in Treating Patients With Cancer in the Abdomen\" \u2014 designModule.phases: [PHASE1]",
+              "url": "https://clinicaltrials.gov/study/NCT00003046"
+            },
+            {
+              "nct_id": "NCT00004879",
+              "excerpt": "\"Monoclonal Antibody ABX-EGF in Treating Patients With Renal (Kidney), Prostate, Pancreatic, Non-Small Cell Lung, Colon or Rectal, Esophageal, or Gastroesophagea...\" \u2014 designModule.phases: [PHASE1]",
+              "url": "https://clinicaltrials.gov/study/NCT00004879"
+            }
+          ],
+          "total_supporting_trials": 211
+        },
+        {
+          "phase": "Phase 2",
+          "trial_count": 373,
+          "citations": [
+            {
+              "nct_id": "NCT00001499",
+              "excerpt": "\"Phase II Neoadjuvant Trial of a Continuous Infusion of Paclitaxel Plus Cisplatin Followed by Chest Radiotherapy for Patients With Stage III Non-Small Cell Lung...\" \u2014 designModule.phases: [PHASE2]",
+              "url": "https://clinicaltrials.gov/study/NCT00001499"
+            },
+            {
+              "nct_id": "NCT00002465",
+              "excerpt": "\"High-Dose Megestrol in Treating Patients With Metastatic Breast Cancer, Endometrial Cancer, or Mesothelioma\" \u2014 designModule.phases: [PHASE1, PHASE2]",
+              "url": "https://clinicaltrials.gov/study/NCT00002465"
+            },
+            {
+              "nct_id": "NCT00003154",
+              "excerpt": "\"Chemotherapy in Treating Patients With Advanced Non-small Cell Lung Cancer\" \u2014 designModule.phases: [PHASE2]",
+              "url": "https://clinicaltrials.gov/study/NCT00003154"
+            }
+          ],
+          "total_supporting_trials": 373
+        },
+        {
+          "phase": "Phase 3",
+          "trial_count": 84,
+          "citations": [
+            {
+              "nct_id": "NCT00002583",
+              "excerpt": "\"Vinorelbine + Cisplatin or No Further Therapy in Non-small Cell Lung Cancer That Has Been Surgically Removed\" \u2014 designModule.phases: [PHASE3]",
+              "url": "https://clinicaltrials.gov/study/NCT00002583"
+            },
+            {
+              "nct_id": "NCT00003034",
+              "excerpt": "\"ONCONASE Plus Doxorubicin Versus Doxorubicin Alone For Patients With Malignant Pleural or Peritoneal Mesothelioma Who Have Had No More Than One Prior Chemothera...\" \u2014 designModule.phases: [PHASE3]",
+              "url": "https://clinicaltrials.gov/study/NCT00003034"
+            },
+            {
+              "nct_id": "NCT00003117",
+              "excerpt": "\"Paclitaxel With or Without Carboplatin in Treating Patients With Advanced Non-small Cell Lung Cancer\" \u2014 designModule.phases: [PHASE3]",
+              "url": "https://clinicaltrials.gov/study/NCT00003117"
+            }
+          ],
+          "total_supporting_trials": 84
+        },
+        {
+          "phase": "Phase 4",
+          "trial_count": 12,
+          "citations": [
+            {
+              "nct_id": "NCT00712647",
+              "excerpt": "\"Carotene and Retinol Efficacy Trial\" \u2014 designModule.phases: [PHASE4]",
+              "url": "https://clinicaltrials.gov/study/NCT00712647"
+            },
+            {
+              "nct_id": "NCT00813332",
+              "excerpt": "\"Second-line Therapy Study of Combined Chemotherapy and Endostar to Patients With Non-Small Cell Lung Cancer(NSCLC)\" \u2014 designModule.phases: [PHASE4]",
+              "url": "https://clinicaltrials.gov/study/NCT00813332"
+            },
+            {
+              "nct_id": "NCT03264794",
+              "excerpt": "\"the Clinical Trial of Gefitinib(Non - Small Cell Lung Cancer)\" \u2014 designModule.phases: [PHASE4]",
+              "url": "https://clinicaltrials.gov/study/NCT03264794"
+            }
+          ],
+          "total_supporting_trials": 12
+        },
+        {
+          "phase": "Not Applicable",
+          "trial_count": 181,
+          "citations": [
+            {
+              "nct_id": "NCT00028782",
+              "excerpt": "\"EF5 in Detecting Oxygen Level and Blood Vessels in Tumor Cells of Patients Undergoing Photodynamic Therapy for Intraperitoneal or Pleural Cancer\" \u2014 designModule.phases: [NA]",
+              "url": "https://clinicaltrials.gov/study/NCT00028782"
+            },
+            {
+              "nct_id": "NCT00087191",
+              "excerpt": "\"EF5 and Motexafin Lutetium in Detecting Tumor Cells in Patients With Abdominal or Non-Small Cell Lung Cancer\" \u2014 designModule.phases: [NA]",
+              "url": "https://clinicaltrials.gov/study/NCT00087191"
+            },
+            {
+              "nct_id": "NCT00089310",
+              "excerpt": "\"Sentinel Lymph Node Mapping in Detecting Cancer That Has Spread to Lymph Nodes in Patients With Non-Small Cell Lung Cancer\" \u2014 designModule.phases: [NA]",
+              "url": "https://clinicaltrials.gov/study/NCT00089310"
+            }
+          ],
+          "total_supporting_trials": 181
+        },
+        {
+          "phase": "No phase data",
+          "trial_count": 228,
+          "citations": [
+            {
+              "nct_id": "NCT00173524",
+              "excerpt": "\"PharmacoEconomic Assessment IRESSA\u00ae in the Treatment of Non-Small-Cell Lung Cancer (NSCLC)\" \u2014 designModule.phases: not reported",
+              "url": "https://clinicaltrials.gov/study/NCT00173524"
+            },
+            {
+              "nct_id": "NCT00175578",
+              "excerpt": "\"Detection of Early Lung Cancer by Serum Protein Expression Profiling\" \u2014 designModule.phases: not reported",
+              "url": "https://clinicaltrials.gov/study/NCT00175578"
+            },
+            {
+              "nct_id": "NCT00218179",
+              "excerpt": "\"Assessing the Link Between Smoke Carcinogen Biomarkers and Lung Cancer Risk - 1\" \u2014 designModule.phases: not reported",
+              "url": "https://clinicaltrials.gov/study/NCT00218179"
+            }
+          ],
+          "total_supporting_trials": 228
+        }
+      ]
+    },
+    "meta": {
+      "filters": {
+        "condition": "lung cancer"
+      },
+      "source": "clinicaltrials.gov",
+      "data_as_of": "2026-08-07T09:00:05",
+      "total_studies_processed": 1000,
+      "api_urls": [
+        "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=1000&query.cond=lung+cancer&countTotal=true"
+      ],
+      "query_interpretation": "Interpreted as a distribution question, grouped by phase, rendered as a bar chart.",
+      "assumptions": [
+        "Read \u201cdistributed across phases\u201d as a phase breakdown for lung cancer trials."
+      ],
+      "warnings": [
+        "Fetched 1,000 of 14,425 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",
+        "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials.",
+        "228 of 1,000 trials had no value for this axis and are shown as a separate bucket."
+      ],
+      "sorting": "phase order (Early Phase 1 -> Phase 4)",
+      "time_granularity": null
+    }
+  }
+}

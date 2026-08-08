@@ -1,0 +1,490 @@
+{
+  "request": {
+    "query": "Which countries have the most recruiting trials for melanoma?",
+    "max_studies": 600
+  },
+  "response": {
+    "visualization": {
+      "type": "geo_bar_chart",
+      "title": "Melanoma (recruiting) trials by country",
+      "encoding": {
+        "x": {
+          "field": "country",
+          "label": "Country",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "trial_count",
+          "label": "Number of trials",
+          "type": "quantitative"
+        },
+        "color": null,
+        "nodes": null,
+        "edges": null
+      },
+      "data": [
+        {
+          "country": "United States",
+          "trial_count": 248,
+          "citations": [
+            {
+              "nct_id": "NCT00001823",
+              "excerpt": "\"Evaluation for NCI Surgery Branch Clinical Research Protocols\" \u2014 contactsLocationsModule.locations[].country: [United States]",
+              "url": "https://clinicaltrials.gov/study/NCT00001823"
+            },
+            {
+              "nct_id": "NCT00040352",
+              "excerpt": "\"Clinical, Laboratory, and Epidemiologic Characterization of Individuals and Families at High Risk of Melanoma\" \u2014 contactsLocationsModule.locations[].country: [United States]",
+              "url": "https://clinicaltrials.gov/study/NCT00040352"
+            },
+            {
+              "nct_id": "NCT01205815",
+              "excerpt": "\"Storage and Research Use of Human Bio-specimens From Melanoma Patients and Clinical Testing for Assignment of Treatment\" \u2014 contactsLocationsModule.locations[].country: [United States]",
+              "url": "https://clinicaltrials.gov/study/NCT01205815"
+            }
+          ],
+          "total_supporting_trials": 248
+        },
+        {
+          "country": "China",
+          "trial_count": 58,
+          "citations": [
+            {
+              "nct_id": "NCT03340506",
+              "excerpt": "\"Dabrafenib and/or Trametinib Rollover Study\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Austria, China, Denmark, France, Germany, Hungary, Japan, Netherlands, Spain, Thailand, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03340506"
+            },
+            {
+              "nct_id": "NCT03755739",
+              "excerpt": "\"Trans-Artery/Intra-Tumor Infusion of Checkpoint Inhibitors Plus Chemodrug for Immunotherapy of Advanced Solid Tumors\" \u2014 contactsLocationsModule.locations[].country: [China]",
+              "url": "https://clinicaltrials.gov/study/NCT03755739"
+            },
+            {
+              "nct_id": "NCT04331093",
+              "excerpt": "\"Neoadjuvant SHR-1210 Plus Apatinib for Resectable Stage III-IV Acral Melanoma\" \u2014 contactsLocationsModule.locations[].country: [China]",
+              "url": "https://clinicaltrials.gov/study/NCT04331093"
+            }
+          ],
+          "total_supporting_trials": 58
+        },
+        {
+          "country": "Australia",
+          "trial_count": 52,
+          "citations": [
+            {
+              "nct_id": "NCT02402244",
+              "excerpt": "\"Project: Every Child for Younger Patients With Cancer\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada, New Zealand, Puerto Rico, Saudi Arabia, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02402244"
+            },
+            {
+              "nct_id": "NCT02821013",
+              "excerpt": "\"Duration of Anti-PD-1 Therapy in Metastatic Melanoma\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada]",
+              "url": "https://clinicaltrials.gov/study/NCT02821013"
+            },
+            {
+              "nct_id": "NCT03340129",
+              "excerpt": "\"Anti-PD 1 Brain Collaboration + Radiotherapy Extension (ABC-X Study)\" \u2014 contactsLocationsModule.locations[].country: [Australia, Norway]",
+              "url": "https://clinicaltrials.gov/study/NCT03340129"
+            }
+          ],
+          "total_supporting_trials": 52
+        },
+        {
+          "country": "France",
+          "trial_count": 48,
+          "citations": [
+            {
+              "nct_id": "NCT02332668",
+              "excerpt": "\"A Study of Pembrolizumab (MK-3475) in Pediatric Participants With an Advanced Solid Tumor or Lymphoma (MK-3475-051/KEYNOTE-051)\" \u2014 contactsLocationsModule.locations[].country: [Brazil, France, Germany, Israel, Italy, Portugal, South Korea, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02332668"
+            },
+            {
+              "nct_id": "NCT02828202",
+              "excerpt": "\"Follow-up of a National Cohort of Melanoma Resectable Stage II, Stage III or IV Patients or Unresectable Primary\" \u2014 contactsLocationsModule.locations[].country: [France]",
+              "url": "https://clinicaltrials.gov/study/NCT02828202"
+            },
+            {
+              "nct_id": "NCT03315468",
+              "excerpt": "\"French Clinical Datbase of Melanoma Patients (RIC-Mel)\" \u2014 contactsLocationsModule.locations[].country: [France]",
+              "url": "https://clinicaltrials.gov/study/NCT03315468"
+            }
+          ],
+          "total_supporting_trials": 48
+        },
+        {
+          "country": "Italy",
+          "trial_count": 40,
+          "citations": [
+            {
+              "nct_id": "NCT02332668",
+              "excerpt": "\"A Study of Pembrolizumab (MK-3475) in Pediatric Participants With an Advanced Solid Tumor or Lymphoma (MK-3475-051/KEYNOTE-051)\" \u2014 contactsLocationsModule.locations[].country: [Brazil, France, Germany, Israel, Italy, Portugal, South Korea, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02332668"
+            },
+            {
+              "nct_id": "NCT03860883",
+              "excerpt": "\"Melanoma Margins Trial-II: 1cm v 2cm Wide Surgical Excision Margins for AJCC Stage II Primary Cutaneous Melanoma\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada, Ireland, Italy, Netherlands, New Zealand, Slovenia, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03860883"
+            },
+            {
+              "nct_id": "NCT04095195",
+              "excerpt": "\"Registry of Subjects at Risk of Pancreatic Cancer\" \u2014 contactsLocationsModule.locations[].country: [Italy]",
+              "url": "https://clinicaltrials.gov/study/NCT04095195"
+            }
+          ],
+          "total_supporting_trials": 40
+        },
+        {
+          "country": "Canada",
+          "trial_count": 35,
+          "citations": [
+            {
+              "nct_id": "NCT02402244",
+              "excerpt": "\"Project: Every Child for Younger Patients With Cancer\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada, New Zealand, Puerto Rico, Saudi Arabia, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02402244"
+            },
+            {
+              "nct_id": "NCT02821013",
+              "excerpt": "\"Duration of Anti-PD-1 Therapy in Metastatic Melanoma\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada]",
+              "url": "https://clinicaltrials.gov/study/NCT02821013"
+            },
+            {
+              "nct_id": "NCT02906943",
+              "excerpt": "\"Ontario-wide Cancer TArgeted Nucleic Acid Evaluation\" \u2014 contactsLocationsModule.locations[].country: [Canada]",
+              "url": "https://clinicaltrials.gov/study/NCT02906943"
+            }
+          ],
+          "total_supporting_trials": 35
+        },
+        {
+          "country": "Germany",
+          "trial_count": 35,
+          "citations": [
+            {
+              "nct_id": "NCT02332668",
+              "excerpt": "\"A Study of Pembrolizumab (MK-3475) in Pediatric Participants With an Advanced Solid Tumor or Lymphoma (MK-3475-051/KEYNOTE-051)\" \u2014 contactsLocationsModule.locations[].country: [Brazil, France, Germany, Israel, Italy, Portugal, South Korea, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02332668"
+            },
+            {
+              "nct_id": "NCT03340506",
+              "excerpt": "\"Dabrafenib and/or Trametinib Rollover Study\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Austria, China, Denmark, France, Germany, Hungary, Japan, Netherlands, Spain, Thailand, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03340506"
+            },
+            {
+              "nct_id": "NCT03686124",
+              "excerpt": "\"ACTengine\u00ae IMA203/IMA203CD8 as Monotherapy or in Combination With Nivolumab in Recurrent and/or Refractory Solid Tumors\" \u2014 contactsLocationsModule.locations[].country: [Germany, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03686124"
+            }
+          ],
+          "total_supporting_trials": 35
+        },
+        {
+          "country": "Spain",
+          "trial_count": 35,
+          "citations": [
+            {
+              "nct_id": "NCT03340506",
+              "excerpt": "\"Dabrafenib and/or Trametinib Rollover Study\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Austria, China, Denmark, France, Germany, Hungary, Japan, Netherlands, Spain, Thailand, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03340506"
+            },
+            {
+              "nct_id": "NCT03567889",
+              "excerpt": "\"Efficacy of Daromun Neoadjuvant Intratumoral Treatment in Clinical Stage IIIB/C/D Melanoma Patients\" \u2014 contactsLocationsModule.locations[].country: [Spain, Switzerland, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03567889"
+            },
+            {
+              "nct_id": "NCT03605771",
+              "excerpt": "\"Descriptive Observational Study on the Characteristics of Advanced and Metastatic Melanoma in Spain\" \u2014 contactsLocationsModule.locations[].country: [Spain]",
+              "url": "https://clinicaltrials.gov/study/NCT03605771"
+            }
+          ],
+          "total_supporting_trials": 35
+        },
+        {
+          "country": "United Kingdom",
+          "trial_count": 27,
+          "citations": [
+            {
+              "nct_id": "NCT02332668",
+              "excerpt": "\"A Study of Pembrolizumab (MK-3475) in Pediatric Participants With an Advanced Solid Tumor or Lymphoma (MK-3475-051/KEYNOTE-051)\" \u2014 contactsLocationsModule.locations[].country: [Brazil, France, Germany, Israel, Italy, Portugal, South Korea, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02332668"
+            },
+            {
+              "nct_id": "NCT03829254",
+              "excerpt": "\"A Safety, Pharmacokinetic and Clinical Activity Study of NUC-7738 in Patients With Advanced Solid Tumours and Lymphoma\" \u2014 contactsLocationsModule.locations[].country: [United Kingdom]",
+              "url": "https://clinicaltrials.gov/study/NCT03829254"
+            },
+            {
+              "nct_id": "NCT03860883",
+              "excerpt": "\"Melanoma Margins Trial-II: 1cm v 2cm Wide Surgical Excision Margins for AJCC Stage II Primary Cutaneous Melanoma\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada, Ireland, Italy, Netherlands, New Zealand, Slovenia, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03860883"
+            }
+          ],
+          "total_supporting_trials": 27
+        },
+        {
+          "country": "Netherlands",
+          "trial_count": 26,
+          "citations": [
+            {
+              "nct_id": "NCT03340506",
+              "excerpt": "\"Dabrafenib and/or Trametinib Rollover Study\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Austria, China, Denmark, France, Germany, Hungary, Japan, Netherlands, Spain, Thailand, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03340506"
+            },
+            {
+              "nct_id": "NCT03685890",
+              "excerpt": "\"Evaluating the Effect of Nivolumab for Patients With In-transit Metastases Treated With Isolated Limb Perfusion\" \u2014 contactsLocationsModule.locations[].country: [Netherlands, Sweden]",
+              "url": "https://clinicaltrials.gov/study/NCT03685890"
+            },
+            {
+              "nct_id": "NCT03860883",
+              "excerpt": "\"Melanoma Margins Trial-II: 1cm v 2cm Wide Surgical Excision Margins for AJCC Stage II Primary Cutaneous Melanoma\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada, Ireland, Italy, Netherlands, New Zealand, Slovenia, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03860883"
+            }
+          ],
+          "total_supporting_trials": 26
+        },
+        {
+          "country": "Sweden",
+          "trial_count": 19,
+          "citations": [
+            {
+              "nct_id": "NCT02332668",
+              "excerpt": "\"A Study of Pembrolizumab (MK-3475) in Pediatric Participants With an Advanced Solid Tumor or Lymphoma (MK-3475-051/KEYNOTE-051)\" \u2014 contactsLocationsModule.locations[].country: [Brazil, France, Germany, Israel, Italy, Portugal, South Korea, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02332668"
+            },
+            {
+              "nct_id": "NCT03116412",
+              "excerpt": "\"A Randomized Trial to Assess the Role of Imaging During Follow Up After Radical Surgery of High Risk Melanoma\" \u2014 contactsLocationsModule.locations[].country: [Sweden]",
+              "url": "https://clinicaltrials.gov/study/NCT03116412"
+            },
+            {
+              "nct_id": "NCT03685890",
+              "excerpt": "\"Evaluating the Effect of Nivolumab for Patients With In-transit Metastases Treated With Isolated Limb Perfusion\" \u2014 contactsLocationsModule.locations[].country: [Netherlands, Sweden]",
+              "url": "https://clinicaltrials.gov/study/NCT03685890"
+            }
+          ],
+          "total_supporting_trials": 19
+        },
+        {
+          "country": "Denmark",
+          "trial_count": 16,
+          "citations": [
+            {
+              "nct_id": "NCT03340506",
+              "excerpt": "\"Dabrafenib and/or Trametinib Rollover Study\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Austria, China, Denmark, France, Germany, Hungary, Japan, Netherlands, Spain, Thailand, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03340506"
+            },
+            {
+              "nct_id": "NCT03563729",
+              "excerpt": "\"Melanoma Metastasized to the Brain and Steroids\" \u2014 contactsLocationsModule.locations[].country: [Denmark]",
+              "url": "https://clinicaltrials.gov/study/NCT03563729"
+            },
+            {
+              "nct_id": "NCT04752826",
+              "excerpt": "\"BI-1808 as a Single Agent and With Pembrolizumab (KEYTRUDA\u00ae ) in Treatment of Advanced Malignancies(Keynote-D20)\" \u2014 contactsLocationsModule.locations[].country: [Denmark, Hungary, Russia, Spain, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT04752826"
+            }
+          ],
+          "total_supporting_trials": 16
+        },
+        {
+          "country": "Belgium",
+          "trial_count": 14,
+          "citations": [
+            {
+              "nct_id": "NCT04498767",
+              "excerpt": "\"Stereotactic Body Radiotherapy in Patients With Rare Oligometastatic Cancers (OligoRARE)\" \u2014 contactsLocationsModule.locations[].country: [Belgium, France, Germany, Italy, Poland, Switzerland, United Kingdom]",
+              "url": "https://clinicaltrials.gov/study/NCT04498767"
+            },
+            {
+              "nct_id": "NCT05549297",
+              "excerpt": "\"Tebentafusp Regimen Versus Investigator's Choice in Previously Treated Advanced Melanoma (TEBE-AM)\" \u2014 contactsLocationsModule.locations[].country: [Australia, Austria, Belgium, Canada, France, Germany, Italy, Poland, Spain, Switzerland, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT05549297"
+            },
+            {
+              "nct_id": "NCT05727904",
+              "excerpt": "\"Study to Investigate Lifileucel Regimen Plus Pembrolizumab Compared With Pembrolizumab Alone in Participants With Untreated Advanced Melanoma.\" \u2014 contactsLocationsModule.locations[].country: [Australia, Belgium, Canada, Finland, France, Germany, Israel, Italy, Netherlands, Singapore, South Korea, Spain, Sweden, Switzerland, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT05727904"
+            }
+          ],
+          "total_supporting_trials": 14
+        },
+        {
+          "country": "Israel",
+          "trial_count": 14,
+          "citations": [
+            {
+              "nct_id": "NCT00722228",
+              "excerpt": "\"Autologous and Allogeneic Whole Cell Cancer Vaccine for Metastatic Tumors\" \u2014 contactsLocationsModule.locations[].country: [Israel]",
+              "url": "https://clinicaltrials.gov/study/NCT00722228"
+            },
+            {
+              "nct_id": "NCT01438658",
+              "excerpt": "\"Assessing the Clinical Effectiveness of Serum Biomarkers in the Diagnosis of Metastatic Uveal Melanoma\" \u2014 contactsLocationsModule.locations[].country: [Israel]",
+              "url": "https://clinicaltrials.gov/study/NCT01438658"
+            },
+            {
+              "nct_id": "NCT01898039",
+              "excerpt": "\"Modified Vaccine for High Risk or Low Residual Melanoma Patients\" \u2014 contactsLocationsModule.locations[].country: [Israel]",
+              "url": "https://clinicaltrials.gov/study/NCT01898039"
+            }
+          ],
+          "total_supporting_trials": 14
+        },
+        {
+          "country": "South Korea",
+          "trial_count": 12,
+          "citations": [
+            {
+              "nct_id": "NCT02332668",
+              "excerpt": "\"A Study of Pembrolizumab (MK-3475) in Pediatric Participants With an Advanced Solid Tumor or Lymphoma (MK-3475-051/KEYNOTE-051)\" \u2014 contactsLocationsModule.locations[].country: [Brazil, France, Germany, Israel, Italy, Portugal, South Korea, Sweden, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT02332668"
+            },
+            {
+              "nct_id": "NCT04198766",
+              "excerpt": "\"Study of INBRX-106 and INBRX-106 in Combination With Pembrolizumab (Keytruda\u00ae) in Subjects With Locally Advanced or Metastatic Solid Tumors (Hexavalent OX40 Ago...\" \u2014 contactsLocationsModule.locations[].country: [Singapore, South Korea, Taiwan, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT04198766"
+            },
+            {
+              "nct_id": "NCT05086692",
+              "excerpt": "\"A Beta-only IL-2 ImmunoTherapY Study\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada, Ireland, Portugal, South Korea, Spain, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT05086692"
+            }
+          ],
+          "total_supporting_trials": 12
+        },
+        {
+          "country": "Switzerland",
+          "trial_count": 12,
+          "citations": [
+            {
+              "nct_id": "NCT02280889",
+              "excerpt": "\"Quality of Life and Stigmatization in Children With Congenital Melanocytic Nevi Before and After Nevus Excision\" \u2014 contactsLocationsModule.locations[].country: [Switzerland]",
+              "url": "https://clinicaltrials.gov/study/NCT02280889"
+            },
+            {
+              "nct_id": "NCT03567889",
+              "excerpt": "\"Efficacy of Daromun Neoadjuvant Intratumoral Treatment in Clinical Stage IIIB/C/D Melanoma Patients\" \u2014 contactsLocationsModule.locations[].country: [Spain, Switzerland, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03567889"
+            },
+            {
+              "nct_id": "NCT04045691",
+              "excerpt": "\"Binimetinib Plus Encorafenib Real Life Investigation of Next Generation Melanoma Treatment\" \u2014 contactsLocationsModule.locations[].country: [Austria, Germany, Switzerland]",
+              "url": "https://clinicaltrials.gov/study/NCT04045691"
+            }
+          ],
+          "total_supporting_trials": 12
+        },
+        {
+          "country": "Poland",
+          "trial_count": 10,
+          "citations": [
+            {
+              "nct_id": "NCT04498767",
+              "excerpt": "\"Stereotactic Body Radiotherapy in Patients With Rare Oligometastatic Cancers (OligoRARE)\" \u2014 contactsLocationsModule.locations[].country: [Belgium, France, Germany, Italy, Poland, Switzerland, United Kingdom]",
+              "url": "https://clinicaltrials.gov/study/NCT04498767"
+            },
+            {
+              "nct_id": "NCT05549297",
+              "excerpt": "\"Tebentafusp Regimen Versus Investigator's Choice in Previously Treated Advanced Melanoma (TEBE-AM)\" \u2014 contactsLocationsModule.locations[].country: [Australia, Austria, Belgium, Canada, France, Germany, Italy, Poland, Spain, Switzerland, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT05549297"
+            },
+            {
+              "nct_id": "NCT06112314",
+              "excerpt": "\"IMC-F106C Regimen Versus Nivolumab Regimens in Previously Untreated Advanced Melanoma (PRISM-MEL-301)\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Australia, Austria, Belgium, Brazil, Bulgaria, Canada, Czechia, Denmark, Finland, France, Germany, Hungary, Italy, Lithuania, Mexico, Norway, Poland, Portugal, Romania, Spain, Sweden, Switzerland, Turkey (T\u00fcrkiye), United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT06112314"
+            }
+          ],
+          "total_supporting_trials": 10
+        },
+        {
+          "country": "Japan",
+          "trial_count": 9,
+          "citations": [
+            {
+              "nct_id": "NCT03340506",
+              "excerpt": "\"Dabrafenib and/or Trametinib Rollover Study\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Austria, China, Denmark, France, Germany, Hungary, Japan, Netherlands, Spain, Thailand, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03340506"
+            },
+            {
+              "nct_id": "NCT04895709",
+              "excerpt": "\"A Study of BMS-986340 as Monotherapy and as Combination Therapy in Participants With Advanced Solid Tumors\" \u2014 contactsLocationsModule.locations[].country: [Australia, Canada, Germany, Israel, Italy, Japan, Spain, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT04895709"
+            },
+            {
+              "nct_id": "NCT05423262",
+              "excerpt": "\"A Study of TRK-950 in Patients With Advanced Solid Tumors\" \u2014 contactsLocationsModule.locations[].country: [Japan]",
+              "url": "https://clinicaltrials.gov/study/NCT05423262"
+            }
+          ],
+          "total_supporting_trials": 9
+        },
+        {
+          "country": "Austria",
+          "trial_count": 8,
+          "citations": [
+            {
+              "nct_id": "NCT03340506",
+              "excerpt": "\"Dabrafenib and/or Trametinib Rollover Study\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Austria, China, Denmark, France, Germany, Hungary, Japan, Netherlands, Spain, Thailand, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT03340506"
+            },
+            {
+              "nct_id": "NCT04045691",
+              "excerpt": "\"Binimetinib Plus Encorafenib Real Life Investigation of Next Generation Melanoma Treatment\" \u2014 contactsLocationsModule.locations[].country: [Austria, Germany, Switzerland]",
+              "url": "https://clinicaltrials.gov/study/NCT04045691"
+            },
+            {
+              "nct_id": "NCT05549297",
+              "excerpt": "\"Tebentafusp Regimen Versus Investigator's Choice in Previously Treated Advanced Melanoma (TEBE-AM)\" \u2014 contactsLocationsModule.locations[].country: [Australia, Austria, Belgium, Canada, France, Germany, Italy, Poland, Spain, Switzerland, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT05549297"
+            }
+          ],
+          "total_supporting_trials": 8
+        },
+        {
+          "country": "Norway",
+          "trial_count": 7,
+          "citations": [
+            {
+              "nct_id": "NCT03340129",
+              "excerpt": "\"Anti-PD 1 Brain Collaboration + Radiotherapy Extension (ABC-X Study)\" \u2014 contactsLocationsModule.locations[].country: [Australia, Norway]",
+              "url": "https://clinicaltrials.gov/study/NCT03340129"
+            },
+            {
+              "nct_id": "NCT06112314",
+              "excerpt": "\"IMC-F106C Regimen Versus Nivolumab Regimens in Previously Untreated Advanced Melanoma (PRISM-MEL-301)\" \u2014 contactsLocationsModule.locations[].country: [Argentina, Australia, Austria, Belgium, Brazil, Bulgaria, Canada, Czechia, Denmark, Finland, France, Germany, Hungary, Italy, Lithuania, Mexico, Norway, Poland, Portugal, Romania, Spain, Sweden, Switzerland, Turkey (T\u00fcrkiye), United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT06112314"
+            },
+            {
+              "nct_id": "NCT06172478",
+              "excerpt": "\"A Study of HER3-DXd in Subjects With Locally Advanced or Metastatic Solid Tumors\" \u2014 contactsLocationsModule.locations[].country: [Australia, Belgium, Canada, China, France, Germany, Hungary, Italy, Japan, Netherlands, Norway, South Korea, Spain, Taiwan, United Kingdom, United States]",
+              "url": "https://clinicaltrials.gov/study/NCT06172478"
+            }
+          ],
+          "total_supporting_trials": 7
+        }
+      ]
+    },
+    "meta": {
+      "filters": {
+        "condition": "melanoma",
+        "status": "rec"
+      },
+      "source": "clinicaltrials.gov",
+      "data_as_of": "2026-08-07T09:00:05",
+      "total_studies_processed": 478,
+      "api_urls": [
+        "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=600&query.cond=melanoma&aggFilters=status%3Arec&countTotal=true"
+      ],
+      "query_interpretation": "Interpreted as a geographic question, grouped by country, rendered as a geo bar chart.",
+      "assumptions": [
+        "Interpreted 'most recruiting trials' as a geographic breakdown of recruiting trials by country."
+      ],
+      "warnings": [
+        "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials."
+      ],
+      "sorting": "trial count descending",
+      "time_granularity": null
+    }
+  }
+}

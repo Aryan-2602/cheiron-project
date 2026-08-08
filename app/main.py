@@ -5,10 +5,22 @@ from app.core.logging import setup_logging
 
 setup_logging()
 
-app = FastAPI(title="LLM Agent Service")
+app = FastAPI(
+    title="ClinicalTrials.gov Query-to-Visualization Agent",
+    version="1.0.0",
+    description=(
+        "Turns natural-language questions about clinical trials into structured "
+        "visualization specifications backed by live ClinicalTrials.gov API v2 "
+        "data.\n\n"
+        "Every value in a response is computed by aggregation code over real "
+        "trial records and carries citations to the trials that produced it. "
+        "The language model is used only to interpret the question -- it never "
+        "generates a data value."
+    ),
+)
 app.include_router(router)
 
 
-@app.get("/health")
+@app.get("/health", tags=["ops"])
 def health() -> dict[str, str]:
     return {"status": "ok"}

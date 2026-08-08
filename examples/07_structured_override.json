@@ -1,0 +1,345 @@
+{
+  "request": {
+    "query": "How are trials for this drug distributed across sponsors?",
+    "drug_name": "Nivolumab",
+    "phase": 3,
+    "max_studies": 600
+  },
+  "response": {
+    "visualization": {
+      "type": "bar_chart",
+      "title": "Nivolumab (phase 3) trials by lead sponsor",
+      "encoding": {
+        "x": {
+          "field": "sponsor",
+          "label": "Lead sponsor",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "trial_count",
+          "label": "Number of trials",
+          "type": "quantitative"
+        },
+        "color": null,
+        "nodes": null,
+        "edges": null
+      },
+      "data": [
+        {
+          "sponsor": "Bristol-Myers Squibb",
+          "trial_count": 68,
+          "citations": [
+            {
+              "nct_id": "NCT01642004",
+              "excerpt": "\"Study of BMS-936558 (Nivolumab) Compared to Docetaxel in Previously Treated Advanced or Metastatic Squamous Cell Non-small Cell Lung Cancer (NSCLC) (CheckMate 0...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"",
+              "url": "https://clinicaltrials.gov/study/NCT01642004"
+            },
+            {
+              "nct_id": "NCT01668784",
+              "excerpt": "\"Study of Nivolumab (BMS-936558) vs. Everolimus in Pre-Treated Advanced or Metastatic Clear-cell Renal Cell Carcinoma (CheckMate 025)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"",
+              "url": "https://clinicaltrials.gov/study/NCT01668784"
+            },
+            {
+              "nct_id": "NCT01673867",
+              "excerpt": "\"Study of BMS-936558 (Nivolumab) Compared to Docetaxel in Previously Treated Metastatic Non-squamous NSCLC\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"",
+              "url": "https://clinicaltrials.gov/study/NCT01673867"
+            }
+          ],
+          "total_supporting_trials": 68
+        },
+        {
+          "sponsor": "National Cancer Institute (NCI)",
+          "trial_count": 20,
+          "citations": [
+            {
+              "nct_id": "NCT02224781",
+              "excerpt": "\"Dabrafenib and Trametinib Followed by Ipilimumab and Nivolumab or Ipilimumab and Nivolumab Followed by Dabrafenib and Trametinib in Treating Patients With Stage...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"",
+              "url": "https://clinicaltrials.gov/study/NCT02224781"
+            },
+            {
+              "nct_id": "NCT02339571",
+              "excerpt": "\"A Phase II/III Trial of Nivolumab, Ipilimumab, and GM-CSF in Patients With Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"",
+              "url": "https://clinicaltrials.gov/study/NCT02339571"
+            },
+            {
+              "nct_id": "NCT02595944",
+              "excerpt": "\"Nivolumab After Surgery and Chemotherapy in Treating Patients With Stage IB-IIIA Non-small Cell Lung Cancer (An ALCHEMIST Treatment Trial)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"",
+              "url": "https://clinicaltrials.gov/study/NCT02595944"
+            }
+          ],
+          "total_supporting_trials": 20
+        },
+        {
+          "sponsor": "Ono Pharmaceutical Co., Ltd.",
+          "trial_count": 6,
+          "citations": [
+            {
+              "nct_id": "NCT02267343",
+              "excerpt": "\"Study of ONO-4538 in Unresectable Advanced or Recurrent Gastric Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Ono Pharmaceutical Co., Ltd.\"",
+              "url": "https://clinicaltrials.gov/study/NCT02267343"
+            },
+            {
+              "nct_id": "NCT02569242",
+              "excerpt": "\"Study of Nivolumab in Unresectable Advanced or Recurrent Esophageal Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Ono Pharmaceutical Co., Ltd.\"",
+              "url": "https://clinicaltrials.gov/study/NCT02569242"
+            },
+            {
+              "nct_id": "NCT02746796",
+              "excerpt": "\"Study of ONO-4538 in Gastric Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Ono Pharmaceutical Co., Ltd.\"",
+              "url": "https://clinicaltrials.gov/study/NCT02746796"
+            }
+          ],
+          "total_supporting_trials": 6
+        },
+        {
+          "sponsor": "AstraZeneca",
+          "trial_count": 4,
+          "citations": [
+            {
+              "nct_id": "NCT04960709",
+              "excerpt": "\"Treatment Combination of Durvalumab, Tremelimumab and Enfortumab Vedotin or Durvalumab and Enfortumab Vedotin in Patients With Muscle Invasive Bladder Cancer In...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"AstraZeneca\"",
+              "url": "https://clinicaltrials.gov/study/NCT04960709"
+            },
+            {
+              "nct_id": "NCT06097728",
+              "excerpt": "\"MEDI5752 in Combination With Carboplatin Plus Pemetrexed in Unresectable Pleural Mesothelioma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"AstraZeneca\"",
+              "url": "https://clinicaltrials.gov/study/NCT06097728"
+            },
+            {
+              "nct_id": "NCT07431281",
+              "excerpt": "\"Sonesitatug Vedotin in Combination With Capecitabine With or Without Rilvegostomig in Participants With Advanced or Metastatic Gastric, Gastroesophageal Junctio...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"AstraZeneca\"",
+              "url": "https://clinicaltrials.gov/study/NCT07431281"
+            }
+          ],
+          "total_supporting_trials": 4
+        },
+        {
+          "sponsor": "Alliance for Clinical Trials in Oncology",
+          "trial_count": 3,
+          "citations": [
+            {
+              "nct_id": "NCT04637594",
+              "excerpt": "\"Trying to Find the Correct Length of Treatment With Immune Checkpoint Therapy\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Alliance for Clinical Trials in Oncology\"",
+              "url": "https://clinicaltrials.gov/study/NCT04637594"
+            },
+            {
+              "nct_id": "NCT05677490",
+              "excerpt": "\"mFOLFIRINOX Versus mFOLFOX With or Without Nivolumab for the Treatment of Advanced, Unresectable, or Metastatic HER2 Negative Esophageal, Gastroesophageal Junct...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Alliance for Clinical Trials in Oncology\"",
+              "url": "https://clinicaltrials.gov/study/NCT05677490"
+            },
+            {
+              "nct_id": "NCT06632327",
+              "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Alliance for Clinical Trials in Oncology\"",
+              "url": "https://clinicaltrials.gov/study/NCT06632327"
+            }
+          ],
+          "total_supporting_trials": 3
+        },
+        {
+          "sponsor": "Amgen",
+          "trial_count": 3,
+          "citations": [
+            {
+              "nct_id": "NCT05111626",
+              "excerpt": "\"Bemarituzumab Plus Chemotherapy and Nivolumab Versus Chemotherapy and Nivolumab for FGFR2b Overexpressed Untreated Advanced Gastric and Gastroesophageal Junctio...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Amgen\"",
+              "url": "https://clinicaltrials.gov/study/NCT05111626"
+            },
+            {
+              "nct_id": "NCT05907122",
+              "excerpt": "\"A Study to Evaluate Similarity of ABP 206 Compared With OPDIVO\u00ae (Nivolumab) in Subjects With Resected Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Amgen\"",
+              "url": "https://clinicaltrials.gov/study/NCT05907122"
+            },
+            {
+              "nct_id": "NCT06054555",
+              "excerpt": "\"A Study to Evaluate ABP 206 Compared With OPDIVO\u00ae (Nivolumab) in Subjects With Unresectable or Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Amgen\"",
+              "url": "https://clinicaltrials.gov/study/NCT06054555"
+            }
+          ],
+          "total_supporting_trials": 3
+        },
+        {
+          "sponsor": "Exelixis",
+          "trial_count": 3,
+          "citations": [
+            {
+              "nct_id": "NCT03937219",
+              "excerpt": "\"Study of Cabozantinib in Combination With Nivolumab and Ipilimumab in Patients With Previously Untreated Advanced or Metastatic Renal Cell Carcinoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Exelixis\"",
+              "url": "https://clinicaltrials.gov/study/NCT03937219"
+            },
+            {
+              "nct_id": "NCT05678673",
+              "excerpt": "\"Study of XL092 + Nivolumab vs Sunitinib in Subjects With Advanced or Metastatic Non-Clear Cell Renal Cell Carcinoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Exelixis\"",
+              "url": "https://clinicaltrials.gov/study/NCT05678673"
+            },
+            {
+              "nct_id": "NCT07620574",
+              "excerpt": "\"Long-Term Extension Study for Participants Previously Enrolled in an Exelixis-Sponsored Study\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Exelixis\"",
+              "url": "https://clinicaltrials.gov/study/NCT07620574"
+            }
+          ],
+          "total_supporting_trials": 3
+        },
+        {
+          "sponsor": "SWOG Cancer Research Network",
+          "trial_count": 3,
+          "citations": [
+            {
+              "nct_id": "NCT02785952",
+              "excerpt": "\"Lung-MAP: Nivolumab With or Without Ipilimumab as Second-Line Therapy in Treating Patients With Recurrent Stage IV Squamous Cell Lung Cancer and No Matching Bio...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"SWOG Cancer Research Network\"",
+              "url": "https://clinicaltrials.gov/study/NCT02785952"
+            },
+            {
+              "nct_id": "NCT04510597",
+              "excerpt": "\"Comparing the Outcome of Immunotherapy-Based Drug Combination Therapy With or Without Surgery to Remove the Kidney in Metastatic Kidney Cancer, the PROBE Trial\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"SWOG Cancer Research Network\"",
+              "url": "https://clinicaltrials.gov/study/NCT04510597"
+            },
+            {
+              "nct_id": "NCT07383441",
+              "excerpt": "\"Adding Biotherapy or Placebo to Standard Treatment for Advanced Kidney Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"SWOG Cancer Research Network\"",
+              "url": "https://clinicaltrials.gov/study/NCT07383441"
+            }
+          ],
+          "total_supporting_trials": 3
+        },
+        {
+          "sponsor": "Centre Leon Berard",
+          "trial_count": 2,
+          "citations": [
+            {
+              "nct_id": "NCT04741438",
+              "excerpt": "\"Efficacy of the Combination of Nivolumab and Ipilimumab as a Treatment in Patients With Sarcoma of Rare Subtype\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Centre Leon Berard\"",
+              "url": "https://clinicaltrials.gov/study/NCT04741438"
+            },
+            {
+              "nct_id": "NCT06346197",
+              "excerpt": "\"Combination of Immune Checkpoint in Locally Advanced or Metastatic MSI/dMMR Esogastric Adenocarcinomas\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Centre Leon Berard\"",
+              "url": "https://clinicaltrials.gov/study/NCT06346197"
+            }
+          ],
+          "total_supporting_trials": 2
+        },
+        {
+          "sponsor": "Gustave Roussy, Cancer Campus, Grand Paris",
+          "trial_count": 2,
+          "citations": [
+            {
+              "nct_id": "NCT06364631",
+              "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Gustave Roussy, Cancer Campus, Grand Paris\"",
+              "url": "https://clinicaltrials.gov/study/NCT06364631"
+            },
+            {
+              "nct_id": "NCT06840782",
+              "excerpt": "\"First-line Immunotherapy-based Standard of Care and Local Ablative Treatments for Oligometastatic Non-small Cell Lung Cancer Patients.\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Gustave Roussy, Cancer Campus, Grand Paris\"",
+              "url": "https://clinicaltrials.gov/study/NCT06840782"
+            }
+          ],
+          "total_supporting_trials": 2
+        },
+        {
+          "sponsor": "Incyte Corporation",
+          "trial_count": 2,
+          "citations": [
+            {
+              "nct_id": "NCT03342352",
+              "excerpt": "\"Nivolumab Plus Epacadostat in Combination With Chemotherapy Versus the EXTREME Regimen in Squamous Cell Carcinoma of the Head and Neck (CheckMate 9NA/ECHO-310)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Incyte Corporation\"",
+              "url": "https://clinicaltrials.gov/study/NCT03342352"
+            },
+            {
+              "nct_id": "NCT03348904",
+              "excerpt": "\"Nivolumab and Epacadostat With Platinum Doublet Chemotherapy Versus Platinum Doublet Chemotherapy in Non-Small Cell Lung Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Incyte Corporation\"",
+              "url": "https://clinicaltrials.gov/study/NCT03348904"
+            }
+          ],
+          "total_supporting_trials": 2
+        },
+        {
+          "sponsor": "Intergroupe Francophone de Cancerologie Thoracique",
+          "trial_count": 2,
+          "citations": [
+            {
+              "nct_id": "NCT03469960",
+              "excerpt": "\"Double Immune Checkpoint Inhibitors in PD-L1-positive Stage IV Non-small Lung CancEr\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Intergroupe Francophone de Cancerologie Thoracique\"",
+              "url": "https://clinicaltrials.gov/study/NCT03469960"
+            },
+            {
+              "nct_id": "NCT06908993",
+              "excerpt": "\"Tepotinib vs Standard Treatment in Patients With Advanced MET Exon 14 Mutated Non-Small Cell Lung Cancer Previously Treated\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Intergroupe Francophone de Cancerologie Thoracique\"",
+              "url": "https://clinicaltrials.gov/study/NCT06908993"
+            }
+          ],
+          "total_supporting_trials": 2
+        },
+        {
+          "sponsor": "Mirati Therapeutics Inc.",
+          "trial_count": 2,
+          "citations": [
+            {
+              "nct_id": "NCT03906071",
+              "excerpt": "\"Phase 3 Study of Sitravatinib Plus Nivolumab vs Docetaxel in Patients With Advanced Non-Squamous Non-Small Cell Lung Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Mirati Therapeutics Inc.\"",
+              "url": "https://clinicaltrials.gov/study/NCT03906071"
+            },
+            {
+              "nct_id": "NCT04887870",
+              "excerpt": "\"Study of Sitravatinib With or Without Other Anticancer Therapies Receiving Clinical Benefit From Parent Study\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Mirati Therapeutics Inc.\"",
+              "url": "https://clinicaltrials.gov/study/NCT04887870"
+            }
+          ],
+          "total_supporting_trials": 2
+        },
+        {
+          "sponsor": "Nektar Therapeutics",
+          "trial_count": 2,
+          "citations": [
+            {
+              "nct_id": "NCT03729245",
+              "excerpt": "\"A Study of Bempegaldesleukin (NKTR-214: BEMPEG) in Combination With Nivolumab Compared With the Investigator's Choice of a Tyrosine Kinase Inhibitor (TKI) Thera...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Nektar Therapeutics\"",
+              "url": "https://clinicaltrials.gov/study/NCT03729245"
+            },
+            {
+              "nct_id": "NCT04410445",
+              "excerpt": "\"Study to Compare Adjuvant Immunotherapy of Bempegaldesleukin Combined With Nivolumab Versus Nivolumab After Complete Resection of Melanoma in Patients at High R...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Nektar Therapeutics\"",
+              "url": "https://clinicaltrials.gov/study/NCT04410445"
+            }
+          ],
+          "total_supporting_trials": 2
+        },
+        {
+          "sponsor": "Regeneron Pharmaceuticals",
+          "trial_count": 2,
+          "citations": [
+            {
+              "nct_id": "NCT04695977",
+              "excerpt": "\"CMP-001 in Combination With Nivolumab Compared to Nivolumab Monotherapy in Subjects With Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Regeneron Pharmaceuticals\"",
+              "url": "https://clinicaltrials.gov/study/NCT04695977"
+            },
+            {
+              "nct_id": "NCT06246916",
+              "excerpt": "\"A Study With Combinations of Anti-LAG-3 and Anti-PD-1 Antibodies in Adult Participants With Advanced or Metastatic Melanoma (Harmony Head-to-Head)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Regeneron Pharmaceuticals\"",
+              "url": "https://clinicaltrials.gov/study/NCT06246916"
+            }
+          ],
+          "total_supporting_trials": 2
+        }
+      ]
+    },
+    "meta": {
+      "filters": {
+        "intervention": "Nivolumab",
+        "phase": "3"
+      },
+      "source": "clinicaltrials.gov",
+      "data_as_of": "2026-08-07T09:00:05",
+      "total_studies_processed": 185,
+      "api_urls": [
+        "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=600&query.intr=Nivolumab&aggFilters=phase%3A3&countTotal=true"
+      ],
+      "query_interpretation": "Interpreted as a distribution question, grouped by lead sponsor, rendered as a bar chart.",
+      "assumptions": [
+        "'this drug' refers to a drug mentioned outside the text, so no specific drug entity was extracted."
+      ],
+      "warnings": [],
+      "sorting": "trial count descending",
+      "time_granularity": null
+    }
+  }
+}
