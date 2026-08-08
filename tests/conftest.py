@@ -7,6 +7,21 @@ import pytest
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 
+@pytest.fixture(autouse=True)
+def isolate_drug_cache():
+    """Reset the module-level RxNorm cache between tests.
+
+    The singleton is deliberate in production -- drug identity is globally
+    stable and most of the benefit is cross-request -- but shared state would
+    otherwise let one test's cached negative result decide another's outcome.
+    """
+    from app.services.drug_resolver import DRUG_CACHE
+
+    DRUG_CACHE.clear()
+    yield
+    DRUG_CACHE.clear()
+
+
 def make_record(
     nct_id: str = "NCT00000001",
     *,

@@ -364,7 +364,7 @@
       ],
       "query_interpretation": "Interpreted as a comparison question, grouped by phase, rendered as a grouped bar chart.",
       "assumptions": [
-        "I treated this as a comparison of trials involving the two named drugs, grouped by phase."
+        "Interpreted \"Compare phases\" as a comparison of trial phase distributions for the two drugs."
       ],
       "warnings": [
         "Fetched 500 of 2,922 matching trials (capped at max_studies=500); figures below describe that sample, not the full result set.",

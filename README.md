@@ -21,6 +21,7 @@ POST /api/v1/query   {"query": "How are lung cancer trials distributed across ph
 - [Supported questions](#supported-questions)
 - [The single aggregation abstraction](#the-single-aggregation-abstraction)
 - [Network graphs](#network-graphs)
+  - [Drug synonym resolution](#drug-synonym-resolution)
 - [Deep citations](#deep-citations)
 - [Validation](#validation)
 - [Working with the ClinicalTrials.gov API](#working-with-the-clinicaltrialsgov-api)
@@ -58,7 +59,7 @@ curl -s -X POST http://127.0.0.1:8000/api/v1/query \
 Run the tests, or regenerate every example output against the live API:
 
 ```bash
-pytest -q                              # 166 tests, no network or API key needed
+pytest -q                              # 250 tests, no network or API key needed
 python scripts/run_examples.py         # writes examples/*.json from live data
 ```
 
@@ -208,7 +209,7 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
 
 ```json
 "encoding": {
-  "nodes": {"id": "id", "label": "label", "size": "size", "group": "kind"},
+  "nodes": {"id": "id", "label": "label", "size": "size", "group": "kind", "rxcui": "rxcui"},
   "edges": {"source": "source", "target": "target", "weight": "weight"}
 }
 ```
@@ -221,6 +222,13 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
 |---|---|---|
 | `citations` | array | Up to `max_citations_per_datum` entries of `{nct_id, excerpt, url}`. |
 | `total_supporting_trials` | int | The **full** number of contributing trials, so a truncated citation list never reads as the complete evidence set. |
+
+**Network nodes additionally carry:**
+
+| Field | Type | Description |
+|---|---|---|
+| `rxcui` | string \| null | RxNorm ingredient id when the drug name resolved, so a reader can verify the identity against RxNav. `null` for sponsors and unresolved names. |
+| `merged_from` | array | The distinct source names folded into this node. Non-empty only when a real brand/generic merge happened — e.g. `["Keytruda", "KEYTRUDA®", "Pembrolizumab (MK-3475)"]`. |
 
 ### `meta`
 
@@ -357,10 +365,32 @@ Pruning keeps the busiest sponsors first and *then* the drugs those sponsors act
 ### Design choices
 
 - **Intervention names are normalized.** Registry names are free text, so the same agent appears as `Pembrolizumab`, `Pembrolizumab 200 mg`, `Pembrolizumab (MK-3475)`, and `pembrolizumab IV`. Without normalization each is its own node and the graph fragments into near-duplicates. Parentheticals, dosages, and administration routes are stripped.
+- **Brand and generic names are merged via RxNorm.** String normalization cannot collapse `Keytruda` and `pembrolizumab`, which share no characters, so the trials naming each were counted as evidence for two different compounds. Each cleaned name is resolved to its RxNorm **ingredient** and that ingredient becomes the node identity. See [Drug synonym resolution](#drug-synonym-resolution) below.
 - **Placebo and standard-of-care are excluded.** They appear in a large fraction of trials and carry no relationship information; keeping them makes every graph a star centred on "Placebo".
 - **Only `DRUG`, `BIOLOGICAL`, and `COMBINATION_PRODUCT` interventions become nodes.** "Surgery" and "Counseling" are not drugs.
 - **Edges need ≥2 shared trials by default.** A single co-occurrence is overwhelmingly incidental rather than a studied combination.
 - **Isolated nodes are dropped**, and pruning never leaves a dangling edge. Truncation is always reported via `truncated_to_top_n` and a `meta.warnings` entry — a graph silently showing the top 30 of 400 drugs would read as the whole picture.
+
+### Drug synonym resolution
+
+Node identity comes from [RxNorm](https://rxnav.nlm.nih.gov/) (NLM, no API key). RxNorm over ChEMBL because it is maintained by the same organization as ClinicalTrials.gov and is built around *clinical drug identity* — "is this the same medicine a patient receives" — rather than general chemistry, which is exactly the question a co-occurrence node asks.
+
+**Resolution walks to the ingredient, not the matched concept.** Brand and generic are *distinct* RxNorm concepts — Keytruda is RxCUI 1547550, pembrolizumab is 1547545 — and asking RxNorm for Keytruda's preferred name returns `"Keytruda"`. Matching alone therefore does not merge them. Each name goes through two calls:
+
+1. `approximateTerm` → a concept plus a confidence score
+2. `related.json?tty=IN` → that concept's **ingredient**
+
+Step 2 is idempotent (an ingredient relates to itself), so brand and generic input converge through one code path, and the response carries the canonical name — no third call needed.
+
+**Ordering matters: resolution happens before the graph is built, not after pruning.** Merging changes node size and edge weight, and those are what pruning ranks on. Resolved afterwards, two fragments of one compound could each miss a node cap their merged form would clear, and a weight-1 `Keytruda—carboplatin` edge would be discarded before it could join the `pembrolizumab—carboplatin` edge it belongs to. What *is* deferred is the choice of *which* names to resolve: provisional sizes are computed from string normalization alone (no API calls), and only the top candidates are sent to RxNorm — on a 600-trial query that is 87 lookups instead of 628, **86% avoided**.
+
+**The confidence threshold is 11.0**, and the score scale is unbounded (~0–15), not 0–1. Measured against the live API, every correct match scored ≥ 11.49 while the worst false positive scored 6.38 (`MK-3475` → an unrelated concept; `study drug` → a hand sanitizer gel at 2.63). The threshold sits inside that empty band and is deliberately strict, because the costs are asymmetric: **a wrong merge fuses two compounds into one node and is invisible in the output**, while a missed merge only leaves the pre-RxNorm behavior.
+
+**A high score is not sufficient, which live data proved.** RxNorm resolves multi-drug strings confidently to one component and silently discards the rest — `"placebo for pembrolizumab"` → pembrolizumab (a *control arm* counted as the active drug), `"favezelimab pembrolizumab"` → pembrolizumab (moving favezelimab's trial onto pembrolizumab's node), `"ipilimumab pembrolizumab durvalumab idarubicin bevacizumab"` → durvalumab. All score 12–14. A name is therefore only sent to RxNorm when it plausibly denotes exactly one agent: no multi-agent connective (`and`, `or`, `with`, `+`, `/`), no comparator or placebo wording, not a bare research code, and at most one token that is not a known formulation qualifier — so `nab paclitaxel` and `doxorubicin hydrochloride` resolve while `gemcitabine nab-paclitaxel` does not.
+
+**Failure is always soft.** A timeout, a 5xx, an unknown name, or a combination product with no single ingredient all yield an *unresolved* result carrying the cleaned name; the graph degrades to string normalization and says so in `meta.warnings`. `RXNORM_ENABLED=false` disables resolution entirely, producing output byte-identical to the pre-RxNorm behavior.
+
+**Every merge is auditable.** A merged node carries `rxcui` and `merged_from` (the source names folded into it), and its `nct_ids` is the set *union* of every contributing name's trials — so `size`, edge weights, citations, and `total_supporting_trials` are all computed over that union rather than reconciled afterwards. In the live example, one node's citations span both a Keytruda trial and a Pembrolizumab trial.
 
 ---
 
@@ -452,7 +482,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 **Year ranges and most status filters are applied client-side.** There is no live-verified date-range parameter, and only `status:rec` was confirmed among the status codes. Sending an unverified filter risks a silently-empty result; filtering locally is exact, keeps citations intact, and is disclosed in `meta.warnings`.
 
-**Brand and generic drug names are not merged.** Mapping Keytruda → pembrolizumab needs a drug vocabulary (RxNorm or similar) that this service does not have. Guessing would silently fuse distinct agents, which is a worse failure than leaving them separate. Documented rather than hidden.
+**Brand and generic drug names are merged, conservatively.** Node identity comes from RxNorm ingredients, so `Keytruda` and `pembrolizumab` are one node (see [Drug synonym resolution](#drug-synonym-resolution)). The filter is deliberately strict rather than maximal: on a 600-trial pembrolizumab query, **22% of the 628 distinct drug names resolve, producing 15 merges, all clinically correct** (`keytruda`/`pembrolizumab`, `opdivo`/`nivolumab`, `xeloda`/`capecitabine`, `abraxane`/`nab-paclitaxel`, `5-FU`/`fluorouracil`, `aldesleukin`/`recombinant human interleukin-2`) **with zero false merges**. The unresolved 78% is mostly research codes (`ACE2016`, `MK-3475`) and genuine multi-drug arms that *should not* merge. An earlier, looser filter resolved 34% but produced merges that folded placebo arms and combination partners into the active drug — so the lower rate is the feature working, not a shortfall.
 
 **Excerpts quote fields already fetched.** Prose spans from full trial text would need a `GET /studies/{nctId}` call per cited trial. The spec explicitly allows "a specific field/value", and the field-level excerpt is more verifiable anyway — it names the exact path a reader should check.
 
@@ -464,7 +494,9 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 ## Limitations and what I would do with more time
 
-- **Drug synonym resolution.** Integrate RxNorm or the ChEMBL API so brand and generic names collapse to one node, and so `query.intr=Keytruda` and `query.intr=pembrolizumab` return the same graph. This is the single biggest quality win available for network graphs.
+- **The unresolved drug-name tail.** RxNorm resolution is conservative by design, so roughly three quarters of distinct names stay unmerged — research-stage compounds RxNorm has no entry for, and multi-drug arm descriptions that must not be collapsed onto one component. Some near-duplicate nodes therefore remain. Closing more of that gap needs per-token drug identification rather than a looser threshold, which would trade invisible false merges for visible ones.
+- **The RxNorm cache is process-local.** It is a bounded in-memory singleton, so each worker warms up independently and nothing is shared across processes. Fine at this scale; a shared cache would matter under real concurrency.
+- **Resolution is limited to a candidate pool.** Only the most-mentioned names are sent to RxNorm, so a merge involving two rarely-named variants can be missed. The bound is disclosed and the failure is conservative (no merge), never a wrong one.
 - **Full-text excerpts for cited trials.** Deep-fetch complete records for only the ≤3 cited trials per datum — bounded cost, since the citation limit caps it — and quote a prose span from the detailed description rather than a field value.
 - **Smarter sampling under the fetch cap.** Currently the first N trials the API returns are used. For a time series that biases toward whatever the API's default ordering favours. Stratified sampling by year, or using `countTotal` per year bucket to scale a sample up to a population estimate (clearly labelled as an estimate), would be more honest for very broad queries.
 - **Response caching.** Identical queries re-fetch from scratch. A short-lived cache keyed on the normalized search parameters would cut both latency and upstream load; the `data_as_of` timestamp is already tracked and would make invalidation straightforward.
@@ -478,7 +510,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 ## Testing
 
 ```bash
-pytest -q      # 166 tests, ~3s, no network access or API key required
+pytest -q      # 250 tests, ~6s, no network access or API key required
 ```
 
 | File | Covers |
@@ -487,7 +519,8 @@ pytest -q      # 166 tests, ~3s, no network access or API key required
 | `test_aggregate.py` | The core invariant (`value == len(set(nct_ids))`) across every dimension, multi-phase double counting, unknown buckets, zero-fill, series splitting, top-N, determinism. |
 | `test_ctgov.py` | Parameter construction, `pageToken` pagination, fetch caps, 429/5xx retry, non-retry on 400, the empty-filtered-result probe, and the pure query builder. |
 | `test_citations.py` | Excerpt construction, truncation reporting, and that citations track the aggregation exactly. |
-| `test_network.py` | Name normalization, placebo exclusion, edge weights, pruning without dangling edges, bipartiteness, and independent re-verification of edges against live data. |
+| `test_network.py` | Name normalization, placebo exclusion, edge weights, pruning without dangling edges, bipartiteness, RxNorm merging (union of `nct_ids`, edge weights summing across merged names, `resolutions=None` reproducing prior output), and independent re-verification of edges against live data. |
+| `test_drug_resolver.py` | Confidence-threshold boundary, the ingredient walk (brand → generic, generic → itself), the multi-drug and control-arm pre-filters, cache hit/miss/eviction and negative caching, and every RxNorm failure mode degrading rather than raising. Includes a captured-live-response guard asserting Keytruda and pembrolizumab reach the same RxCUI. |
 | `test_validate.py` | Each check driven by a deliberately corrupted response. |
 | `test_understanding.py` | Entity grounding, hallucination rejection, chart-type reconciliation, structured overrides, defaults. |
 | `test_pipeline.py` | Full pipeline with LLM and HTTP mocked, plus route-level error mapping. |
@@ -506,4 +539,4 @@ Per the assignment's integrity note.
 
 **Generated and then adapted.** Module scaffolding, Pydantic model boilerplate, and the first draft of most test cases. Everything was reviewed and revised — notably the fetcher's empty-filtered-result handling, which was originally specified to raise an error but would have false-positived on the legitimate case of "this drug genuinely has no Phase 4 trials"; it became a diagnostic warning that reports the unfiltered count instead.
 
-**Validated by hand.** Every ClinicalTrials.gov API claim was verified with live `curl` calls rather than trusted from documentation or model knowledge — which is how the nonexistent `filter.phase` parameter and the silently-failing `phase:PHASE3` form were caught. All example outputs were inspected for clinical plausibility, and cited NCT ids were spot-checked against the live registry.
+**Validated by hand.** Every ClinicalTrials.gov and RxNorm API claim was verified with live calls rather than trusted from documentation or model knowledge. That is how the nonexistent `filter.phase` parameter and the silently-failing `phase:PHASE3` form were caught; it is also how two RxNorm design errors were caught before they shipped. First, resolving a name to its matched concept does *not* merge brand into generic (Keytruda and pembrolizumab are separate RxCUIs), which forced the ingredient-walk design. Second, running resolution against 600 real trials — rather than only against fixtures — exposed that RxNorm resolves multi-drug strings confidently to one component, so `"placebo for pembrolizumab"` and `"favezelimab pembrolizumab"` were both merging into pembrolizumab. Fixtures alone would not have surfaced either. All example outputs were inspected for clinical plausibility, and cited NCT ids were spot-checked against the live registry.

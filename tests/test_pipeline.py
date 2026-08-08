@@ -16,6 +16,7 @@ from app.services.ctgov import CTGovClient, CTGovError
 from tests.conftest import make_record
 
 BASE = "https://clinicaltrials.gov/api/v2"
+RXNORM = "https://rxnav.nlm.nih.gov/REST"
 
 
 def plan(**kwargs):
@@ -169,10 +170,73 @@ class TestComparison:
         assert by_series["Nivolumab"] == {"Phase 1": 1, "Phase 2": 1, "No phase data": 1}
 
 
+def mock_rxnorm_unmatched():
+    """RxNorm reachable but recognising nothing -- graphs behave as before."""
+    respx.get(f"{RXNORM}/approximateTerm.json").mock(
+        return_value=httpx.Response(200, json={"approximateGroup": {"inputTerm": "x"}})
+    )
+
+
+def mock_rxnorm_merging():
+    """Term-aware RxNorm mock: brand and generic share an ingredient, and every
+    other drug keeps its own identity.
+
+    A blanket mock that maps everything to one ingredient would collapse the
+    whole graph into a single node -- which says nothing about merging.
+    """
+    ingredients = {
+        "keytruda": ("1547550", "1547545", "pembrolizumab"),
+        "pembrolizumab": ("1547545", "1547545", "pembrolizumab"),
+        "carboplatin": ("40048", "40048", "carboplatin"),
+    }
+
+    def approx(request):
+        term = (request.url.params.get("term") or "").lower()
+        entry = ingredients.get(term)
+        if entry is None:
+            return httpx.Response(200, json={"approximateGroup": {"inputTerm": term}})
+        return httpx.Response(
+            200,
+            json={"approximateGroup": {"candidate": [{"rxcui": entry[0], "score": "14.2"}]}},
+        )
+
+    def related(request):
+        concept = str(request.url).split("/rxcui/")[1].split("/")[0]
+        entry = next((v for v in ingredients.values() if v[0] == concept), None)
+        if entry is None:
+            return httpx.Response(200, json={"relatedGroup": {"conceptGroup": []}})
+        return httpx.Response(
+            200,
+            json={
+                "relatedGroup": {
+                    "conceptGroup": [
+                        {
+                            "tty": "IN",
+                            "conceptProperties": [
+                                {"rxcui": entry[1], "name": entry[2]}
+                            ],
+                        }
+                    ]
+                }
+            },
+        )
+
+    respx.get(f"{RXNORM}/approximateTerm.json").mock(side_effect=approx)
+    respx.get(url__regex=rf"{RXNORM}/rxcui/\d+/related\.json").mock(side_effect=related)
+
+
+#: Two trials naming the same compound differently -- the case merging exists for.
+BRAND_AND_GENERIC = [
+    make_record("NCT00000001", interventions=[("DRUG", "Keytruda"), ("DRUG", "Carboplatin")]),
+    make_record("NCT00000002", interventions=[("DRUG", "Pembrolizumab"), ("DRUG", "Carboplatin")]),
+]
+
+
 class TestNetwork:
     @respx.mock
     async def test_network_end_to_end(self):
         mock_studies(SAMPLE)
+        mock_rxnorm_unmatched()
         response = await run(
             query_type="relationship", viz_type="network_graph",
             network_kind="drug_drug", group_by=None,
@@ -190,6 +254,71 @@ class TestNetwork:
         for citation in edges[0]["citations"]:
             assert "Pembrolizumab" in citation["excerpt"]
             assert "Carboplatin" in citation["excerpt"]
+
+    @respx.mock
+    async def test_rxnorm_outage_degrades_with_a_warning(self):
+        """RxNorm is an enrichment: losing it must not fail the request."""
+        mock_studies(SAMPLE)
+        respx.get(f"{RXNORM}/approximateTerm.json").mock(
+            return_value=httpx.Response(503)
+        )
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            network_kind="drug_drug", group_by=None,
+        )
+        assert response.visualization.data[0]["nodes"]
+        assert any(
+            "Drug synonym resolution unavailable" in w
+            for w in response.meta.warnings
+        )
+
+    @respx.mock
+    async def test_merged_nodes_are_disclosed_and_carry_provenance(self):
+        mock_studies(BRAND_AND_GENERIC)
+        mock_rxnorm_merging()
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            network_kind="drug_drug", group_by=None,
+        )
+        nodes = response.visualization.data[0]["nodes"]
+        merged = [n for n in nodes if n.get("merged_from")]
+        assert merged, "Keytruda and Pembrolizumab should merge"
+        node = merged[0]
+        assert node["rxcui"] == "1547545"
+        assert node["label"] == "pembrolizumab"
+        assert sorted(node["merged_from"]) == ["Keytruda", "Pembrolizumab"]
+        # Distinct drugs keep their own node.
+        assert any(n["label"].lower() == "carboplatin" for n in nodes)
+        assert any("RxNorm" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_merged_node_citations_span_both_source_names(self):
+        """The union requirement: the brand trial and the generic trial must
+        both be citable under the merged node."""
+        mock_studies(BRAND_AND_GENERIC)
+        mock_rxnorm_merging()
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            network_kind="drug_drug", group_by=None,
+        )
+        node = next(
+            n for n in response.visualization.data[0]["nodes"] if n.get("merged_from")
+        )
+        assert node["total_supporting_trials"] == 2
+        assert {c["nct_id"] for c in node["citations"]} == {
+            "NCT00000001",
+            "NCT00000002",
+        }
+
+    @respx.mock
+    async def test_chart_queries_never_call_rxnorm(self):
+        """Resolution only affects graph identity, so charts must not pay for it."""
+        mock_studies(SAMPLE)
+        route = respx.get(f"{RXNORM}/approximateTerm.json").mock(
+            return_value=httpx.Response(200, json={"approximateGroup": {}})
+        )
+        await run()
+        assert route.call_count == 0
 
 
 class TestErrorPaths:

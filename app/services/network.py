@@ -24,7 +24,12 @@ from collections.abc import Callable, Iterable, Mapping
 from itertools import combinations
 from typing import Any
 
-from app.models.schemas import NetworkEdge, NetworkNode, NetworkResult
+from app.models.schemas import (
+    DrugResolution,
+    NetworkEdge,
+    NetworkNode,
+    NetworkResult,
+)
 
 #: Intervention types that name a therapeutic agent. PROCEDURE, DEVICE,
 #: BEHAVIORAL and friends are excluded: "Placebo administration" and
@@ -81,10 +86,23 @@ def normalize_intervention(name: str) -> str:
     return text
 
 
-def extract_drugs(record: dict[str, Any]) -> list[tuple[str, str]]:
-    """``(normalized_key, display_label)`` for each therapeutic agent in a trial.
+def extract_drugs(
+    record: dict[str, Any],
+    *,
+    resolutions: Mapping[str, DrugResolution] | None = None,
+) -> list[tuple[str, str]]:
+    """``(identity_key, display_label)`` for each therapeutic agent in a trial.
 
     Deduplicated within a trial, so a drug listed once per study arm counts once.
+
+    ``resolutions`` maps a string-normalized name to its RxNorm ingredient. It
+    is applied *here*, at key construction, which is what makes merging work
+    end to end: two names sharing an ingredient produce the same key, so the
+    node's ``nct_ids`` become the union of both names' trials and every derived
+    figure -- size, edge weight, citations, ``total_supporting_trials`` -- is
+    computed over that union rather than reconciled afterwards.
+
+    Passing ``None`` reproduces the pre-RxNorm behaviour exactly.
     """
     interventions = (
         record.get("protocolSection", {})
@@ -104,8 +122,37 @@ def extract_drugs(record: dict[str, Any]) -> list[tuple[str, str]]:
         key = normalize_intervention(name)
         if not key or key in STOPWORD_DRUGS:
             continue
-        seen.setdefault(key, name.strip())
+        display = name.strip()
+        if resolutions:
+            resolution = resolutions.get(key)
+            if resolution is not None and resolution.resolved and resolution.rxcui:
+                key, display = f"rxcui:{resolution.rxcui}", resolution.canonical_name
+        seen.setdefault(key, display)
     return sorted(seen.items())
+
+
+def rank_candidate_names(
+    records: Mapping[str, dict[str, Any]], *, top_k: int
+) -> list[str]:
+    """The ``top_k`` most-mentioned drug names, by provisional (unmerged) size.
+
+    Resolving every distinct name is mostly wasted work: a 600-trial query
+    yields hundreds of names, but only a few dozen nodes survive pruning. This
+    ranks names *before* any API call so resolution can be limited to the ones
+    that could plausibly reach the final graph.
+
+    The pool is deliberately several times larger than the node cap, because
+    merging only ever *increases* a node's size -- a name that looks marginal
+    on its own may be part of a compound that ranks highly once merged. Names
+    outside the pool are simply left unresolved, which is the same conservative
+    failure as any other unresolved name.
+    """
+    counts: dict[str, int] = defaultdict(int)
+    for record in records.values():
+        for key, _label in extract_drugs(record):
+            counts[key] += 1
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [name for name, _ in ranked[:top_k]]
 
 
 def extract_sponsors(record: dict[str, Any]) -> list[tuple[str, str]]:
@@ -120,7 +167,42 @@ def extract_sponsors(record: dict[str, Any]) -> list[tuple[str, str]]:
     return [(name.strip().lower(), name.strip())]
 
 
-ExtractEntities = Callable[[dict[str, Any]], list[tuple[str, str]]]
+ExtractEntities = Callable[..., list[tuple[str, str]]]
+
+
+def _merge_sources(
+    resolutions: Mapping[str, DrugResolution] | None,
+) -> dict[str, set[str]]:
+    """Node key -> the distinct source names that resolved to it.
+
+    Taken from the resolution map rather than from node labels: after a merge
+    every contributing name shares one canonical label, so the labels can no
+    longer show what was combined.
+    """
+    sources: dict[str, set[str]] = defaultdict(set)
+    for cleaned, resolution in (resolutions or {}).items():
+        if resolution.resolved and resolution.rxcui:
+            sources[f"rxcui:{resolution.rxcui}"] |= (
+                resolution.original_names or {cleaned}
+            )
+    return sources
+
+
+def _extract(
+    extract: ExtractEntities,
+    record: dict[str, Any],
+    resolutions: Mapping[str, DrugResolution] | None,
+) -> list[tuple[str, str]]:
+    """Call an extractor, passing ``resolutions`` only to those that accept it.
+
+    Keeps custom extractors (and ``extract_sponsors``) usable unchanged.
+    """
+    if resolutions is None:
+        return extract(record)
+    try:
+        return extract(record, resolutions=resolutions)
+    except TypeError:
+        return extract(record)
 
 
 def _label_for(candidates: Iterable[str]) -> str:
@@ -137,17 +219,27 @@ def _build_nodes(
     labels: Mapping[str, list[str]],
     kind: str,
     prefix: str,
+    originals: Mapping[str, set[str]] | None = None,
 ) -> dict[str, NetworkNode]:
-    return {
-        f"{prefix}:{key}": NetworkNode(
+    """Materialize nodes. ``originals`` records the distinct source names folded
+    into each key, so a merge is visible and auditable in the output."""
+    nodes: dict[str, NetworkNode] = {}
+    for key, ids in members.items():
+        # A resolved key is "rxcui:<id>"; keep the RxCUI itself on the node so a
+        # reader can check the merge against RxNav.
+        rxcui = key.split("rxcui:", 1)[1] if key.startswith("rxcui:") else None
+        merged = sorted(originals.get(key, set())) if originals else []
+        nodes[f"{prefix}:{key}"] = NetworkNode(
             id=f"{prefix}:{key}",
             label=_label_for(labels[key]),
             kind=kind,  # type: ignore[arg-type]
             size=len(ids),
             nct_ids=sorted(ids),
+            rxcui=rxcui,
+            # Only meaningful when more than one name collapsed here.
+            merged_from=merged if len(merged) > 1 else [],
         )
-        for key, ids in members.items()
-    }
+    return nodes
 
 
 def _prune(
@@ -186,6 +278,7 @@ def build_cooccurrence_network(
     kind: str = "drug",
     min_edge_weight: int = 2,
     max_nodes: int = 30,
+    resolutions: Mapping[str, DrugResolution] | None = None,
 ) -> NetworkResult:
     """Undirected co-occurrence graph over entities sharing a trial.
 
@@ -194,13 +287,17 @@ def build_cooccurrence_network(
             default of 2 drops pairs that co-occur exactly once, which are
             overwhelmingly incidental rather than a studied combination.
         max_nodes: Cap on graph size, reported via ``truncated_to_top_n``.
+        resolutions: Optional RxNorm ingredient map. Applied before sizes and
+            weights are computed, so a merged compound competes for a place in
+            the graph at its merged size rather than as separate fragments.
     """
     members: dict[str, set[str]] = defaultdict(set)
     labels: dict[str, list[str]] = defaultdict(list)
     pairs: dict[tuple[str, str], set[str]] = defaultdict(set)
+    originals = _merge_sources(resolutions)
 
     for nct_id, record in records.items():
-        entities = extract(record)
+        entities = _extract(extract, record, resolutions)
         for key, label in entities:
             members[key].add(nct_id)
             labels[key].append(label)
@@ -208,7 +305,7 @@ def build_cooccurrence_network(
         for (left, _), (right, _) in combinations(entities, 2):
             pairs[(min(left, right), max(left, right))].add(nct_id)
 
-    nodes = _build_nodes(members, labels, kind, kind)
+    nodes = _build_nodes(members, labels, kind, kind, originals)
     edges = [
         NetworkEdge(
             source=f"{kind}:{left}",
@@ -244,6 +341,7 @@ def build_bipartite_network(
     right_kind: str = "drug",
     max_left: int = 15,
     max_right: int = 25,
+    resolutions: Mapping[str, DrugResolution] | None = None,
 ) -> NetworkResult:
     """Bipartite graph linking each sponsor to the agents it studies.
 
@@ -257,9 +355,12 @@ def build_bipartite_network(
     right_labels: dict[str, list[str]] = defaultdict(list)
     links: dict[tuple[str, str], set[str]] = defaultdict(set)
 
+    right_originals = _merge_sources(resolutions)
+
     for nct_id, record in records.items():
         lefts = left_extract(record)
-        rights = right_extract(record)
+        # Only the drug side is resolvable; sponsors are already canonical.
+        rights = _extract(right_extract, record, resolutions)
         for key, label in lefts:
             left_members[key].add(nct_id)
             left_labels[key].append(label)
@@ -303,6 +404,7 @@ def build_bipartite_network(
             right_labels,
             right_kind,
             right_kind,
+            right_originals,
         )
     )
 

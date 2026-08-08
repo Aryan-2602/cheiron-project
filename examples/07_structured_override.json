@@ -335,7 +335,7 @@
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by lead sponsor, rendered as a bar chart.",
       "assumptions": [
-        "Interpreted \"this drug\" as a single drug mentioned in prior context, but no drug name appears in the current question."
+        "\u201cthis drug\u201d refers to a drug mentioned elsewhere, but no drug name appears in the question text."
       ],
       "warnings": [],
       "sorting": "trial count descending",

@@ -118,7 +118,15 @@ def build_chart_spec(
     )
 
 
-NODE_KEY_MAP = {"id": "id", "label": "label", "size": "size", "group": "kind"}
+NODE_KEY_MAP = {
+    "id": "id",
+    "label": "label",
+    "size": "size",
+    "group": "kind",
+    # Present on every node (null when unresolved) so a frontend can link
+    # out to RxNav without probing for the key.
+    "rxcui": "rxcui",
+}
 EDGE_KEY_MAP = {"source": "source", "target": "target", "weight": "weight"}
 
 
@@ -145,6 +153,10 @@ def build_network_spec(
                 "label": node.label,
                 "kind": node.kind,
                 "size": node.size,
+                # RxNorm identity and the source names folded into this node, so
+                # a merge is visible to the reader and checkable against RxNav.
+                "rxcui": node.rxcui,
+                "merged_from": node.merged_from,
                 "citations": [c.model_dump() for c in citations],
                 "total_supporting_trials": total,
             }

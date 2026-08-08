@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     RXNORM_TIMEOUT_SECONDS: float = 10.0
     RXNORM_MAX_RETRIES: int = 2
     RXNORM_MAX_CONCURRENCY: int = 5
+    #: How many of the most-mentioned drug names to resolve. Only a few
+    #: dozen nodes survive pruning, so resolving every distinct name is
+    #: mostly wasted work; the pool is kept several times larger than the
+    #: node cap because merging only ever increases a node's size.
+    RXNORM_CANDIDATE_POOL: int = 120
     #: Kill switch. False -> graphs fall back to pure string normalization,
     #: which is byte-identical to the behaviour before RxNorm was introduced.
     RXNORM_ENABLED: bool = True

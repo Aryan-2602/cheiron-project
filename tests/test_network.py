@@ -5,6 +5,7 @@ from app.services.network import (
     build_cooccurrence_network,
     extract_drugs,
     normalize_intervention,
+    rank_candidate_names,
 )
 from tests.conftest import make_record
 
@@ -210,3 +211,162 @@ class TestAgainstRealData:
                 keys = {k for k, _ in extract_drugs(records[nct_id])}
                 assert edge.source.split(":", 1)[1] in keys
                 assert edge.target.split(":", 1)[1] in keys
+
+
+class TestRxNormMerging:
+    """Brand/generic merging via a resolution map.
+
+    The load-bearing property is that merging happens at *key construction*, so
+    a merged node's ``nct_ids`` is a genuine set union of every contributing
+    name's trials -- which is what makes size, edge weight, citations and
+    total_supporting_trials all agree without a reconciliation step.
+    """
+
+    PEMBRO = "1547545"
+
+    def resolutions(self):
+        from app.models.schemas import DrugResolution
+
+        return {
+            "keytruda": DrugResolution(
+                rxcui=self.PEMBRO, canonical_name="pembrolizumab",
+                original_names={"Keytruda"}, resolved=True, score=14.25,
+            ),
+            "pembrolizumab": DrugResolution(
+                rxcui=self.PEMBRO, canonical_name="pembrolizumab",
+                original_names={"Pembrolizumab"}, resolved=True, score=13.69,
+            ),
+        }
+
+    def records(self):
+        return {
+            "NCT00000001": trial("NCT00000001", ["Keytruda", "Carboplatin"]),
+            "NCT00000002": trial("NCT00000002", ["Pembrolizumab", "Carboplatin"]),
+            "NCT00000003": trial("NCT00000003", ["Pembrolizumab", "Cisplatin"]),
+        }
+
+    def test_two_names_collapse_into_one_node(self):
+        result = build_cooccurrence_network(
+            self.records(), min_edge_weight=1, resolutions=self.resolutions()
+        )
+        drug_nodes = [n for n in result.nodes if n.kind == "drug"]
+        ids = {n.id for n in drug_nodes}
+        assert f"drug:rxcui:{self.PEMBRO}" in ids
+        # The two source names no longer exist as separate nodes.
+        assert "drug:keytruda" not in ids
+        assert "drug:pembrolizumab" not in ids
+
+    def test_merged_node_nct_ids_are_the_union_of_both_names(self):
+        result = build_cooccurrence_network(
+            self.records(), min_edge_weight=1, resolutions=self.resolutions()
+        )
+        node = next(n for n in result.nodes if n.rxcui == self.PEMBRO)
+        assert node.nct_ids == ["NCT00000001", "NCT00000002", "NCT00000003"]
+        assert node.size == 3
+
+    def test_merged_node_carries_rxcui_and_its_source_names(self):
+        result = build_cooccurrence_network(
+            self.records(), min_edge_weight=1, resolutions=self.resolutions()
+        )
+        node = next(n for n in result.nodes if n.rxcui == self.PEMBRO)
+        assert node.label == "pembrolizumab"
+        assert node.merged_from == ["Keytruda", "Pembrolizumab"]
+
+    def test_unmerged_nodes_have_no_rxcui_or_merged_from(self):
+        result = build_cooccurrence_network(
+            self.records(), min_edge_weight=1, resolutions=self.resolutions()
+        )
+        carbo = next(n for n in result.nodes if n.label == "Carboplatin")
+        assert carbo.rxcui is None
+        assert carbo.merged_from == []
+
+    def test_edge_weights_sum_across_merged_names(self):
+        """The reason merging must precede pruning: unmerged, keytruda-carboplatin
+        and pembrolizumab-carboplatin are two weight-1 edges that min_edge_weight
+        would discard. Merged, they are one weight-2 edge that survives."""
+        records = self.records()
+        unmerged = build_cooccurrence_network(records, min_edge_weight=2)
+        assert unmerged.edges == []
+
+        merged = build_cooccurrence_network(
+            records, min_edge_weight=2, resolutions=self.resolutions()
+        )
+        edge = next(
+            e for e in merged.edges if "carboplatin" in (e.source + e.target).lower()
+        )
+        assert edge.weight == 2
+        assert edge.nct_ids == ["NCT00000001", "NCT00000002"]
+
+    def test_citations_union_across_merged_names(self):
+        """The requirement moving resolution could have broken: a merged node's
+        citations must draw from both original names' trials."""
+        from app.services.citations import build_citations
+        from app.services.store import StudyStore
+
+        records = self.records()
+        store = StudyStore()
+        store.add_records(records.values())
+        result = build_cooccurrence_network(
+            records, min_edge_weight=1, resolutions=self.resolutions()
+        )
+        node = next(n for n in result.nodes if n.rxcui == self.PEMBRO)
+
+        citations, total = build_citations(node.nct_ids, store, "drug", limit=10)
+        assert total == 3, "total_supporting_trials must count the union"
+        cited = {c.nct_id for c in citations}
+        # NCT...001 named the brand, NCT...002/003 the generic: all three cited.
+        assert cited == {"NCT00000001", "NCT00000002", "NCT00000003"}
+
+    def test_resolutions_none_is_byte_identical_to_before(self):
+        records = self.records()
+        assert (
+            build_cooccurrence_network(records, min_edge_weight=1).model_dump()
+            == build_cooccurrence_network(
+                records, min_edge_weight=1, resolutions=None
+            ).model_dump()
+        )
+
+    def test_unresolved_entries_do_not_merge(self):
+        from app.models.schemas import DrugResolution
+
+        resolutions = {
+            "keytruda": DrugResolution(
+                rxcui=None, canonical_name="keytruda", resolved=False
+            )
+        }
+        result = build_cooccurrence_network(
+            self.records(), min_edge_weight=1, resolutions=resolutions
+        )
+        ids = {n.id for n in result.nodes}
+        assert "drug:keytruda" in ids and "drug:pembrolizumab" in ids
+
+    def test_bipartite_merges_the_drug_side_only(self):
+        result = build_bipartite_network(
+            self.records(), resolutions=self.resolutions()
+        )
+        drug_ids = {n.id for n in result.nodes if n.kind == "drug"}
+        assert f"drug:rxcui:{self.PEMBRO}" in drug_ids
+        sponsors = [n for n in result.nodes if n.kind == "sponsor"]
+        assert sponsors and all(n.rxcui is None for n in sponsors)
+        edge = next(e for e in result.edges if e.target.endswith(self.PEMBRO))
+        assert edge.weight == 3
+
+
+class TestCandidatePool:
+    def test_ranks_names_by_how_many_trials_mention_them(self):
+        records = {
+            "NCT00000001": trial("NCT00000001", ["Common", "Rare"]),
+            "NCT00000002": trial("NCT00000002", ["Common"]),
+            "NCT00000003": trial("NCT00000003", ["Common"]),
+        }
+        assert rank_candidate_names(records, top_k=1) == ["common"]
+
+    def test_pool_is_capped(self):
+        records = {
+            f"NCT{i:08d}": trial(f"NCT{i:08d}", [f"Drug{i}"]) for i in range(50)
+        }
+        assert len(rank_candidate_names(records, top_k=10)) == 10
+
+    def test_ranking_is_deterministic_on_ties(self):
+        records = {"NCT00000001": trial("NCT00000001", ["Bbb", "Aaa", "Ccc"])}
+        assert rank_candidate_names(records, top_k=3) == ["aaa", "bbb", "ccc"]

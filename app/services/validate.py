@@ -118,6 +118,18 @@ def _check_counts(
                     f"edge {edge.source}->{edge.target} references a node that is "
                     f"not in the graph"
                 )
+        for node in network.nodes:
+            # A merge is a claim that several names are one compound. It is only
+            # defensible if the resolved identity that justified it is present.
+            if node.merged_from and not node.rxcui:
+                raise ValidationFailure(
+                    f"node {node.id!r} claims to merge {len(node.merged_from)} names "
+                    f"but carries no RxNorm identity"
+                )
+            if node.merged_from and len(node.merged_from) < 2:
+                raise ValidationFailure(
+                    f"node {node.id!r} reports a merge of fewer than two names"
+                )
 
 
 def _iter_citation_blocks(spec: VisualizationSpec):

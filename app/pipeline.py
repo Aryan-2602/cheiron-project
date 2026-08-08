@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.agents.understanding import UnderstandingError, understand
+from app.core.config import settings
 from app.models.schemas import (
     AggregationResult,
     Meta,
@@ -29,7 +30,12 @@ from app.models.schemas import (
 from app.services.aggregate import aggregate, zero_fill_years
 from app.services.ctgov import CTGovClient, CTGovError, CTGovSearch, build_searches
 from app.services.dimensions import extract_start_year, get_dimension
-from app.services.network import build_bipartite_network, build_cooccurrence_network
+from app.services.drug_resolver import resolve_all
+from app.services.network import (
+    build_bipartite_network,
+    build_cooccurrence_network,
+    rank_candidate_names,
+)
 from app.services.store import StudyStore
 from app.services.validate import ValidationFailure, validate_response
 from app.services.viz import build_chart_spec, build_network_spec
@@ -217,18 +223,51 @@ def build_meta(
     )
 
 
-def analyze(
+async def resolve_drug_names(
+    plan: QueryPlan, store: StudyStore
+) -> tuple[dict[str, Any], list[str]]:
+    """Resolve the drug names that could plausibly reach the graph.
+
+    Ordering matters and is deliberate: resolution happens **before** the graph
+    is built, not after pruning. Merging changes node size and edge weight, and
+    those are exactly what pruning ranks on -- resolving afterwards would let
+    two fragments of one compound each miss the node cap that their merged form
+    would clear, and would drop a low-weight edge before it could contribute to
+    the merged edge it belongs to.
+
+    What *is* deferred is the choice of which names to resolve: sizes are
+    computed from string normalization alone (no API calls), the top candidates
+    are taken from that ranking, and only those are sent to RxNorm.
+    """
+    if not settings.RXNORM_ENABLED:
+        return {}, []
+    candidates = rank_candidate_names(
+        store.records, top_k=settings.RXNORM_CANDIDATE_POOL
+    )
+    if not candidates:
+        return {}, []
+    return await resolve_all(store.records, only=candidates)
+
+
+async def analyze(
     plan: QueryPlan, fetched: FetchResult
-) -> tuple[VisualizationSpec, AggregationResult | None, NetworkResult | None]:
+) -> tuple[VisualizationSpec, AggregationResult | None, NetworkResult | None, list[str]]:
     """Stages 4 and 5: measure, then format. The only source of data values."""
     store = fetched.store
 
     if plan.query_type == "relationship":
+        resolutions, warnings = await resolve_drug_names(plan, store)
         if plan.network_kind == "sponsor_drug":
-            network = build_bipartite_network(store.records)
+            network = build_bipartite_network(store.records, resolutions=resolutions)
         else:
-            network = build_cooccurrence_network(store.records)
-        return build_network_spec(network, plan, store), None, network
+            network = build_cooccurrence_network(store.records, resolutions=resolutions)
+        merged = sum(1 for n in network.nodes if n.merged_from)
+        if merged:
+            warnings.append(
+                f"Merged brand and generic names into {merged} shared compound "
+                f"node(s) using RxNorm; each merged node lists its source names."
+            )
+        return build_network_spec(network, plan, store), None, network, warnings
 
     dimension = get_dimension(plan.group_by or "phase")
     is_time_series = plan.viz_type == "time_series"
@@ -245,7 +284,8 @@ def analyze(
     )
     if is_time_series:
         result = zero_fill_years(result)
-    return build_chart_spec(result, plan, dimension, store), result, None
+    # Chart queries never touch RxNorm -- resolution only affects graph identity.
+    return build_chart_spec(result, plan, dimension, store), result, None, []
 
 
 async def run_pipeline(
@@ -301,14 +341,14 @@ async def run_pipeline(
             ),
         )
 
-    spec, aggregation, network = analyze(plan, fetched)
+    spec, aggregation, network, analysis_warnings = await analyze(plan, fetched)
     meta = build_meta(
         plan,
         fetched,
         data_as_of=data_as_of,
         aggregation=aggregation,
         network=network,
-        extra_warnings=extra_warnings,
+        extra_warnings=extra_warnings + analysis_warnings,
     )
     response = QueryResponse(visualization=spec, meta=meta)
     return validate_response(

@@ -244,3 +244,50 @@ class TestEmptyAndMeta:
         response.meta.api_urls = []
         with pytest.raises(ValidationFailure, match="upstream API URLs"):
             validate_response(response, store, aggregation=result)
+
+
+class TestMergeInvariant:
+    """A merge asserts that several names are one compound. The validator
+    refuses to publish that claim without the identity that justifies it."""
+
+    def network_response(self, records, mutate=None):
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        network = build_cooccurrence_network(store.records, min_edge_weight=1)
+        if mutate:
+            mutate(network)
+        spec = build_network_spec(network, plan(query_type="relationship"), store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        return response, store, network
+
+    def test_rejects_a_merge_with_no_rxnorm_identity(self, records):
+        def mutate(network):
+            network.nodes[0].merged_from = ["Keytruda", "Pembrolizumab"]
+            network.nodes[0].rxcui = None
+
+        response, store, network = self.network_response(records, mutate)
+        with pytest.raises(ValidationFailure, match="no RxNorm identity"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_a_merge_of_a_single_name(self, records):
+        def mutate(network):
+            network.nodes[0].merged_from = ["Pembrolizumab"]
+            network.nodes[0].rxcui = "1547545"
+
+        response, store, network = self.network_response(records, mutate)
+        with pytest.raises(ValidationFailure, match="fewer than two names"):
+            validate_response(response, store, network=network)
+
+    def test_a_resolved_node_without_a_merge_is_fine(self, records):
+        """One name resolving to an ingredient is normal -- not every resolution
+        collapses two names."""
+        def mutate(network):
+            network.nodes[0].rxcui = "1547545"
+            network.nodes[0].merged_from = []
+
+        response, store, network = self.network_response(records, mutate)
+        assert validate_response(response, store, network=network) is response

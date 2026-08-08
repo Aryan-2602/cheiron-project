@@ -40,7 +40,7 @@ import asyncio
 import logging
 import re
 from collections import OrderedDict
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from typing import Any, Self
 
 import httpx
@@ -139,6 +139,14 @@ class DrugCache:
             # extra bookkeeping.
             self._entries.popitem(last=False)
         self._entries[name] = resolution
+
+    def clear(self) -> None:
+        """Drop every entry. Used to isolate tests from the module singleton,
+        and available operationally to force re-resolution after an RxNorm
+        release without restarting the process."""
+        self._entries.clear()
+        self.hits = 0
+        self.misses = 0
 
     def stats(self) -> dict[str, int]:
         return {"size": len(self._entries), "hits": self.hits, "misses": self.misses}
@@ -425,11 +433,17 @@ async def resolve_all(
     cache: DrugCache | None = None,
     client: RxNormClient | None = None,
     max_concurrency: int | None = None,
+    only: Collection[str] | None = None,
 ) -> tuple[dict[str, DrugResolution], list[str]]:
     """Resolve every distinct drug name in ``records``.
 
     Runs as one bounded-concurrency batch before the graph is built, which
     keeps the network builders pure and synchronous.
+
+    ``only`` restricts resolution to a set of cleaned names -- normally the
+    candidate pool from :func:`app.services.network.rank_candidate_names`, so a
+    query resolves the names that could reach the graph rather than every name
+    in the corpus.
 
     Returns the resolution map plus warnings for ``meta.warnings``. If RxNorm is
     unreachable the map is empty and the caller falls back to string
@@ -437,6 +451,9 @@ async def resolve_all(
     """
     cache = cache if cache is not None else DRUG_CACHE
     names = collect_drug_names(records)
+    if only is not None:
+        allowed = set(only)
+        names = {k: v for k, v in names.items() if k in allowed}
     if not names:
         return {}, []
 
