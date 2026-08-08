@@ -262,6 +262,16 @@ async def analyze(
         else:
             network = build_cooccurrence_network(store.records, resolutions=resolutions)
         merged = sum(1 for n in network.nodes if n.merged_from)
+        logger.info(
+            "network built",
+            extra={
+                "kind": network.kind,
+                "nodes": len(network.nodes),
+                "edges": len(network.edges),
+                "merged_nodes": merged,
+                "truncated_to_top_n": network.truncated_to_top_n,
+            },
+        )
         if merged:
             warnings.append(
                 f"Merged brand and generic names into {merged} shared compound "
@@ -284,6 +294,16 @@ async def analyze(
     )
     if is_time_series:
         result = zero_fill_years(result)
+    logger.info(
+        "aggregation completed",
+        extra={
+            "dimension": result.dimension,
+            "buckets": len(result.data),
+            "total_studies_matched": result.total_studies_matched,
+            "unbucketed": result.unbucketed,
+            "series": result.series_dimension,
+        },
+    )
     # Chart queries never touch RxNorm -- resolution only affects graph identity.
     return build_chart_spec(result, plan, dimension, store), result, None, []
 

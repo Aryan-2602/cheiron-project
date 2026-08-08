@@ -24,6 +24,7 @@ POST /api/v1/query   {"query": "How are lung cancer trials distributed across ph
   - [Drug synonym resolution](#drug-synonym-resolution)
 - [Deep citations](#deep-citations)
 - [Validation](#validation)
+- [Logging](#logging)
 - [Working with the ClinicalTrials.gov API](#working-with-the-clinicaltrialsgov-api)
 - [Design decisions and tradeoffs](#design-decisions-and-tradeoffs)
 - [Limitations and what I would do with more time](#limitations-and-what-i-would-do-with-more-time)
@@ -59,7 +60,7 @@ curl -s -X POST http://127.0.0.1:8000/api/v1/query \
 Run the tests, or regenerate every example output against the live API:
 
 ```bash
-pytest -q                              # 250 tests, no network or API key needed
+pytest -q                              # 275 tests, no network or API key needed
 python scripts/run_examples.py         # writes examples/*.json from live data
 ```
 
@@ -437,6 +438,60 @@ Upstream, stage 1 applies its own constraints: entity grounding, phase range-che
 
 ---
 
+## Logging
+
+Enough to answer "which stage was slow" or "why did that request 500" from the log alone, when running or debugging the service locally. It is standard-library `logging` only — no OpenTelemetry, no external service, and **not a claim of production observability infrastructure**.
+
+Output is **JSON lines on stdout**, one object per event, with the level set by `LOG_LEVEL` (default `INFO`; use `DEBUG` for per-page and per-name detail). Messages are short constants and all variable data lives in structured fields, so lines stay both greppable and machine-readable:
+
+```json
+{"time":"2026-08-08T23:41:02Z","level":"INFO","name":"app.services.ctgov","message":"ctgov search completed",
+ "request_id":"dad3a22c","records":200,"pages":1,"total_count":2922,"truncated":true,"duration_ms":292.1}
+```
+
+Every line emitted while handling one request carries the same **`request_id`**, so concurrent requests can be told apart.
+
+| Stage | Level | Message | Key fields |
+|---|---|---|---|
+| Request received | INFO | `query received` | `query` (truncated), `overrides`, `max_studies` |
+| LLM | INFO | `llm call started` / `llm call completed` | `model`, `query_type`, `viz_type`, `entity_counts`, `duration_ms` |
+| LLM failure | **WARNING** | `llm call failed` / `llm refused request` | `model`, `error_type`, `duration_ms` |
+| Fetch | INFO | `ctgov search started` / `ctgov search completed` | `params`, `records`, `pages`, `total_count`, `truncated`, `duration_ms` |
+| Fetch retry | **WARNING** | `ctgov request retrying` | `attempt`, `max_retries`, `reason`, `delay_s` |
+| Aggregation | INFO | `aggregation completed` | `dimension`, `buckets`, `total_studies_matched`, `unbucketed` |
+| Network | INFO | `network built` | `kind`, `nodes`, `edges`, `merged_nodes`, `truncated_to_top_n` |
+| Drug resolution | INFO | `drug resolution started` / `drug resolution completed` | `distinct_names`, `candidates`, `resolved`, `cache_hits`, `live_lookups`, `duration_ms` |
+| Resolution degraded | **WARNING** | `drug resolution degraded` | `failed`, `of` |
+| Validation | INFO | `validation passed` | `viz_type`, `rows`, `citations` |
+| Request failed | **ERROR** | `request failed` | `code`, `stage`, `query`, `filters`, `detail` |
+| Request finished | INFO / **ERROR** | `request completed` | `method`, `path`, `status`, `duration_ms` |
+
+A healthy network query reads as a single legible trace:
+
+```
+INFO  dad3a22c  query received              {"query":"Which drugs co-occur ...","overrides":{}}
+INFO  dad3a22c  llm call completed          {"query_type":"relationship","viz_type":"network_graph","duration_ms":1402.7}
+INFO  dad3a22c  ctgov search completed      {"records":200,"pages":1,"total_count":2922,"truncated":true,"duration_ms":292.1}
+INFO  dad3a22c  drug resolution completed   {"resolved":41,"live_lookups":119,"cache_hits":0,"duration_ms":2498.3}
+INFO  dad3a22c  network built               {"nodes":28,"edges":58,"merged_nodes":9}
+INFO  dad3a22c  validation passed           {"viz_type":"network_graph","rows":1,"citations":221}
+INFO  dad3a22c  request completed           {"status":200,"duration_ms":5183.6}
+```
+
+### What is deliberately not logged
+
+Prompts, completions, raw API responses, and trial records never reach the log — only counts, ids, durations, and query text truncated to 200 characters. Every structured payload is an explicit allowlist of fields rather than a serialized object, so config can never be dumped and a credential cannot leak by accident. Tests assert both: that no emitted line contains a configured API key, and that none contains a raw record.
+
+### Three judgment calls
+
+**A validation failure is logged once, not twice.** The validator logs only the pass; on failure it raises and the route handler emits the single ERROR carrying both the failing check and the query. Logging in both places would make one fault read as two.
+
+**RxNorm retries are DEBUG, not WARNING.** Resolution fans out over hundreds of drug names, so a single outage emitted **116 near-identical WARNING lines** in testing — enough to bury everything else. The per-retry and per-name detail stays available at `DEBUG`, and the batch warns exactly once (`drug resolution degraded`) with the failure count. ClinicalTrials.gov retries *do* log at WARNING, because there are at most a handful per request.
+
+**There is no LLM retry line.** The OpenAI SDK retries internally and exposes no per-attempt callback, so a retry log there would be invented rather than observed. Only the final failure is logged.
+
+---
+
 ## Working with the ClinicalTrials.gov API
 
 Findings from live verification against API v2.0.5 (see [`docs/api-notes.md`](docs/api-notes.md)). Several are places where widely-circulated third-party documentation is wrong.
@@ -510,7 +565,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 ## Testing
 
 ```bash
-pytest -q      # 250 tests, ~6s, no network access or API key required
+pytest -q      # 275 tests, ~9s, no network access or API key required
 ```
 
 | File | Covers |
@@ -524,6 +579,7 @@ pytest -q      # 250 tests, ~6s, no network access or API key required
 | `test_validate.py` | Each check driven by a deliberately corrupted response. |
 | `test_understanding.py` | Entity grounding, hallucination rejection, chart-type reconciliation, structured overrides, defaults. |
 | `test_pipeline.py` | Full pipeline with LLM and HTTP mocked, plus route-level error mapping. |
+| `test_logging.py` | Formatter output including `extra` fields and `request_id`, one line per stage, failure paths emitting WARNING/ERROR, and guards that no log line carries a credential, a raw trial record, or a `LogRecord`-reserved key. |
 
 Correctness was validated three ways: unit tests on fixtures; extractors and network builders run against a **real captured API response** so a response-shape change fails loudly; and every documented example executed against the **live API**, with outputs checked for clinical plausibility (the pembrolizumab time series tracks its 2014 approval; the co-occurrence graph reproduces known NSCLC regimens).
 

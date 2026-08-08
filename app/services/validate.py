@@ -11,6 +11,8 @@ because a reader has no way to tell it is wrong.
 
 from __future__ import annotations
 
+import logging
+
 from app.models.schemas import (
     AggregationResult,
     NetworkResult,
@@ -19,6 +21,8 @@ from app.models.schemas import (
 )
 from app.services.store import StudyStore
 from app.services.viz import VALUE_FIELD
+
+logger = logging.getLogger(__name__)
 
 
 class ValidationFailure(RuntimeError):
@@ -210,4 +214,19 @@ def validate_response(
     _check_counts(response.visualization, aggregation, network)
     _check_citations(response.visualization, store)
     _check_meta(response, store)
+
+    # Only the pass is logged here. A failure raises, and the route handler
+    # emits a single ERROR carrying both the failing check and the request
+    # context -- logging in both places would read as two separate faults.
+    logger.info(
+        "validation passed",
+        extra={
+            "viz_type": response.visualization.type,
+            "rows": len(response.visualization.data),
+            "citations": sum(
+                len(item.get("citations", []))
+                for item in _iter_citation_blocks(response.visualization)
+            ),
+        },
+    )
     return response

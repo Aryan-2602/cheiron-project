@@ -1,10 +1,17 @@
-from fastapi import FastAPI
+import logging
+import time
+import uuid
+from collections.abc import Awaitable, Callable
+
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import RedirectResponse
 
 from app.api.routes import router
-from app.core.logging import setup_logging
+from app.core.logging import request_id, setup_logging
 
 setup_logging()
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="ClinicalTrials.gov Query-to-Visualization Agent",
@@ -20,6 +27,49 @@ app = FastAPI(
     ),
 )
 app.include_router(router)
+
+
+@app.middleware("http")
+async def log_requests(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """Tag each request with an id and log how it finished.
+
+    This is also the only place FastAPI's own 422s for malformed request bodies
+    are visible -- those are rejected before the route handler runs, so without
+    a middleware they would leave no trace at all.
+    """
+    token = request_id.set(uuid.uuid4().hex[:8])
+    started = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        # An unhandled exception still produces a 500 downstream; log it here so
+        # the stage that failed is not lost.
+        logger.exception(
+            "request failed",
+            extra={
+                "method": request.method,
+                "path": request.url.path,
+                "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+            },
+        )
+        request_id.reset(token)
+        raise
+
+    duration_ms = round((time.perf_counter() - started) * 1000, 1)
+    logger.log(
+        logging.ERROR if response.status_code >= 400 else logging.INFO,
+        "request completed",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "duration_ms": duration_ms,
+        },
+    )
+    request_id.reset(token)
+    return response
 
 
 @app.get("/", include_in_schema=False)

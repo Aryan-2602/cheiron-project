@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from difflib import SequenceMatcher
 
 from openai import OpenAI, OpenAIError
@@ -106,9 +107,18 @@ def _client() -> OpenAI:
 
 def call_llm(query: str, *, model: str | None = None) -> QueryUnderstanding:
     """Ask the model to classify one question. Raises :class:`UnderstandingError`."""
+    model = model or settings.LLM_MODEL
+    started = time.perf_counter()
+    # Prompt and completion are deliberately never logged -- only a summary of
+    # what the model decided, which is what a reader actually needs.
+    logger.info("llm call started", extra={"model": model, "query_chars": len(query)})
+
+    def _elapsed_ms() -> float:
+        return round((time.perf_counter() - started) * 1000, 1)
+
     try:
         completion = _client().chat.completions.parse(
-            model=model or settings.LLM_MODEL,
+            model=model,
             response_format=QueryUnderstanding,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -116,13 +126,52 @@ def call_llm(query: str, *, model: str | None = None) -> QueryUnderstanding:
             ],
         )
     except OpenAIError as exc:
+        # The OpenAI SDK retries internally and does not expose per-attempt
+        # callbacks, so this is the only point at which a failure is visible.
+        logger.warning(
+            "llm call failed",
+            extra={
+                "model": model,
+                "error_type": type(exc).__name__,
+                "duration_ms": _elapsed_ms(),
+            },
+        )
         raise UnderstandingError(f"LLM request failed: {exc}") from exc
 
     message = completion.choices[0].message
     if message.refusal:
+        logger.warning(
+            "llm refused request",
+            extra={"model": model, "duration_ms": _elapsed_ms()},
+        )
         raise UnderstandingError(f"Model declined the request: {message.refusal}")
     if message.parsed is None:
+        logger.warning(
+            "llm returned no structured output",
+            extra={"model": model, "duration_ms": _elapsed_ms()},
+        )
         raise UnderstandingError("Model returned no parsable structured output.")
+
+    logger.info(
+        "llm call completed",
+        extra={
+            "model": model,
+            "query_type": message.parsed.query_type,
+            "viz_type": message.parsed.viz_type,
+            "group_by": message.parsed.group_by,
+            "network_kind": message.parsed.network_kind,
+            # Counts only -- the extracted values themselves are user text.
+            "entity_counts": {
+                "drugs": len(message.parsed.entities.drugs),
+                "conditions": len(message.parsed.entities.conditions),
+                "sponsors": len(message.parsed.entities.sponsors),
+                "countries": len(message.parsed.entities.countries),
+                "phases": len(message.parsed.entities.phases),
+                "statuses": len(message.parsed.entities.statuses),
+            },
+            "duration_ms": _elapsed_ms(),
+        },
+    )
     return message.parsed
 
 
@@ -317,10 +366,4 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
 def understand(request: QueryRequest, *, model: str | None = None) -> QueryPlan:
     """Full stage 1: LLM call plus deterministic grounding and reconciliation."""
     understanding = call_llm(request.query, model=model)
-    logger.info(
-        "understood query_type=%s viz_type=%s group_by=%s",
-        understanding.query_type,
-        understanding.viz_type,
-        understanding.group_by,
-    )
     return build_plan(request, understanding)

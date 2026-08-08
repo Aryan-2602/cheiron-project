@@ -39,6 +39,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 from collections import OrderedDict
 from collections.abc import Collection, Mapping
 from typing import Any, Self
@@ -232,6 +233,21 @@ class RxNormClient:
                     raise RxNormError(
                         f"RxNorm returned {response.status_code} for {url}"
                     )
+            # DEBUG rather than WARNING: resolution fans out across hundreds
+            # of names, so one outage would emit hundreds of near-identical
+            # lines. The single aggregate WARNING from resolve_all carries the
+            # signal without drowning the log. (CTGov retries stay at WARNING --
+            # there are at most a handful per request.)
+            logger.debug(
+                "rxnorm request retrying",
+                extra={
+                    "path": path,
+                    "attempt": attempt + 1,
+                    "max_retries": self.max_retries,
+                    "reason": last_error,
+                    "delay_s": delay,
+                },
+            )
             await asyncio.sleep(delay)
             delay *= 2
         raise RxNormError(f"request to {url} failed: {last_error}")
@@ -382,7 +398,12 @@ async def resolve_drug(
         # Soft failure: the graph degrades to string normalization rather than
         # the request failing. Not cached -- a transient outage should not
         # poison the cache for the life of the process.
-        logger.warning("RxNorm lookup failed for %r: %s", cleaned_name, exc)
+        # DEBUG, not WARNING: during an outage this fires once per drug name,
+        # and the retry warnings plus the batch summary already carry the signal.
+        logger.debug(
+            "rxnorm lookup failed",
+            extra={"drug_name": cleaned_name, "reason": str(exc)},
+        )
         raise
 
     cache.set(cleaned_name, resolution)
@@ -457,6 +478,16 @@ async def resolve_all(
     if not names:
         return {}, []
 
+    logger.info(
+        "drug resolution started",
+        extra={
+            "distinct_names": len(names),
+            "candidates": len(only) if only is not None else None,
+        },
+    )
+    started = time.perf_counter()
+    hits_before, misses_before = cache.hits, cache.misses
+
     limit = max_concurrency or settings.RXNORM_MAX_CONCURRENCY
     semaphore = asyncio.Semaphore(limit)
     owns_client = client is None
@@ -493,8 +524,25 @@ async def resolve_all(
             f"those nodes reflect distinct name strings rather than merged compounds."
         )
 
-    merged = sum(1 for r in resolutions.values() if r.resolved)
+    resolved = sum(1 for r in resolutions.values() if r.resolved)
+    if failed:
+        # One line for the whole batch: the per-name and per-retry detail is at
+        # DEBUG, so an outage is loud once rather than hundreds of times.
+        logger.warning(
+            "drug resolution degraded",
+            extra={"failed": failed, "of": len(names)},
+        )
     logger.info(
-        "resolved %d/%d drug names via RxNorm (%s)", merged, len(names), cache.stats()
+        "drug resolution completed",
+        extra={
+            "resolved": resolved,
+            "unresolved": len(resolutions) - resolved,
+            # Deltas, so the figures describe this request rather than the
+            # lifetime of the process-wide cache.
+            "cache_hits": cache.hits - hits_before,
+            "live_lookups": cache.misses - misses_before,
+            "failed": failed,
+            "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+        },
     )
     return resolutions, warnings

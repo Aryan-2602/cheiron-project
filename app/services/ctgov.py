@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, Literal, Self
@@ -222,6 +223,19 @@ class CTGovClient:
                         f"upstream returned {response.status_code} for {response.request.url}: "
                         f"{response.text[:300]}"
                     )
+            # Reached only when the attempt failed retryably and retries remain.
+            # Logged because a slow request caused by silent backoff is otherwise
+            # indistinguishable from a slow upstream.
+            logger.warning(
+                "ctgov request retrying",
+                extra={
+                    "path": path,
+                    "attempt": attempt + 1,
+                    "max_retries": self.max_retries,
+                    "reason": last_error,
+                    "delay_s": delay,
+                },
+            )
             await asyncio.sleep(delay)
             delay *= 2
         raise CTGovError(f"request to {url} failed: {last_error}")
@@ -249,6 +263,17 @@ class CTGovClient:
         outcome = SearchOutcome(search=search)
         page_token: str | None = None
         fetched = 0
+        pages = 0
+        started = time.perf_counter()
+
+        logger.info(
+            "ctgov search started",
+            extra={
+                "params": search.describe(),
+                "max_studies": max_studies,
+                "label": search.label,
+            },
+        )
 
         while True:
             remaining = max_studies - fetched
@@ -271,7 +296,16 @@ class CTGovClient:
                 outcome.total_count = payload["totalCount"]
                 store.total_counts.append(payload["totalCount"])
 
+            pages += 1
             page_token = payload.get("nextPageToken")
+            logger.debug(
+                "ctgov page fetched",
+                extra={
+                    "page": pages,
+                    "records": len(studies),
+                    "has_next": bool(page_token),
+                },
+            )
             if not page_token or not studies:
                 break
 
@@ -285,6 +319,17 @@ class CTGovClient:
                 f"(capped at max_studies={max_studies:,}); figures below describe "
                 f"that sample, not the full result set."
             )
+
+        logger.info(
+            "ctgov search completed",
+            extra={
+                "records": fetched,
+                "pages": pages,
+                "total_count": outcome.total_count,
+                "truncated": outcome.truncated,
+                "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+            },
+        )
 
         await self._check_empty_filtered_result(search, outcome)
         return outcome
