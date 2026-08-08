@@ -2,17 +2,22 @@
 
 ## Project
 Backend service for ClinicalTrials.gov query-to-visualization agent (Cheiron take-home).
-Assignment spec: /assignments/ (images)
-Verified API findings: /docs/api-notes.md
-Full plan: /docs/PLAN.md (from Fable 5 planning session)
+Assignment spec: assignment/ (images)
+Verified API findings: docs/api-notes.md  <- ground truth, beats general knowledge
+Full plan: docs/PLAN.md
+
+## Stack
+Python 3.12, FastAPI, Pydantic v2, OpenAI SDK (structured outputs), httpx, pytest.
+No langchain/langgraph — one LLM call with a fixed schema needs no framework.
 
 ## Conventions
-- Python, FastAPI, Pydantic v2
 - Every visualized data value must be computed from real API responses — never LLM-generated
-- Structure: separate query-understanding, fetching, aggregation, citation, and validation as distinct testable modules
+- Structure: query-understanding, fetching, aggregation, citation, and validation are
+  distinct testable modules (app/agents, app/services)
 - Write tests alongside implementation, not after
 - Commit after each working module with descriptive messages
-- Keep aggregators behind a shared interface — no per-chart-type one-off logic in route handlers
+- Aggregators stay behind the shared aggregate() interface — no per-chart-type logic
+  in route handlers or the pipeline
 
 ## Current focus
-[update this as you move through phases — e.g. "building bar_chart + time_series aggregators"]
+Complete. All 6 pipeline stages implemented, 166 tests passing, 7 live examples in examples/.
