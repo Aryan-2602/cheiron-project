@@ -3,9 +3,8 @@ uvicorn[standard]
 pydantic
 pydantic-settings
 python-dotenv
-langchain
-langgraph
-langchain-anthropic
+openai
+httpx
 pytest
 pytest-asyncio
-httpx
+respx
