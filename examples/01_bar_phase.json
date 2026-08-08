@@ -187,11 +187,11 @@
       "data_as_of": "2026-08-07T09:00:05",
       "total_studies_processed": 1000,
       "api_urls": [
-        "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=1000&query.cond=lung+cancer&countTotal=true"
+        "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=1000&query.cond=lung%20cancer&countTotal=true"
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by phase, rendered as a bar chart.",
       "assumptions": [
-        "Interpreted \"across phases\" as grouping trials by phase."
+        "Interpreted 'distributed across phases' as grouping trials by phase."
       ],
       "warnings": [
         "Fetched 1,000 of 14,425 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",

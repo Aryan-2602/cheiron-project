@@ -235,6 +235,28 @@ class AggregationResult(BaseModel):
 # --------------------------------------------------------------------------
 
 
+class DrugResolution(BaseModel):
+    """One drug name resolved (or not) to its RxNorm ingredient.
+
+    ``rxcui`` is always an *ingredient* concept, never a brand: brand and
+    generic are distinct RxNorm concepts (Keytruda is 1547550, pembrolizumab is
+    1547545), so resolution walks to the ingredient to make them the same node.
+
+    An unresolved result is a normal outcome, not an error -- research compounds
+    and combination products legitimately have no single ingredient. It carries
+    the cleaned name so callers can use it unconditionally.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    rxcui: str | None
+    canonical_name: str
+    original_names: set[str] = Field(default_factory=set)
+    resolved: bool
+    #: approximateTerm score that produced the match, kept for auditability.
+    score: float | None = None
+
+
 class NetworkNode(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -243,6 +265,12 @@ class NetworkNode(BaseModel):
     kind: Literal["drug", "sponsor", "condition"]
     size: int
     nct_ids: list[str]
+    #: RxNorm ingredient id, when the name resolved. Lets a reader verify the
+    #: merge against RxNav.
+    rxcui: str | None = None
+    #: The distinct surface forms folded into this node. More than one entry
+    #: means an actual brand/generic merge happened.
+    merged_from: list[str] = Field(default_factory=list)
 
 
 class NetworkEdge(BaseModel):

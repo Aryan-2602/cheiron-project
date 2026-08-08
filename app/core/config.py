@@ -27,6 +27,26 @@ class Settings(BaseSettings):
     CTGOV_TIMEOUT_SECONDS: float = 30.0
     CTGOV_MAX_RETRIES: int = 3
 
+    # RxNorm (NLM), used only to resolve drug names to a canonical ingredient
+    # for network graphs. No API key required.
+    RXNORM_BASE_URL: str = "https://rxnav.nlm.nih.gov/REST"
+    #: Minimum approximateTerm score to accept a match. The score scale is
+    #: unbounded (~0-15), not 0-1. Measured against the live API: every correct
+    #: match scored >= 11.49, while the worst false positive ("MK-3475" -> an
+    #: unrelated concept) scored 6.38. 11.0 sits inside that empty band.
+    #: Set strict deliberately: a wrong merge fuses two distinct compounds into
+    #: one node and is invisible in the output, whereas a missed merge only
+    #: leaves the pre-existing string-normalization behaviour.
+    RXNORM_MIN_SCORE: float = 11.0
+    # Lower than CTGov's: this is an enrichment, not the data itself, so it
+    # should give up quickly rather than hold up a response.
+    RXNORM_TIMEOUT_SECONDS: float = 10.0
+    RXNORM_MAX_RETRIES: int = 2
+    RXNORM_MAX_CONCURRENCY: int = 5
+    #: Kill switch. False -> graphs fall back to pure string normalization,
+    #: which is byte-identical to the behaviour before RxNorm was introduced.
+    RXNORM_ENABLED: bool = True
+
     ENV: str = "development"
     LOG_LEVEL: str = "INFO"
 
