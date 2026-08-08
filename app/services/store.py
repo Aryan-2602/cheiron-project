@@ -9,8 +9,9 @@ that bucket.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable
+from typing import Any
 
 CTGOV_STUDY_URL = "https://clinicaltrials.gov/study/{nct_id}"
 

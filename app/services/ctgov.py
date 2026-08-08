@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Literal
+from typing import Any, Literal, Self
 
 import httpx
 
@@ -173,7 +174,7 @@ class CTGovClient:
         self._client = client
         self._owns_client = client is None
 
-    async def __aenter__(self) -> CTGovClient:
+    async def __aenter__(self) -> Self:
         if self._client is None:
             self._client = httpx.AsyncClient(timeout=settings.CTGOV_TIMEOUT_SECONDS)
         return self
@@ -329,7 +330,7 @@ def _first(values: Iterable[str]) -> str | None:
     return None
 
 
-def build_searches(plan: "Any") -> list[CTGovSearch]:
+def build_searches(plan: Any) -> list[CTGovSearch]:
     """Translate a :class:`~app.models.schemas.QueryPlan` into upstream searches.
 
     Comparison queries produce one search per compared entity so that series

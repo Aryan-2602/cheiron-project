@@ -5,19 +5,16 @@ matching check fires. This is the test file that backs the claim that a
 fabricated or drifted value cannot reach a caller.
 """
 
-import copy
 
 import pytest
 
 from app.models.schemas import (
-    AggregationResult,
     Encoding,
+    ExtractedEntities,
     FieldRef,
     Meta,
-    NetworkResult,
     QueryPlan,
     QueryResponse,
-    ExtractedEntities,
     VisualizationSpec,
 )
 from app.services.aggregate import aggregate
@@ -26,7 +23,6 @@ from app.services.network import build_cooccurrence_network
 from app.services.store import StudyStore
 from app.services.validate import ValidationFailure, validate_response
 from app.services.viz import build_chart_spec, build_network_spec
-from tests.conftest import make_record
 
 
 def plan(**kwargs):

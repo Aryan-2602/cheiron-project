@@ -478,7 +478,7 @@
       ],
       "query_interpretation": "Interpreted as a geographic question, grouped by country, rendered as a geo bar chart.",
       "assumptions": [
-        "Interpreted 'have the most' as a geographic breakdown by country of recruiting melanoma trials."
+        "Interpreted 'have the most' as a geographic breakdown by country among recruiting trials."
       ],
       "warnings": [
         "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials."

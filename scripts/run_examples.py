@@ -21,9 +21,9 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 load_dotenv()
 
-from app.models.schemas import QueryRequest  # noqa: E402
-from app.pipeline import EmptyResultError, run_pipeline  # noqa: E402
-from app.services.ctgov import CTGovClient  # noqa: E402
+from app.models.schemas import QueryRequest
+from app.pipeline import EmptyResultError, run_pipeline
+from app.services.ctgov import CTGovClient
 
 EXAMPLES: list[tuple[str, dict]] = [
     (

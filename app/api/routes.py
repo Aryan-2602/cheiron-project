@@ -40,9 +40,12 @@ def _empty_response(error: EmptyResultError) -> QueryResponse:
     """An empty but fully-formed response, so a frontend renders 'no results'
     with the same code path it uses for data."""
     meta = error.meta
-    meta.warnings = list(meta.warnings) + [
-        "No trials matched this query. Try broadening the condition, drug, or "
-        "phase filters."
+    meta.warnings = [
+        *meta.warnings,
+        (
+            "No trials matched this query. Try broadening the condition, drug, "
+            "or phase filters."
+        ),
     ]
     return QueryResponse(
         visualization=VisualizationSpec(

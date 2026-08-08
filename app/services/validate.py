@@ -11,8 +11,6 @@ because a reader has no way to tell it is wrong.
 
 from __future__ import annotations
 
-from typing import Any
-
 from app.models.schemas import (
     AggregationResult,
     NetworkResult,
@@ -32,7 +30,7 @@ def _check_schema(response: QueryResponse) -> None:
     documented contract, not merely resemble it."""
     try:
         QueryResponse.model_validate(response.model_dump())
-    except Exception as exc:  # pragma: no cover - defensive
+    except Exception as exc:  # noqa: BLE001 - any parse failure must fail closed
         raise ValidationFailure(f"response does not conform to its own schema: {exc}")
 
 
@@ -125,8 +123,7 @@ def _check_counts(
 def _iter_citation_blocks(spec: VisualizationSpec):
     if spec.type == "network_graph":
         row = spec.data[0]
-        for item in list(row.get("nodes", [])) + list(row.get("edges", [])):
-            yield item
+        yield from list(row.get("nodes", [])) + list(row.get("edges", []))
     else:
         yield from spec.data
 

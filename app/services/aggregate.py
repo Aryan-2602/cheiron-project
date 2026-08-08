@@ -21,7 +21,9 @@ Two properties make this the trustworthy half of the pipeline:
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import AbstractSet, Any, Mapping
+from collections.abc import Mapping
+from collections.abc import Set as AbstractSet
+from typing import Any
 
 from app.models.schemas import AggregatedDatum, AggregationResult
 from app.services.dimensions import Dimension

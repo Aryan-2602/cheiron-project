@@ -20,8 +20,9 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from collections.abc import Callable, Iterable, Mapping
 from itertools import combinations
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any
 
 from app.models.schemas import NetworkEdge, NetworkNode, NetworkResult
 
@@ -128,7 +129,7 @@ def _label_for(candidates: Iterable[str]) -> str:
     counts: dict[str, int] = defaultdict(int)
     for candidate in candidates:
         counts[candidate] += 1
-    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+    return min(counts.items(), key=lambda kv: (-kv[1], kv[0]))[0]
 
 
 def _build_nodes(

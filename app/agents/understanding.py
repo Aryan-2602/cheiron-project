@@ -238,8 +238,10 @@ def reconcile_viz_type(understanding: QueryUnderstanding) -> tuple[str, list[str
 
     corrected = VIZ_FOR_QUERY_TYPE[query_type]
     return corrected, [
-        f"Rendered as {corrected} rather than {proposed}, to match a "
-        f"{query_type.replace('_', ' ')} question."
+        (
+            f"Rendered as {corrected} rather than {proposed}, to match a "
+            f"{query_type.replace('_', ' ')} question."
+        )
     ]
 
 

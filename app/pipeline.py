@@ -317,10 +317,10 @@ async def run_pipeline(
 
 
 __all__ = [
-    "run_pipeline",
-    "EmptyResultError",
-    "UnsupportedQueryError",
-    "UnderstandingError",
     "CTGovError",
+    "EmptyResultError",
+    "UnderstandingError",
+    "UnsupportedQueryError",
     "ValidationFailure",
+    "run_pipeline",
 ]

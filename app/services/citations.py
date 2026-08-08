@@ -15,7 +15,8 @@ already fetched as part of the search.
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from app.models.schemas import Citation
 from app.services.dimensions import (
@@ -24,7 +25,6 @@ from app.services.dimensions import (
     extract_phases,
     extract_sponsor,
     extract_sponsor_class,
-    extract_start_year,
     extract_status,
 )
 from app.services.store import StudyStore
