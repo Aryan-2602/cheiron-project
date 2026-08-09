@@ -11,6 +11,7 @@ import pytest
 import respx
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from app.main import app
 from app.models.schemas import ExtractedEntities, Meta, QueryPlan, QueryRequest
 from app.pipeline import (
@@ -1150,3 +1151,53 @@ class TestEmptyComparisonSeries:
         """No keys exist, so there is nothing to zero-fill; this becomes
         NO_CHARTABLE_DATA instead."""
         assert self.result({"A": set(), "B": set()}).data == []
+
+
+class TestHistogramEndToEnd:
+    """The histogram path through the full pipeline, not just reconciliation."""
+
+    @respx.mock
+    async def test_enrollment_histogram_renders_and_validates(self):
+        mock_studies(
+            [
+                make_record(f"NCT{i:08d}", enrollment=size)
+                for i, size in enumerate([5, 40, 120, 900, 4000], start=1)
+            ]
+        )
+        response = await run(
+            group_by="enrollment_bucket", viz_type="histogram"
+        )
+        assert response.visualization.type == "histogram"
+        assert response.visualization.encoding.x.field == "enrollment_bucket"
+        assert sum(r["trial_count"] for r in response.visualization.data) == 5
+        # Every bucket is still cited from the records that produced it.
+        for row in response.visualization.data:
+            assert row["total_supporting_trials"] == row["trial_count"]
+
+
+class TestNetworkWithoutRxNorm:
+    """RXNORM_ENABLED=false must still build a graph -- resolution is an
+    enhancement, not a dependency."""
+
+    @respx.mock
+    async def test_graph_builds_with_resolution_disabled(self, monkeypatch):
+        monkeypatch.setattr(settings, "RXNORM_ENABLED", False)
+        mock_studies(
+            [
+                make_record(
+                    f"NCT{i:08d}",
+                    interventions=[("DRUG", "Pembrolizumab"), ("DRUG", "Carboplatin")],
+                )
+                for i in range(1, 4)
+            ]
+        )
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            group_by=None, network_kind="drug_drug",
+        )
+        graph = response.visualization.data[0]
+        assert len(graph["nodes"]) == 2
+        assert len(graph["edges"]) == 1
+        # No RxNorm identity, but the graph is still fully cited.
+        assert all(n["rxcui"] is None for n in graph["nodes"])
+        assert graph["edges"][0]["citations"]

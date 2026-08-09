@@ -243,3 +243,46 @@ class TestEdgeEvidenceCoversBothEndpoints:
         excerpt = spec.data[0]["edges"][0]["citations"][0]["excerpt"]
         # Every fragment is a path: value pair from the record itself.
         assert excerpt.count(":") >= 2
+
+
+class TestDrugEvidenceMatchesTheGraphBuilder:
+    """A drug node is built only from DRUG/BIOLOGICAL/COMBINATION_PRODUCT
+    interventions, so quoting every intervention buried the drug among placebo
+    and procedure entries the node was never built from."""
+
+    def record(self):
+        return make_record(
+            "NCT00000001",
+            interventions=[
+                ("DRUG", "Pembrolizumab"),
+                ("BIOLOGICAL", "Nivolumab"),
+                ("OTHER", "Placebo"),
+                ("PROCEDURE", "Surgery"),
+            ],
+        )
+
+    def test_only_drug_typed_interventions_are_quoted(self):
+        excerpt = build_excerpt(self.record(), "drug")
+        assert "Pembrolizumab" in excerpt
+        assert "Nivolumab" in excerpt
+        assert "Placebo" not in excerpt
+        assert "Surgery" not in excerpt
+
+    def test_the_evidence_filter_matches_the_builders(self):
+        """Stated as an identity so the two cannot drift."""
+        from app.services.network import DRUG_TYPES, extract_drugs
+
+        record = self.record()
+        cited = build_excerpt(record, "drug")
+        for _key, label in extract_drugs(record):
+            assert label.lower() in cited.lower()
+        assert DRUG_TYPES == {"DRUG", "BIOLOGICAL", "COMBINATION_PRODUCT"}
+
+    def test_a_record_with_no_drug_typed_interventions_says_so(self):
+        record = make_record("NCT00000002", interventions=[("OTHER", "Placebo")])
+        assert "not reported" in build_excerpt(record, "drug")
+
+    def test_the_sponsor_drug_composite_uses_the_same_filter(self):
+        excerpt = build_excerpt(self.record(), "sponsor_drug")
+        assert "leadSponsor.name" in excerpt
+        assert "Placebo" not in excerpt
