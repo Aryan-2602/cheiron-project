@@ -511,3 +511,56 @@ class TestPhaseFiltering:
             c["nct_id"] for row in response.visualization.data for c in row["citations"]
         }
         assert cited == {"NCT00000005"}
+
+
+class TestFetchCap:
+    """max_studies is documented as an upper bound on trials fetched, so it has
+    to hold across every search a query issues, not just each one."""
+
+    def two_batches(self):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        first = [make_record(f"NCT{i:08d}", phases=["PHASE3"]) for i in range(100)]
+        second = [make_record(f"NCT{i:08d}", phases=["PHASE2"]) for i in range(100, 200)]
+        route = respx.get(f"{BASE}/studies")
+        route.side_effect = [
+            httpx.Response(200, json={"studies": first, "totalCount": 5000}),
+            httpx.Response(200, json={"studies": second, "totalCount": 5000}),
+        ]
+        return route
+
+    async def comparison(self, cap):
+        return await run(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind="drug",
+            max_studies=cap,
+        )
+
+    @respx.mock
+    async def test_cap_holds_across_a_multi_search_comparison(self):
+        """Two searches under a cap of 100 previously fetched 200."""
+        self.two_batches()
+        response = await self.comparison(100)
+        assert response.meta.total_studies_processed <= 100
+
+    @respx.mock
+    async def test_budget_is_shared_so_the_second_series_is_not_starved(self):
+        self.two_batches()
+        response = await self.comparison(200)
+        by_series = {row["series"] for row in response.visualization.data}
+        assert by_series == {"Pembrolizumab", "Nivolumab"}
+
+    @respx.mock
+    async def test_a_single_search_still_gets_the_whole_budget(self):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        batch = [make_record(f"NCT{i:08d}", phases=["PHASE3"]) for i in range(150)]
+        respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(200, json={"studies": batch, "totalCount": 150})
+        )
+        response = await run(max_studies=150)
+        assert response.meta.total_studies_processed == 150

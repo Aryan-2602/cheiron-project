@@ -76,13 +76,28 @@ async def fetch(
     grouped comparison never has to infer which series a trial belongs to.
     """
     result = FetchResult()
-    # Split the fetch budget across searches so a two-drug comparison cannot
-    # spend the whole allowance on its first series.
-    per_search = max(100, plan.max_studies // max(1, len(searches)))
     membership: dict[str, set[str]] = {}
+    remaining_searches = len(searches)
 
     for search in searches:
-        outcome = await client.run_search(search, result.store, max_studies=per_search)
+        # Each search gets a fair share of the budget that is still unspent, so
+        # one series cannot consume the whole allowance *and* the total can
+        # never exceed max_studies. A previous fixed floor of 100 per search
+        # broke the second guarantee: two searches under a cap of 100 fetched
+        # 200. Unused allowance flows to later searches.
+        budget = max(0, (plan.max_studies - len(result.store)) // remaining_searches)
+        remaining_searches -= 1
+
+        if budget == 0:
+            # Disclose rather than quietly return an empty series.
+            result.warnings.append(
+                f"Reached the {plan.max_studies:,}-trial fetch cap before searching "
+                f"{search.label or 'every filter'}; that part of the question is "
+                f"not represented below. Raise max_studies to include it."
+            )
+            continue
+
+        outcome = await client.run_search(search, result.store, max_studies=budget)
         result.warnings.extend(outcome.warnings)
         if search.label:
             membership[search.label] = outcome.nct_ids
