@@ -899,6 +899,31 @@ def _grounds_every_entity(
     return {series_key(v) for v in compare_entities} <= grounded
 
 
+def _contradicts_kind(
+    compare_entities: list[str], entities: ExtractedEntities, kind: str
+) -> bool:
+    """True when some compared name was grounded as a *different* kind.
+
+    This is the real hazard the membership rule was reaching for: a name the
+    model called a drug that the same extraction put in ``conditions`` would
+    search ``query.intr`` for a disease. Absence from every list is not that --
+    it is merely silence, and silence must not be read as contradiction.
+    """
+    if not compare_entities:
+        return False
+    claimed = COMPARE_KIND_SOURCES.get(kind)
+    for entity in compare_entities:
+        key = series_key(entity)
+        if claimed and key in {series_key(v) for v in getattr(entities, claimed, [])}:
+            continue
+        for other_kind, field_name in COMPARE_KIND_SOURCES.items():
+            if other_kind == kind:
+                continue
+            if key in {series_key(v) for v in getattr(entities, field_name, [])}:
+                return True
+    return False
+
+
 def _infer_compare_kind(
     compare_entities: list[str], entities: ExtractedEntities
 ) -> str | None:
@@ -1006,13 +1031,13 @@ def reconcile_plan_semantics(
     if compare_entities and not _grounds_every_entity(
         compare_entities, entities, compare_entity_kind or ""
     ):
-        # The claimed kind is not supported by grounding. Either another list
-        # holds *all* of them -- correct to that -- or none does, in which case
-        # the kind is dropped and the grouped-bar guard in build_plan demotes
-        # the chart. An ungrounded kind used to survive untouched and send the
-        # names to whichever field it named.
+        # The claimed kind is not confirmed by entity-list membership. Three
+        # different situations hide behind that, and they need different
+        # answers -- treating all three as "ungrounded" is what wiped correctly
+        # named comparisons and fell back to a whole-sentence query.term search.
         actual = _infer_compare_kind(compare_entities, entities)
         if actual:
+            # Another list holds *all* of them: better evidence than the label.
             assumptions.append(
                 f"Compared the entities as {actual}s"
                 + (
@@ -1022,13 +1047,26 @@ def reconcile_plan_semantics(
                 )
                 + ", matching where they were found in the question."
             )
-        elif compare_entity_kind:
-            assumptions.append(
-                f"Did not compare these as {compare_entity_kind}s: the question "
-                f"does not ground every compared value as a {compare_entity_kind}, "
-                f"and searching the wrong field would answer a different question."
-            )
-        compare_entity_kind = actual
+            compare_entity_kind = actual
+        elif compare_entity_kind and not _contradicts_kind(
+            compare_entities, entities, compare_entity_kind
+        ):
+            # No list contains them all, but no list contradicts the kind
+            # either. They already passed ground_compare_entities, so every one
+            # is named in the question -- which is the property that keeps an
+            # invented entity out of an upstream field. Entity-list membership
+            # was only ever a proxy for that, and demanding it as well threw
+            # away comparisons the user plainly asked for.
+            pass
+        else:
+            if compare_entity_kind:
+                assumptions.append(
+                    f"Did not compare these as {compare_entity_kind}s: the "
+                    f"question grounds some compared value as something else, "
+                    f"and searching the wrong field would answer a different "
+                    f"question."
+                )
+            compare_entity_kind = None
 
     return group_by, viz_type, network_kind, compare_entity_kind, assumptions
 

@@ -913,18 +913,35 @@ class TestPlanSemanticReconciliation:
         assert plan.compare_entity_kind == "drug"
         assert not any("rather than" in a for a in plan.assumptions)
 
-    def test_an_ungrounded_kind_is_dropped_rather_than_trusted(self):
-        """Replaces a test that let the model's claimed kind survive with no
-        grounding behind it -- that shipped labelled searches against whichever
-        field the model named. No evidence for a kind means no comparison."""
+    def test_a_kind_grounded_only_in_the_question_text_survives(self):
+        """Replaces a test that required every compared name to be duplicated
+        into ``entities.<kind>`` as well.
+
+        That proxy discarded the commonest correct shape -- names the model
+        put in ``compare_entities`` and nowhere else -- and the demoted plan
+        then searched the whole sentence as ``query.term``, silently charting
+        a different population than the one asked for."""
         plan = self.plan_for(
             "compare Alpha and Beta by phase",
             query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
             compare_entities=["Alpha", "Beta"], compare_entity_kind="sponsor",
         )
+        assert plan.compare_entity_kind == "sponsor"
+        assert plan.compare_entities == ["Alpha", "Beta"]
+        assert plan.viz_type == "grouped_bar_chart"
+
+    def test_a_kind_contradicted_by_a_different_list_is_dropped(self):
+        """The hazard the membership rule was really reaching for."""
+        plan = self.plan_for(
+            "compare Alpha and Beta by phase",
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=["Alpha", "Beta"], compare_entity_kind="sponsor",
+            conditions=["Beta"],
+        )
         assert plan.compare_entity_kind is None
         assert plan.viz_type == "bar_chart"
-        assert any("does not ground every compared value" in a for a in plan.assumptions)
+        assert any("grounds some compared value as something else" in a
+                   for a in plan.assumptions)
 
     def test_every_correction_is_disclosed(self):
         """Silent normalisation would hide that the chart answers a slightly
@@ -1352,21 +1369,37 @@ class TestComparisonKindRequiresFullGrounding:
         assert plan.compare_entity_kind == "drug"
         assert not any("rather than" in a for a in plan.assumptions)
 
-    def test_no_labelled_search_is_ever_built_without_grounding(self):
-        """The invariant behind all of the above."""
+    def test_no_labelled_search_is_ever_built_from_a_name_not_in_the_question(self):
+        """The invariant behind all of the above.
+
+        Being named in the question is the property that keeps an invented
+        entity out of an upstream field. Appearing in ``entities.drugs`` as
+        well is corroboration, not the invariant: requiring it discarded
+        comparisons the user had spelled out and searched the whole sentence
+        as free text instead.
+        """
+        query = "compare Alpha and Beta by phase"
         for kwargs in (
             {"compare_entities": ["Alpha", "Beta"], "compare_entity_kind": "drug"},
             {"compare_entities": ["Alpha", "Beta"], "compare_entity_kind": None},
+            {"compare_entities": ["Alpha", "Gamma"], "compare_entity_kind": "drug"},
             {"compare_entities": ["Pembrolizumab", "melanoma"],
              "compare_entity_kind": "drug", "drugs": ["Pembrolizumab"],
              "conditions": ["melanoma"]},
         ):
-            plan, searches = self.plan_for("compare Alpha and Beta by phase", **kwargs)
+            _plan, searches = self.plan_for(query, **kwargs)
             for search in searches:
                 if search.label:
-                    field = {"drug": "drugs", "condition": "conditions",
-                             "sponsor": "sponsors"}[plan.compare_entity_kind]
-                    assert search.label in getattr(plan.entities, field)
+                    assert search.label.lower() in query.lower()
+
+    def test_a_kind_contradicted_by_another_list_is_still_dropped(self):
+        """Silence is not contradiction, but contradiction still is."""
+        plan, _ = self.plan_for(
+            "compare Pembrolizumab and melanoma by phase",
+            compare_entities=["Pembrolizumab", "melanoma"],
+            compare_entity_kind="drug", conditions=["melanoma"],
+        )
+        assert plan.compare_entity_kind is None
 
 
 class TestStopVerbsBeforeRecruiting:
