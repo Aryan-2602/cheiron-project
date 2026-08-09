@@ -479,6 +479,30 @@ class TestNetworkKinds:
             "drug_drug"
         )
 
+    def bipartite_records(self):
+        return {
+            "NCT00000001": trial("NCT00000001", ["Pembrolizumab"], sponsor="Merck"),
+            "NCT00000002": trial("NCT00000002", ["Nivolumab"], sponsor="BMS"),
+        }
+
+    def test_bipartite_result_kind_is_honoured(self):
+        """The sibling gained this last pass and the bipartite builder did not,
+        so its returned kind contradicted whatever pair it was given."""
+        result = build_bipartite_network(
+            self.bipartite_records(), result_kind="drug_drug"
+        )
+        assert result.kind == "drug_drug"
+
+    def test_bipartite_result_kind_defaults_to_sponsor_drug(self):
+        assert build_bipartite_network(self.bipartite_records()).kind == "sponsor_drug"
+
+    def test_both_builders_expose_the_same_kind_parameters(self):
+        """Guards the asymmetry itself, not just one instance of it."""
+        import inspect
+
+        for fn in (build_cooccurrence_network, build_bipartite_network):
+            assert "result_kind" in inspect.signature(fn).parameters
+
     def test_node_kind_drives_node_ids_and_kinds(self):
         result = build_cooccurrence_network(
             self.records(), node_kind="sponsor", min_edge_weight=1

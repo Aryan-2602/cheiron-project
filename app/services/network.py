@@ -370,6 +370,7 @@ def build_bipartite_network(
     right_extract: ExtractEntities = extract_drugs,
     left_kind: str = "sponsor",
     right_kind: str = "drug",
+    result_kind: NetworkKind = "sponsor_drug",
     max_left: int = 15,
     max_right: int = 25,
     resolutions: Mapping[str, DrugResolution] | None = None,
@@ -379,6 +380,13 @@ def build_bipartite_network(
     Pruning keeps the busiest sponsors first, then the drugs those sponsors
     actually study, so the surviving graph stays connected and interpretable
     rather than being a top-N slice of each side independently.
+
+    ``left_kind``/``right_kind`` say what the nodes *are*; ``result_kind`` says
+    what the *graph* is, and is a separate concept -- exactly as in
+    :func:`build_cooccurrence_network`. It was previously hardcoded on the
+    return value while the signature implied both sides were configurable, so
+    a graph built over a different pair would still have reported itself as
+    ``sponsor_drug``.
     """
     left_members: dict[str, set[str]] = defaultdict(set)
     right_members: dict[str, set[str]] = defaultdict(set)
@@ -464,7 +472,7 @@ def build_bipartite_network(
         else None
     )
     return NetworkResult(
-        kind="sponsor_drug",
+        kind=result_kind,
         nodes=kept_nodes,
         edges=edges,
         truncated_to_top_n=truncated,
