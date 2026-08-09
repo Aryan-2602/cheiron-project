@@ -903,15 +903,18 @@ class TestPlanSemanticReconciliation:
         assert plan.compare_entity_kind == "drug"
         assert not any("rather than" in a for a in plan.assumptions)
 
-    def test_an_unresolvable_comparison_kind_is_left_as_proposed(self):
-        """No grounded list contains the entities, so there is nothing to infer
-        from -- guessing would be worse than leaving the model's label."""
+    def test_an_ungrounded_kind_is_dropped_rather_than_trusted(self):
+        """Replaces a test that let the model's claimed kind survive with no
+        grounding behind it -- that shipped labelled searches against whichever
+        field the model named. No evidence for a kind means no comparison."""
         plan = self.plan_for(
             "compare Alpha and Beta by phase",
             query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
             compare_entities=["Alpha", "Beta"], compare_entity_kind="sponsor",
         )
-        assert plan.compare_entity_kind == "sponsor"
+        assert plan.compare_entity_kind is None
+        assert plan.viz_type == "bar_chart"
+        assert any("does not ground every compared value" in a for a in plan.assumptions)
 
     def test_every_correction_is_disclosed(self):
         """Silent normalisation would hide that the chart answers a slightly
@@ -1237,3 +1240,119 @@ class TestComparisonFallbackKeepsTheSurvivor:
         )
         assert plan.viz_type == "bar_chart"
         assert any("single distribution" in a for a in plan.assumptions)
+
+
+class TestComparisonKindRequiresFullGrounding:
+    """A kind is evidence, not a label. Accepting it on any-overlap -- or with
+    no grounding at all -- sent compared names to whichever ClinicalTrials.gov
+    field the model happened to name."""
+
+    def plan_for(self, query, **kwargs):
+        understanding = QueryUnderstanding(
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=kwargs.pop("compare_entities"),
+            compare_entity_kind=kwargs.pop("compare_entity_kind", None),
+            network_kind=None, assumptions=[],
+            entities=ExtractedEntities(
+                drugs=kwargs.pop("drugs", []),
+                conditions=kwargs.pop("conditions", []),
+                sponsors=kwargs.pop("sponsors", []),
+                phases=[], statuses=[], countries=[], year_range=None,
+            ),
+        )
+        plan = build_plan(QueryRequest(query=query), understanding)
+        return plan, build_searches(plan)[0]
+
+    def test_a_mixed_drug_and_condition_comparison_is_demoted(self):
+        """Any-overlap inferred "drug" from Pembrolizumab alone and then
+        searched query.intr=melanoma."""
+        plan, searches = self.plan_for(
+            "Compare Pembrolizumab vs melanoma by phase",
+            compare_entities=["Pembrolizumab", "melanoma"],
+            drugs=["Pembrolizumab"], conditions=["melanoma"],
+        )
+        assert plan.compare_entity_kind is None
+        assert plan.viz_type == "bar_chart"
+        assert len(searches) == 1
+
+    def test_the_demoted_population_keeps_both_entities_in_their_own_fields(self):
+        """Demotion must not cost the user either half of the question."""
+        _plan, searches = self.plan_for(
+            "Compare Pembrolizumab vs melanoma by phase",
+            compare_entities=["Pembrolizumab", "melanoma"],
+            drugs=["Pembrolizumab"], conditions=["melanoma"],
+        )
+        assert searches[0].intr == "Pembrolizumab"
+        assert searches[0].cond == "melanoma"
+
+    @pytest.mark.parametrize(
+        "kind,field,values",
+        [
+            ("drug", "drugs", ["Pembrolizumab", "Nivolumab"]),
+            ("drug", "drugs", ["Pembrolizumab", "Nivolumab", "Atezolizumab"]),
+            ("condition", "conditions", ["melanoma", "lung cancer"]),
+            ("sponsor", "sponsors", ["Merck", "Pfizer"]),
+        ],
+    )
+    def test_a_homogeneous_comparison_is_kept(self, kind, field, values):
+        plan, searches = self.plan_for(
+            f"compare {' and '.join(values)} by phase",
+            compare_entities=values, compare_entity_kind=kind, **{field: values},
+        )
+        assert plan.compare_entity_kind == kind
+        assert [s.label for s in searches] == values
+
+    @pytest.mark.parametrize(
+        "entities,drugs,conditions,sponsors",
+        [
+            (["Pembrolizumab", "melanoma"], ["Pembrolizumab"], ["melanoma"], []),
+            (["melanoma", "Merck"], [], ["melanoma"], ["Merck"]),
+            (["Pembrolizumab", "Merck"], ["Pembrolizumab"], [], ["Merck"]),
+        ],
+    )
+    def test_every_mixed_pairing_is_ambiguous(
+        self, entities, drugs, conditions, sponsors
+    ):
+        plan, searches = self.plan_for(
+            f"compare {' and '.join(entities)} by phase",
+            compare_entities=entities, drugs=drugs, conditions=conditions,
+            sponsors=sponsors,
+        )
+        assert plan.compare_entity_kind is None
+        assert not any(s.label for s in searches)
+
+    def test_a_wrong_kind_with_full_grounding_elsewhere_is_corrected(self):
+        plan, searches = self.plan_for(
+            "compare melanoma vs lung cancer by phase",
+            compare_entities=["melanoma", "lung cancer"],
+            compare_entity_kind="drug",
+            conditions=["melanoma", "lung cancer"],
+        )
+        assert plan.compare_entity_kind == "condition"
+        assert [s.cond for s in searches] == ["melanoma", "lung cancer"]
+        assert all(s.intr is None for s in searches)
+
+    def test_a_correct_kind_is_left_alone(self):
+        plan, _ = self.plan_for(
+            "compare Pembrolizumab vs Nivolumab by phase",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind="drug", drugs=["Pembrolizumab", "Nivolumab"],
+        )
+        assert plan.compare_entity_kind == "drug"
+        assert not any("rather than" in a for a in plan.assumptions)
+
+    def test_no_labelled_search_is_ever_built_without_grounding(self):
+        """The invariant behind all of the above."""
+        for kwargs in (
+            {"compare_entities": ["Alpha", "Beta"], "compare_entity_kind": "drug"},
+            {"compare_entities": ["Alpha", "Beta"], "compare_entity_kind": None},
+            {"compare_entities": ["Pembrolizumab", "melanoma"],
+             "compare_entity_kind": "drug", "drugs": ["Pembrolizumab"],
+             "conditions": ["melanoma"]},
+        ):
+            plan, searches = self.plan_for("compare Alpha and Beta by phase", **kwargs)
+            for search in searches:
+                if search.label:
+                    field = {"drug": "drugs", "condition": "conditions",
+                             "sponsor": "sponsors"}[plan.compare_entity_kind]
+                    assert search.label in getattr(plan.entities, field)

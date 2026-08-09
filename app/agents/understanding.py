@@ -722,20 +722,37 @@ COMPARE_KIND_SOURCES: dict[str, str] = {
 }
 
 
+def _grounds_every_entity(
+    compare_entities: list[str], entities: ExtractedEntities, kind: str
+) -> bool:
+    """True when *every* compared name was grounded into ``kind``'s list.
+
+    Full membership, not intersection. Any-overlap let one recognised name
+    carry the rest: "Pembrolizumab vs melanoma" matched the drug list on
+    Pembrolizumab alone and then searched ``query.intr=melanoma`` -- a
+    head-to-head whose second series measured something nobody asked about.
+    """
+    field_name = COMPARE_KIND_SOURCES.get(kind)
+    if not field_name or not compare_entities:
+        return False
+    grounded = {series_key(v) for v in getattr(entities, field_name, [])}
+    return {series_key(v) for v in compare_entities} <= grounded
+
+
 def _infer_compare_kind(
     compare_entities: list[str], entities: ExtractedEntities
 ) -> str | None:
-    """Which entity list the compared names were grounded into, if any.
+    """The one kind whose grounded list contains every compared name.
 
-    Deliberately evidence-based rather than a guess: with no grounded list
-    containing them there is nothing to infer from, and inventing a kind would
-    send the names to the wrong ClinicalTrials.gov field.
+    Deliberately evidence-based rather than a guess: with no list containing
+    them all there is nothing to infer from, and inventing a kind would send
+    the names to the wrong ClinicalTrials.gov field.
     """
     return next(
         (
             kind
-            for kind, field_name in COMPARE_KIND_SOURCES.items()
-            if set(getattr(entities, field_name, [])) & set(compare_entities)
+            for kind in COMPARE_KIND_SOURCES
+            if _grounds_every_entity(compare_entities, entities, kind)
         ),
         None,
     )
@@ -805,24 +822,32 @@ def reconcile_plan_semantics(
     # A *missing* kind matters as much as a wrong one: build_searches requires
     # both, so two entities with kind=None built a single OR search while the
     # chart stayed a grouped bar -- a union presented as a comparison.
-    if compare_entities:
-        source = COMPARE_KIND_SOURCES.get(compare_entity_kind or "")
-        claimed = set(getattr(entities, source, [])) if source else set()
-        if not claimed & set(compare_entities):
-            actual = _infer_compare_kind(compare_entities, entities)
-            if actual and compare_entity_kind is None:
-                assumptions.append(
-                    f"Compared the entities as {actual}s, matching where they "
-                    f"were found in the question."
+    if compare_entities and not _grounds_every_entity(
+        compare_entities, entities, compare_entity_kind or ""
+    ):
+        # The claimed kind is not supported by grounding. Either another list
+        # holds *all* of them -- correct to that -- or none does, in which case
+        # the kind is dropped and the grouped-bar guard in build_plan demotes
+        # the chart. An ungrounded kind used to survive untouched and send the
+        # names to whichever field it named.
+        actual = _infer_compare_kind(compare_entities, entities)
+        if actual:
+            assumptions.append(
+                f"Compared the entities as {actual}s"
+                + (
+                    f" rather than {compare_entity_kind}s"
+                    if compare_entity_kind
+                    else ""
                 )
-                compare_entity_kind = actual
-            elif actual:
-                assumptions.append(
-                    f"Compared the entities as {actual}s rather than "
-                    f"{compare_entity_kind}s, matching where they were found in "
-                    f"the question."
-                )
-                compare_entity_kind = actual
+                + ", matching where they were found in the question."
+            )
+        elif compare_entity_kind:
+            assumptions.append(
+                f"Did not compare these as {compare_entity_kind}s: the question "
+                f"does not ground every compared value as a {compare_entity_kind}, "
+                f"and searching the wrong field would answer a different question."
+            )
+        compare_entity_kind = actual
 
     return group_by, viz_type, network_kind, compare_entity_kind, assumptions
 
