@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.agents.understanding import (
+    STATUS_VOCABULARY,
     UnderstandingError,
     _appears_in,
     _match_statuses,
@@ -722,6 +723,7 @@ class TestStatusWordBoundaries:
         "query,leaked",
         [
             ("unavailable", "AVAILABLE"),
+            ("incompleted", "COMPLETED"),
             ("temporarily unavailable", "AVAILABLE"),
             ("incomplete", "COMPLETED"),
             ("incompleted data", "COMPLETED"),
@@ -746,7 +748,7 @@ class TestStatusWordBoundaries:
             ("terminated", "TERMINATED"),
             ("withdrawn", "WITHDRAWN"),
             ("enrolling by invitation", "ENROLLING_BY_INVITATION"),
-            ("available", "AVAILABLE"),
+            ("expanded access", "AVAILABLE"),
             ("no longer available", "NO_LONGER_AVAILABLE"),
             ("suspended", "SUSPENDED"),
             ("on hold", "SUSPENDED"),
@@ -1001,3 +1003,77 @@ class TestStatusExclusionIsApplied:
         assert plan.excluded_statuses == ["RECRUITING"]
         # And it is not also requested positively.
         assert plan.entities.statuses == []
+
+
+class TestStatusVocabularyIsUnambiguous:
+    """Every phrase in the vocabulary must mean a registry status and nothing
+    else. Bare "available", "complete", and "stopped" are ordinary English
+    first, and matching them silently changed which trials were counted."""
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "Which countries have available melanoma trials?",
+            "is the drug available in Japan",
+            "melanoma trials with complete response rates",
+            "trials with a complete data set",
+            "how complete is the reporting",
+        ],
+    )
+    def test_everyday_english_does_not_become_a_status_filter(self, query):
+        """AVAILABLE is expanded-access and has no verified upstream code, so a
+        false match filtered client-side to almost nothing."""
+        assert _match_statuses(query) == ([], [])
+
+    def test_stopped_recruiting_is_an_exclusion_not_two_statuses(self):
+        """It used to match "stopped" and "recruiting" separately and yield
+        TERMINATED *and* RECRUITING -- a contradiction. Read as an exclusion,
+        because completed, terminated and active-not-recruiting trials have all
+        stopped recruiting; claiming any one would over-read the question."""
+        positive, negated = _match_statuses("trials that stopped recruiting")
+        assert positive == []
+        assert negated == ["RECRUITING"]
+
+    def test_no_longer_recruiting_is_also_an_exclusion(self):
+        assert _match_statuses("trials no longer recruiting") == ([], ["RECRUITING"])
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("recruiting studies", "RECRUITING"),
+            ("completed trials", "COMPLETED"),
+            ("active, not recruiting", "ACTIVE_NOT_RECRUITING"),
+            ("active not recruiting", "ACTIVE_NOT_RECRUITING"),
+            ("closed to enrollment", "ACTIVE_NOT_RECRUITING"),
+            ("not yet recruiting", "NOT_YET_RECRUITING"),
+            ("terminated trials", "TERMINATED"),
+            ("trials stopped early", "TERMINATED"),
+            ("halted trials", "TERMINATED"),
+            ("withdrawn", "WITHDRAWN"),
+            ("suspended", "SUSPENDED"),
+            ("on hold", "SUSPENDED"),
+            ("enrolling by invitation", "ENROLLING_BY_INVITATION"),
+            ("no longer available", "NO_LONGER_AVAILABLE"),
+            ("expanded access trials", "AVAILABLE"),
+            ("unknown status", "UNKNOWN"),
+        ],
+    )
+    def test_real_status_questions_still_extract(self, query, expected):
+        """Tightening the vocabulary must not cost a legitimate match."""
+        assert _match_statuses(query)[0] == [expected]
+
+    def test_stopped_early_is_terminated_despite_stopped_being_a_cue(self):
+        """The longer phrase is matched and masked before the cue check runs."""
+        assert _match_statuses("the trial was stopped early")[0] == ["TERMINATED"]
+
+    def test_no_phrase_in_the_vocabulary_is_a_common_english_word(self):
+        """A guard against reintroducing polysemy: every single-word phrase has
+        to be one that only means a trial status."""
+        everyday = {"available", "complete", "stopped", "closed", "open", "active"}
+        singles = {
+            phrase
+            for phrases in STATUS_VOCABULARY.values()
+            for phrase in phrases
+            if " " not in phrase and "-" not in phrase
+        }
+        assert not (singles & everyday), singles & everyday

@@ -280,17 +280,34 @@ _YEAR = re.compile(r"\b(19[89]\d|20[0-3]\d)\b")
 #: ClinicalTrials.gov ``overallStatus`` values, verified live against the API,
 #: mapped from the words a person actually types. Ordered longest-phrase-first
 #: within each entry so "not yet recruiting" is consumed before "recruiting".
+#: Every phrase here must mean a *registry status* and nothing else. Bare
+#: "available", "complete", and "stopped" were dropped because they are
+#: ordinary English first and statuses second, and matching them silently
+#: changed the population: "which countries have available melanoma trials"
+#: filtered to expanded-access records, "trials with complete response rates"
+#: filtered to COMPLETED, and "trials that stopped recruiting" matched
+#: TERMINATED *and* RECRUITING at once. The longer forms they appear in
+#: ("no longer available", "completed", "stopped early") are unambiguous and
+#: stay.
 STATUS_VOCABULARY: dict[str, tuple[str, ...]] = {
     "NOT_YET_RECRUITING": ("not yet recruiting", "not-yet-recruiting", "upcoming"),
-    "ACTIVE_NOT_RECRUITING": ("active not recruiting", "active, not recruiting"),
+    "ACTIVE_NOT_RECRUITING": (
+        "active not recruiting",
+        "active, not recruiting",
+        # Unambiguous: a trial closed to enrolment but still running. Unlike
+        # "stopped recruiting", these name the status rather than describing a
+        # thing that several statuses have in common.
+        "closed to enrollment",
+        "closed to enrolment",
+    ),
     "ENROLLING_BY_INVITATION": ("enrolling by invitation",),
     "NO_LONGER_AVAILABLE": ("no longer available",),
     "RECRUITING": ("recruiting", "enrolling", "actively enrolling"),
-    "COMPLETED": ("completed", "complete", "finished", "concluded"),
-    "TERMINATED": ("terminated", "halted", "stopped early", "stopped"),
+    "COMPLETED": ("completed", "finished", "concluded"),
+    "TERMINATED": ("terminated", "halted", "stopped early"),
     "SUSPENDED": ("suspended", "paused", "on hold"),
     "WITHDRAWN": ("withdrawn",),
-    "AVAILABLE": ("available",),
+    "AVAILABLE": ("expanded access", "available for expanded access"),
     "UNKNOWN": ("unknown status",),
 }
 
@@ -374,6 +391,14 @@ _NEGATION_CUES = (
     "excluding",
     "other than",
     "without",
+    # "stopped recruiting" reads as an exclusion rather than a status: a
+    # completed, terminated, or active-not-recruiting trial has all stopped
+    # recruiting, so claiming any one of them would over-read the question.
+    # "stopped early" is a TERMINATED phrase and is matched and masked before
+    # this check ever sees it.
+    "stopped",
+    "ceased",
+    "halted",
 )
 
 #: Scanning back stops here, so a negation in one clause cannot reach into the

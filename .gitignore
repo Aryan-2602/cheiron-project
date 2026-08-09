@@ -31,3 +31,5 @@ build/
 *.swo
 
 .claude/
+
+tmp/
