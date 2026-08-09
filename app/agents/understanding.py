@@ -595,6 +595,108 @@ def reconcile_viz_type(understanding: QueryUnderstanding) -> tuple[str, list[str
     ]
 
 
+#: Combinations that are incoherent no matter what the model proposed, and the
+#: axis each one must resolve to. A geographic chart of sponsors is not a
+#: geographic chart; a histogram of phases is not a histogram. Deliberately a
+#: small explicit table rather than a rules engine.
+REQUIRED_GROUP_BY: dict[str, str] = {
+    "geographic": "country",
+    "time_trend": "start_year",
+}
+
+#: A histogram bins a continuous measure; enrollment size is the only one this
+#: service has. Any other axis means the chart type was the mistake.
+HISTOGRAM_GROUP_BY = "enrollment_bucket"
+
+# network_kind needs no reconciliation here: it is Literal-constrained in
+# QueryUnderstanding, so an unsupported value is rejected when the model's
+# response is parsed, and build_plan already defaults a missing one.
+
+#: Which entity list a comparison of each kind must have been drawn from.
+COMPARE_KIND_SOURCES: dict[str, str] = {
+    "drug": "drugs",
+    "condition": "conditions",
+    "sponsor": "sponsors",
+}
+
+
+def reconcile_plan_semantics(
+    *,
+    query_type: str,
+    group_by: str | None,
+    viz_type: str,
+    network_kind: str | None,
+    compare_entities: list[str],
+    compare_entity_kind: str | None,
+    entities: ExtractedEntities,
+) -> tuple[str | None, str, str | None, str | None, list[str]]:
+    """Force a plan's parts to describe the same question.
+
+    ``reconcile_viz_type`` already normalises the chart type against the query
+    type. This is the same idea one level down: the model may propose semantic
+    combinations that cannot be rendered honestly, and deterministic code has
+    to reject or normalise them before they reach a search or an axis.
+
+    Returns the corrected ``(group_by, viz_type, network_kind,
+    compare_entity_kind)`` plus one assumption per correction, so every change
+    is visible to the reader rather than applied silently.
+    """
+    assumptions: list[str] = []
+
+    required = REQUIRED_GROUP_BY.get(query_type)
+    if required and group_by != required:
+        if group_by is not None:
+            assumptions.append(
+                f"Grouped by {required.replace('_', ' ')} rather than "
+                f"{group_by.replace('_', ' ')}, which a "
+                f"{query_type.replace('_', ' ')} question cannot be plotted against."
+            )
+        group_by = required
+
+    # A histogram is a statement about the axis, not just the rendering, so an
+    # incompatible pair is resolved by trusting whichever side the question
+    # actually supports: an explicit non-enrollment axis wins over the chart.
+    if viz_type == "histogram" and group_by != HISTOGRAM_GROUP_BY:
+        if group_by in (None, "phase") and query_type == "distribution":
+            group_by = HISTOGRAM_GROUP_BY
+            assumptions.append(
+                "Read this as an enrollment-size distribution, which is what a "
+                "histogram measures."
+            )
+        else:
+            viz_type = "bar_chart"
+            assumptions.append(
+                f"Rendered as a bar chart rather than a histogram: "
+                f"{(group_by or 'this axis').replace('_', ' ')} is categorical, "
+                f"not a continuous measure."
+            )
+
+    # The compared entities came from grounding, so the list they appear in is
+    # better evidence of their kind than the model's label. Querying
+    # query.cond for drug names would return nothing and say nothing about it.
+    if compare_entities and compare_entity_kind:
+        source = COMPARE_KIND_SOURCES.get(compare_entity_kind)
+        claimed = set(getattr(entities, source, [])) if source else set()
+        if not claimed & set(compare_entities):
+            actual = next(
+                (
+                    kind
+                    for kind, field_name in COMPARE_KIND_SOURCES.items()
+                    if set(getattr(entities, field_name, [])) & set(compare_entities)
+                ),
+                None,
+            )
+            if actual:
+                assumptions.append(
+                    f"Compared the entities as {actual}s rather than "
+                    f"{compare_entity_kind}s, matching where they were found in "
+                    f"the question."
+                )
+                compare_entity_kind = actual
+
+    return group_by, viz_type, network_kind, compare_entity_kind, assumptions
+
+
 def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> QueryPlan:
     """Ground, reconcile, and merge structured overrides into a final plan.
 
@@ -650,6 +752,20 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
             "Fewer than two comparable entities were named, so a single "
             "distribution is shown instead of a comparison."
         )
+
+    # Last, so it sees the grounded entities and every override already applied.
+    group_by, viz_type, network_kind, compare_kind, semantic_notes = (
+        reconcile_plan_semantics(
+            query_type=understanding.query_type,
+            group_by=group_by,
+            viz_type=viz_type,
+            network_kind=network_kind,
+            compare_entities=compare_entities,
+            compare_entity_kind=compare_kind,
+            entities=entities,
+        )
+    )
+    assumptions.extend(semantic_notes)
 
     return QueryPlan(
         query=request.query,

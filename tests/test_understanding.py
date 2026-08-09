@@ -796,3 +796,112 @@ class TestStatusWordBoundaries:
         positive, negated = _match_statuses(query)
         assert positive == []
         assert negated == []
+
+
+class TestPlanSemanticReconciliation:
+    """The model proposes semantic combinations; deterministic code rejects the
+    ones that cannot be rendered honestly. A geographic chart of sponsors is not
+    a geographic chart, and a histogram of phases is not a histogram."""
+
+    def plan_for(self, query, **kwargs):
+        entities = ExtractedEntities(
+            drugs=kwargs.pop("drugs", []),
+            conditions=kwargs.pop("conditions", []),
+            sponsors=kwargs.pop("sponsors", []),
+            phases=[], statuses=[], countries=[], year_range=None,
+        )
+        understanding = QueryUnderstanding(
+            query_type=kwargs.pop("query_type"),
+            viz_type=kwargs.pop("viz_type"),
+            group_by=kwargs.pop("group_by", None),
+            compare_entities=kwargs.pop("compare_entities", []),
+            compare_entity_kind=kwargs.pop("compare_entity_kind", None),
+            network_kind=kwargs.pop("network_kind", None),
+            assumptions=[],
+            entities=entities,
+        )
+        return build_plan(QueryRequest(query=query), understanding)
+
+    def test_geographic_is_forced_onto_the_country_axis(self):
+        plan = self.plan_for(
+            "which countries run melanoma trials",
+            query_type="geographic", viz_type="geo_bar_chart", group_by="sponsor",
+        )
+        assert plan.group_by == "country"
+        assert any("rather than sponsor" in a for a in plan.assumptions)
+
+    def test_time_trend_is_forced_onto_the_year_axis(self):
+        plan = self.plan_for(
+            "melanoma trials per year",
+            query_type="time_trend", viz_type="time_series", group_by="phase",
+        )
+        assert plan.group_by == "start_year"
+
+    def test_histogram_of_phase_becomes_an_enrollment_distribution(self):
+        """A histogram bins a continuous measure; phase is categorical."""
+        plan = self.plan_for(
+            "melanoma trials by phase",
+            query_type="distribution", viz_type="histogram", group_by="phase",
+        )
+        assert (plan.viz_type, plan.group_by) == ("histogram", "enrollment_bucket")
+        assert any("enrollment-size" in a for a in plan.assumptions)
+
+    def test_histogram_of_enrollment_is_left_alone(self):
+        plan = self.plan_for(
+            "enrollment size distribution for melanoma trials",
+            query_type="distribution", viz_type="histogram",
+            group_by="enrollment_bucket",
+        )
+        assert (plan.viz_type, plan.group_by) == ("histogram", "enrollment_bucket")
+
+    def test_histogram_of_an_explicit_categorical_axis_becomes_a_bar_chart(self):
+        """The axis the question actually asked for wins over the chart type."""
+        plan = self.plan_for(
+            "melanoma trials by sponsor",
+            query_type="distribution", viz_type="histogram", group_by="sponsor",
+        )
+        assert (plan.viz_type, plan.group_by) == ("bar_chart", "sponsor")
+        assert any("categorical" in a for a in plan.assumptions)
+
+    def test_a_drug_comparison_mislabelled_as_conditions_is_corrected(self):
+        """Trusting the label would search query.cond for drug names, which
+        returns nothing and says nothing about why."""
+        plan = self.plan_for(
+            "compare Pembrolizumab and Nivolumab by phase",
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind="condition",
+            drugs=["Pembrolizumab", "Nivolumab"],
+        )
+        assert plan.compare_entity_kind == "drug"
+        assert any("as drugs rather than conditions" in a for a in plan.assumptions)
+
+    def test_a_correctly_labelled_comparison_is_untouched(self):
+        plan = self.plan_for(
+            "compare Pembrolizumab and Nivolumab by phase",
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind="drug",
+            drugs=["Pembrolizumab", "Nivolumab"],
+        )
+        assert plan.compare_entity_kind == "drug"
+        assert not any("rather than" in a for a in plan.assumptions)
+
+    def test_an_unresolvable_comparison_kind_is_left_as_proposed(self):
+        """No grounded list contains the entities, so there is nothing to infer
+        from -- guessing would be worse than leaving the model's label."""
+        plan = self.plan_for(
+            "compare Alpha and Beta by phase",
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=["Alpha", "Beta"], compare_entity_kind="sponsor",
+        )
+        assert plan.compare_entity_kind == "sponsor"
+
+    def test_every_correction_is_disclosed(self):
+        """Silent normalisation would hide that the chart answers a slightly
+        different question than the one asked."""
+        plan = self.plan_for(
+            "which countries run melanoma trials",
+            query_type="geographic", viz_type="geo_bar_chart", group_by="sponsor",
+        )
+        assert plan.assumptions
