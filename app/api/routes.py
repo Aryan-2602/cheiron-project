@@ -159,7 +159,13 @@ def _error(status_code: int, code: ErrorCode, message: str, **details: Any) -> J
         400: {"model": ErrorResponse, "description": "Question not answerable"},
         422: {"description": "Request body failed schema validation"},
         502: {"model": ErrorResponse, "description": "LLM or upstream API failure"},
-        500: {"model": ErrorResponse, "description": "Response failed validation"},
+        500: {
+            "model": ErrorResponse,
+            "description": (
+                "Response failed validation, or an unforeseen failure was "
+                "withheld as INTERNAL_ERROR"
+            ),
+        },
     },
     summary="Turn a natural-language clinical-trials question into a visualization spec",
 )

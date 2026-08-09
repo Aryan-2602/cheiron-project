@@ -49,6 +49,7 @@ import httpx
 
 from app.core.config import settings
 from app.models.schemas import DrugResolution
+from app.services.dimensions import protocol_module
 from app.services.network import STOPWORD_DRUGS, normalize_intervention
 
 logger = logging.getLogger(__name__)
@@ -470,11 +471,8 @@ def collect_drug_names(
     """
     names: dict[str, set[str]] = {}
     for record in records.values():
-        interventions = (
-            record.get("protocolSection", {})
-            .get("armsInterventionsModule", {})
-            .get("interventions")
-            or []
+        interventions = _seq(
+            protocol_module(record, "armsInterventionsModule").get("interventions")
         )
         for intervention in interventions:
             if not isinstance(intervention, dict):

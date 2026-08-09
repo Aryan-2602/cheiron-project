@@ -450,6 +450,10 @@ ErrorCode = Literal[
     "UPSTREAM_ERROR",
     "LLM_ERROR",
     "VALIDATION_ERROR",
+    #: Anything the handlers above did not anticipate. Its message is fixed
+    #: text: a caller learns that the response was withheld, and the detail
+    #: goes to the log where the request id can reach it.
+    "INTERNAL_ERROR",
 ]
 
 

@@ -33,6 +33,7 @@ from app.models.schemas import (
     NetworkNode,
     NetworkResult,
 )
+from app.services.dimensions import protocol_module
 
 #: Intervention types that name a therapeutic agent. PROCEDURE, DEVICE,
 #: BEHAVIORAL and friends are excluded: "Placebo administration" and
@@ -131,12 +132,10 @@ def extract_drugs(
 
     Passing ``None`` reproduces the pre-RxNorm behaviour exactly.
     """
-    interventions = (
-        record.get("protocolSection", {})
-        .get("armsInterventionsModule", {})
-        .get("interventions")
-        or []
+    interventions = protocol_module(record, "armsInterventionsModule").get(
+        "interventions"
     )
+    interventions = interventions if isinstance(interventions, list) else []
     seen: dict[str, str] = {}
     for intervention in interventions:
         if not isinstance(intervention, dict):
@@ -183,12 +182,8 @@ def rank_candidate_names(
 
 
 def extract_sponsors(record: dict[str, Any]) -> list[tuple[str, str]]:
-    name = (
-        record.get("protocolSection", {})
-        .get("sponsorCollaboratorsModule", {})
-        .get("leadSponsor", {})
-        .get("name")
-    )
+    lead = protocol_module(record, "sponsorCollaboratorsModule").get("leadSponsor")
+    name = lead.get("name") if isinstance(lead, Mapping) else None
     if not isinstance(name, str) or not name.strip():
         return []
     return [(name.strip().lower(), name.strip())]

@@ -697,7 +697,13 @@ class TestMixedStatusSemantics:
     }
 
     def registry(self):
-        return {s: make_record(f"NCT_{s}", status=s) for s in self.STATUSES}
+        """Ids are registry-shaped. StudyStore refuses anything that does not
+        match NCT_ID_PATTERN, because a record that cannot be cited cannot be
+        evidence -- so a fixture using "NCT_RECRUITING" would test nothing."""
+        return {
+            status: make_record(f"NCT0000000{i}", status=status)
+            for i, status in enumerate(self.STATUSES)
+        }
 
     async def run_with(self, statuses):
         """Drives the real fetch with an upstream that honours aggFilters the
@@ -722,7 +728,9 @@ class TestMixedStatusSemantics:
         async with CTGovClient() as client:
             fetched = await fetch(plan_obj, searches, client)
         apply_client_side_filters(fetched.store, plan_obj)
-        kept = {n.replace("NCT_", "") for n in fetched.store.records}
+        by_id = {v["protocolSection"]["identificationModule"]["nctId"]: k
+                 for k, v in registry.items()}
+        kept = {by_id[n] for n in fetched.store.records}
         return agg, kept
 
     @respx.mock
@@ -772,8 +780,10 @@ class TestMixedStatusSemantics:
         """AVAILABLE has no verified code, so this pair genuinely lands in the
         client-side union -- the only path that still needs a disclosure."""
         registry = {
-            s: make_record(f"NCT_{s}", status=s)
-            for s in ("AVAILABLE", "NO_LONGER_AVAILABLE", "COMPLETED")
+            f"NCT0000000{i}": make_record(f"NCT0000000{i}", status=status)
+            for i, status in enumerate(
+                ("AVAILABLE", "NO_LONGER_AVAILABLE", "COMPLETED")
+            )
         }
         store = StudyStore()
         store.add_records(registry.values())
@@ -784,7 +794,7 @@ class TestMixedStatusSemantics:
         # sorted(), so the disclosure never inherits set iteration order.
         assert "AVAILABLE, NO_LONGER_AVAILABLE" in text
         assert "any of" in text
-        assert set(store.records) == {"NCT_AVAILABLE", "NCT_NO_LONGER_AVAILABLE"}
+        assert set(store.records) == {"NCT00000000", "NCT00000001"}
 
     @respx.mock
     async def test_per_search_provenance_is_not_overwritten(self):
@@ -1481,3 +1491,47 @@ class TestEveryPromisedSeriesIsRegistered:
         """Registering skipped series must not become a way to exceed it."""
         _searches, fetched = await self.fetch_series(120, 100)
         assert len(fetched.store) <= 100
+
+
+class TestUnhandledExceptionHonoursTheErrorContract:
+    """The route advertises 500: {"model": ErrorResponse} and the README says
+    domain error bodies *are* an ErrorResponse. Anything the specific handlers
+    did not anticipate fell through to Starlette's text/plain "Internal Server
+    Error" -- unparseable by any documented client, on the one path where a
+    caller most needs to know what happened."""
+
+    def response(self, exc):
+        from app.api import routes
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            original = routes.run_pipeline
+
+            async def boom(*_args, **_kwargs):
+                raise exc
+
+            routes.run_pipeline = boom
+            try:
+                return client.post("/api/v1/query", json={"query": "a question"})
+            finally:
+                routes.run_pipeline = original
+
+    def test_the_body_parses_as_an_error_response(self):
+        from app.models.schemas import ErrorResponse
+
+        response = self.response(RuntimeError("boom"))
+        assert response.status_code == 500
+        parsed = ErrorResponse.model_validate(response.json())
+        assert parsed.error.code == "INTERNAL_ERROR"
+
+    def test_the_exception_text_is_never_in_the_body(self):
+        """An error string can carry a fragment of the query, an upstream URL,
+        or a filesystem path -- and this is the one response produced by a code
+        path nobody reasoned about."""
+        secret = "/private/key/material/and-the-users-question"
+        body = self.response(RuntimeError(secret)).text
+        assert secret not in body
+        assert "Traceback" not in body
+
+    def test_the_body_is_a_bare_error_response(self):
+        """Not wrapped in FastAPI's "detail", which is the 422 shape."""
+        assert set(self.response(ValueError("x")).json()) == {"error"}

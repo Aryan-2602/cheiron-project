@@ -20,7 +20,7 @@ fixture test.
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -55,8 +55,27 @@ ENROLLMENT_BINS: list[tuple[int, int | None, str]] = [
 ]
 
 
-def _protocol(record: dict[str, Any], module: str) -> dict[str, Any]:
-    return record.get("protocolSection", {}).get(module, {}) or {}
+def protocol_module(record: Any, module: str) -> dict[str, Any]:
+    """One module of a study record, or ``{}`` for anything unusable.
+
+    The registry distinguishes an absent key from one present and explicitly
+    null, and ``.get(k, {})`` only covers the first: a record carrying
+    ``"armsInterventionsModule": null`` returned None and the next ``.get`` in
+    the chain raised AttributeError. Total on every input, including a record
+    that is not a mapping at all, so callers can read a missing module as
+    "this trial does not say" rather than as a fault.
+    """
+    if not isinstance(record, Mapping):
+        return {}
+    section = record.get("protocolSection")
+    if not isinstance(section, Mapping):
+        return {}
+    found = section.get(module)
+    return found if isinstance(found, Mapping) else {}
+
+
+#: Kept as the module-local spelling; :func:`protocol_module` is the shared one.
+_protocol = protocol_module
 
 
 # --------------------------------------------------------------------------

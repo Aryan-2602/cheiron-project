@@ -5,11 +5,12 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.api.routes import router
 from app.core.config import settings
 from app.core.logging import request_id, setup_logging
+from app.models.schemas import ErrorBody, ErrorResponse
 
 setup_logging()
 
@@ -87,6 +88,40 @@ async def log_requests(
     )
     request_id.reset(token)
     return response
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
+    """Make an unforeseen failure honour the documented error contract.
+
+    The route advertises ``500: {"model": ErrorResponse}`` and the README says
+    domain error bodies *are* an ErrorResponse. Without this, anything the
+    specific handlers did not anticipate fell through to Starlette's default
+    text/plain "Internal Server Error" -- a body no documented client can
+    parse, on the one path where a caller most needs to know what happened.
+
+    The message is fixed text. Nothing user-controlled and nothing from the
+    exception goes into the body: an error string can carry a fragment of the
+    query, an upstream URL, or a filesystem path, and this is the one response
+    produced by a code path nobody reasoned about. The detail is logged
+    instead, where the request id ties it back to this response.
+    """
+    logger.exception(
+        "unhandled exception",
+        extra={"method": request.method, "path": request.url.path},
+    )
+    return JSONResponse(
+        status_code=500,
+        content=ErrorResponse(
+            error=ErrorBody(
+                code="INTERNAL_ERROR",
+                message=(
+                    "An unexpected error occurred and the response was withheld."
+                ),
+                details={},
+            )
+        ).model_dump(),
+    )
 
 
 @app.get("/", include_in_schema=False)

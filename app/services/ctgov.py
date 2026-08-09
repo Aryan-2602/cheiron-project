@@ -16,7 +16,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, Literal, Self
 
@@ -265,7 +265,27 @@ class CTGovClient:
                     raise CTGovError(f"request to {url} failed: {last_error}") from exc
             else:
                 if response.status_code == 200:
-                    return response.json(), str(response.request.url)
+                    # A 200 does not promise a JSON object. An HTML error page
+                    # from an intermediary, a truncated body, or a JSON scalar
+                    # all arrive here, and each used to surface as a
+                    # JSONDecodeError or AttributeError from somewhere further
+                    # down -- an untyped crash that escaped the route's
+                    # handlers as an undocumented 500 rather than the 502 this
+                    # module promises for every upstream failure.
+                    try:
+                        payload = response.json()
+                    except ValueError as exc:
+                        raise CTGovError(
+                            f"upstream returned 200 with an unparseable body for "
+                            f"{response.request.url}: {response.text[:200]}"
+                        ) from exc
+                    if not isinstance(payload, Mapping):
+                        raise CTGovError(
+                            f"upstream returned 200 with a "
+                            f"{type(payload).__name__} body for "
+                            f"{response.request.url}, not an object"
+                        )
+                    return dict(payload), str(response.request.url)
                 if response.status_code == 429 or response.status_code >= 500:
                     last_error = f"HTTP {response.status_code}"
                     if attempt == self.max_retries:
@@ -358,16 +378,38 @@ class CTGovClient:
             payload, url = await self._get("/studies", params)
             store.add_url(url)
 
-            studies = payload.get("studies") or []
+            # Each field is checked for the type it is documented to have.
+            # A wrong one is an upstream fault, and saying so as a CTGovError
+            # gets the documented 502 instead of a TypeError several frames
+            # later that the route can only report as an opaque 500.
+            studies = payload.get("studies")
+            if studies is None:
+                studies = []
+            elif not isinstance(studies, list):
+                raise CTGovError(
+                    f"upstream returned 'studies' as a {type(studies).__name__}, "
+                    f"not a list, for {url}"
+                )
             outcome.nct_ids |= store.add_records(studies)
             fetched += len(studies)
 
-            if outcome.total_count is None and "totalCount" in payload:
-                outcome.total_count = payload["totalCount"]
-                store.total_counts.append(payload["totalCount"])
+            total = payload.get("totalCount")
+            if outcome.total_count is None and total is not None:
+                if not isinstance(total, int) or isinstance(total, bool):
+                    raise CTGovError(
+                        f"upstream returned 'totalCount' as a "
+                        f"{type(total).__name__}, not an integer, for {url}"
+                    )
+                outcome.total_count = total
+                store.total_counts.append(total)
 
             pages += 1
             page_token = payload.get("nextPageToken")
+            if page_token is not None and not isinstance(page_token, str):
+                raise CTGovError(
+                    f"upstream returned 'nextPageToken' as a "
+                    f"{type(page_token).__name__}, not a string, for {url}"
+                )
             logger.debug(
                 "ctgov page fetched",
                 extra={

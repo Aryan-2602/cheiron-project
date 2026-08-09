@@ -15,7 +15,7 @@ already fetched as part of the search.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from app.models.schemas import Citation
@@ -26,6 +26,7 @@ from app.services.dimensions import (
     extract_sponsor,
     extract_sponsor_class,
     extract_status,
+    protocol_module,
 )
 from app.services.network import extract_drugs
 from app.services.store import StudyStore
@@ -35,12 +36,9 @@ TITLE_CLIP = 160
 
 
 def _title(record: dict[str, Any]) -> str:
-    title = (
-        record.get("protocolSection", {})
-        .get("identificationModule", {})
-        .get("briefTitle")
-        or ""
-    )
+    title = protocol_module(record, "identificationModule").get("briefTitle") or ""
+    if not isinstance(title, str):
+        return ""
     if len(title) > TITLE_CLIP:
         return title[:TITLE_CLIP].rstrip() + "..."
     return title
@@ -48,7 +46,7 @@ def _title(record: dict[str, Any]) -> str:
 
 def _raw_value(record: dict[str, Any], path: str) -> Any:
     """Read a dotted path out of ``protocolSection``, tolerating gaps."""
-    node: Any = record.get("protocolSection", {})
+    node: Any = record.get("protocolSection") if isinstance(record, Mapping) else None
     for part in path.split("."):
         if not isinstance(node, dict):
             return None

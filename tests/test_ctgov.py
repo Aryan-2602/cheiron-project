@@ -831,3 +831,91 @@ class TestComparisonCardinality:
         searches, notes = build_searches(self.plan(MAX_COMPARE_ENTITIES))
         assert len(searches) == MAX_COMPARE_ENTITIES
         assert not any("omitted" in n for n in notes)
+
+
+class TestMalformedSuccessPayloads:
+    """A 200 does not promise a JSON object, let alone the documented shape.
+
+    An HTML error page from an intermediary, a truncated body, or a field of
+    the wrong type each surfaced as a JSONDecodeError, AttributeError or
+    TypeError from somewhere further down -- untyped crashes that escaped the
+    route's handlers as an opaque 500 instead of the 502 this module promises
+    for every upstream failure.
+    """
+
+    async def probe(self, **response_kwargs):
+        respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(200, **response_kwargs)
+        )
+        return await run(CTGovSearch(intr="X"), max_studies=10)
+
+    @respx.mock
+    @pytest.mark.parametrize(
+        "body",
+        ["<html>502 Bad Gateway</html>", "", '{"studies": [', "not json at all"],
+    )
+    async def test_an_unparseable_body_is_an_upstream_error(self, body):
+        with pytest.raises(CTGovError, match="unparseable body"):
+            await self.probe(text=body)
+
+    @respx.mock
+    @pytest.mark.parametrize("body", ["5", '"ok"', "[1, 2]", "null", "true"])
+    async def test_a_non_object_body_is_an_upstream_error(self, body):
+        """Passed as raw text: a JSON scalar is valid JSON and parses fine, so
+        the guard that has to catch it is the shape check, not the decoder."""
+        with pytest.raises(CTGovError, match="not an object"):
+            await self.probe(text=body)
+
+    @respx.mock
+    @pytest.mark.parametrize(
+        "payload,field",
+        [
+            ({"studies": "x"}, "studies"),
+            ({"studies": {}}, "studies"),
+            ({"studies": 7}, "studies"),
+            ({"studies": [], "totalCount": "many"}, "totalCount"),
+            ({"studies": [], "totalCount": [1]}, "totalCount"),
+            ({"studies": [{"a": 1}], "nextPageToken": 7}, "nextPageToken"),
+            ({"studies": [{"a": 1}], "nextPageToken": []}, "nextPageToken"),
+        ],
+    )
+    async def test_a_field_of_the_wrong_type_is_an_upstream_error(
+        self, payload, field
+    ):
+        with pytest.raises(CTGovError, match=field):
+            await self.probe(json=payload)
+
+    @respx.mock
+    async def test_a_well_formed_empty_page_is_not_an_error(self):
+        outcome, store = await self.probe(json={"studies": [], "totalCount": 0})
+        assert outcome.total_count == 0
+        assert len(store) == 0
+
+
+class TestUnusableIdsAreRefusedAtTheStore:
+    """Citation.nct_id enforces ^NCT\\d{8}$. A record with id "BADID" was
+    admitted, reached a bucket, inflated its count, and then raised an uncaught
+    ValidationError when its citation was built. A record we cannot cite cannot
+    be evidence."""
+
+    @pytest.mark.parametrize(
+        "nct_id", ["BADID", "NCT123", " NCT00000001", "NCT000000012", "nct00000001", ""]
+    )
+    def test_an_unusable_id_is_not_admitted(self, nct_id):
+        store = StudyStore()
+        seen = store.add_records([make_record(nct_id)])
+        assert seen == set()
+        assert len(store) == 0
+
+    def test_a_valid_record_in_the_same_batch_still_lands(self):
+        store = StudyStore()
+        seen = store.add_records([make_record("BADID"), make_record("NCT00000001")])
+        assert seen == {"NCT00000001"}
+        assert len(store) == 1
+
+    @pytest.mark.parametrize("entry", [None, "a string", 7, ["list"], object()])
+    def test_a_non_dict_entry_is_skipped_rather_than_raising(self, entry):
+        store = StudyStore()
+        assert store.add_records([entry, make_record("NCT00000001")]) == {
+            "NCT00000001"
+        }
