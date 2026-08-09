@@ -310,16 +310,28 @@ class CTGovClient:
         return payload.get("dataTimestamp")
 
     async def run_search(
-        self, search: CTGovSearch, store: StudyStore, *, max_studies: int
+        self,
+        search: CTGovSearch,
+        store: StudyStore,
+        *,
+        max_studies: int,
+        requested_max: int | None = None,
     ) -> SearchOutcome:
         """Page through a search, adding records to ``store``.
 
         Stops at ``max_studies`` and records that it did so, so the response can
         state plainly that aggregates cover a capped sample rather than the
         whole result set.
+
+        ``max_studies`` is this search's budget; ``requested_max`` is the number
+        the caller actually asked for, which differs whenever a comparison
+        splits one budget across its series. The warning quotes the requested
+        number, because quoting the share told the user they were capped at a
+        figure they never set -- and then advised them to raise it.
         """
         outcome = SearchOutcome(search=search)
         page_token: str | None = None
+        seen_tokens: set[str] = set()
         fetched = 0
         pages = 0
         started = time.perf_counter()
@@ -366,17 +378,54 @@ class CTGovClient:
             )
             if not page_token or not studies:
                 break
+            if page_token in seen_tokens:
+                # A token that points back at a page already fetched is a cycle:
+                # it re-reads the same records until the budget runs out and
+                # then reports a capped sample, when in fact the whole result
+                # set was in hand after the first pass.
+                logger.warning(
+                    "ctgov pagination token repeated; stopping",
+                    extra={"pages": pages, "label": search.label},
+                )
+                break
+            seen_tokens.add(page_token)
 
-        if outcome.truncated or (
-            outcome.total_count is not None and fetched < outcome.total_count
-        ):
+        reported_max = requested_max if requested_max is not None else max_studies
+        series = f" for {search.label}" if search.label else ""
+        # Naming the share as well, when it differs, keeps the advice coherent:
+        # the reason this series stopped is its share, but the number to raise
+        # is the one the caller set.
+        share = (
+            f", split into a {max_studies:,}-trial share for this series"
+            if reported_max != max_studies
+            else ""
+        )
+
+        if outcome.total_count is not None and fetched >= outcome.total_count:
+            # Provably complete. The upstream hands back a nextPageToken even
+            # after the last record, which tripped the budget check on the
+            # following iteration and produced "Fetched 100 of 100 (capped)" --
+            # a claim of incompleteness about a whole sample. Every disclosure
+            # in this project is load-bearing, so a false one is as damaging as
+            # the omission it imitates.
+            outcome.truncated = False
+        elif outcome.truncated or outcome.total_count is not None:
             outcome.truncated = True
             store.truncated = True
-            outcome.warnings.append(
-                f"Fetched {fetched:,} of {outcome.total_count:,} matching trials "
-                f"(capped at max_studies={max_studies:,}); figures below describe "
-                f"that sample, not the full result set."
-            )
+            if outcome.total_count is None:
+                outcome.warnings.append(
+                    f"Fetched {fetched:,} trials{series} and stopped at the "
+                    f"max_studies={reported_max:,} cap{share}; the upstream did "
+                    f"not report a total, so how much of the result set this "
+                    f"covers is unknown."
+                )
+            else:
+                outcome.warnings.append(
+                    f"Fetched {fetched:,} of {outcome.total_count:,} matching "
+                    f"trials{series} (capped at max_studies={reported_max:,}"
+                    f"{share}); figures below describe that sample, not the "
+                    f"full result set."
+                )
 
         logger.info(
             "ctgov search completed",

@@ -57,19 +57,26 @@ TOP_N_DIMENSIONS = {"sponsor": 15, "country": 20, "intervention_type": 15}
 class EmptyResultError(RuntimeError):
     """There is nothing to chart. Carries the diagnostics explaining why.
 
-    Two distinct outcomes, both correct answers rather than faults:
-    ``NO_MATCHING_TRIALS`` (the search found nothing) and
-    ``NO_CHARTABLE_DATA`` (trials matched, but the requested analysis produced
-    no renderable rows -- no usable start dates, no surviving network edges).
-    The second used to reach the validator, which rejected the empty spec and
-    turned a legitimate analytical answer into an HTTP 500.
+    Three distinct outcomes, all correct answers rather than faults:
+    ``NO_MATCHING_TRIALS`` (the search found nothing), ``NO_CHARTABLE_DATA``
+    (trials matched, but the requested analysis produced no renderable rows --
+    no usable start dates, no surviving network edges), and
+    ``NO_MATCHES_IN_FETCHED_SAMPLE`` (trials matched upstream, the fetch was
+    capped before reading them all, and a local filter removed every one that
+    was read -- so nothing is known about the pages never fetched).
+    ``NO_CHARTABLE_DATA`` used to reach the validator, which rejected the empty
+    spec and turned a legitimate analytical answer into an HTTP 500.
     """
 
     def __init__(
         self,
         message: str,
         meta: Meta,
-        reason: Literal["NO_MATCHING_TRIALS", "NO_CHARTABLE_DATA"] = "NO_MATCHING_TRIALS",
+        reason: Literal[
+            "NO_MATCHING_TRIALS",
+            "NO_CHARTABLE_DATA",
+            "NO_MATCHES_IN_FETCHED_SAMPLE",
+        ] = "NO_MATCHING_TRIALS",
         viz_type: str = "bar_chart",
         group_by: str | None = None,
     ) -> None:
@@ -94,6 +101,11 @@ class FetchResult:
     series_membership: dict[str, set[str]] | None = None
     warnings: list[str] = field(default_factory=list)
     filters: dict[str, Any] = field(default_factory=dict)
+    #: Records retrieved upstream, recorded before any client-side filter
+    #: shrinks the store. The store itself cannot answer this afterwards, and
+    #: the difference is what distinguishes "the registry has none of these"
+    #: from "none of the ones we managed to read".
+    fetched_count: int = 0
 
 
 async def fetch(
@@ -135,7 +147,12 @@ async def fetch(
                 per_search_filters[search.label] = search.describe()
             continue
 
-        outcome = await client.run_search(search, result.store, max_studies=budget)
+        outcome = await client.run_search(
+            search,
+            result.store,
+            max_studies=budget,
+            requested_max=plan.max_studies,
+        )
         result.warnings.extend(outcome.warnings)
         if search.label:
             membership[search.label] = outcome.nct_ids
@@ -153,6 +170,8 @@ async def fetch(
     elif per_search_filters:
         # A single labelled search keeps the flat shape callers already parse.
         result.filters.update(next(iter(per_search_filters.values())))
+
+    result.fetched_count = len(result.store)
 
     return result
 
@@ -313,10 +332,13 @@ def build_meta(
         # first N fetched", not "among all matching trials". Only the cap was
         # disclosed; that the filter saw a capped sample was not.
         warnings.append(
+            # The fetched count, not the surviving one: the filter was applied
+            # to what was read, and quoting what survived understates how much
+            # of the population the figure below actually rests on.
             f"Filters that ClinicalTrials.gov cannot apply upstream were applied "
-            f"to the {len(fetched.store):,} fetched trials, not to every matching "
-            f"trial, because the fetch hit its cap first. Raise max_studies for a "
-            f"count over the full population."
+            f"to the {fetched.fetched_count:,} fetched trials, not to every "
+            f"matching trial, because the fetch hit its cap first. Raise "
+            f"max_studies for a count over the full population."
         )
 
     if aggregation is not None:
@@ -382,6 +404,7 @@ def build_meta(
         filters=fetched.filters,
         data_as_of=data_as_of,
         total_studies_processed=len(fetched.store),
+        total_studies_fetched=fetched.fetched_count,
         api_urls=fetched.store.api_urls,
         query_interpretation=(
             f"Interpreted as a {plan.query_type.replace('_', ' ')} question"
@@ -535,8 +558,25 @@ async def run_pipeline(
     extra_warnings = apply_client_side_filters(fetched.store, plan)
 
     if not fetched.store.records:
+        # Which claim the empty chart is allowed to make depends on what this
+        # run actually observed. Saying "no trials matched" when the fetch was
+        # capped and a local filter emptied the sample asserts something about
+        # the registry that the pages we never read could contradict.
+        indeterminate = (
+            fetched.fetched_count > 0
+            and fetched.store.truncated
+            and _has_client_side_filter(plan)
+        )
+        message = (
+            f"None of the {fetched.fetched_count:,} trials fetched matched the "
+            f"remaining filters. The fetch stopped at its cap before reading "
+            f"every matching trial, so this says nothing about the ones not "
+            f"fetched -- raise max_studies to widen the sample."
+            if indeterminate
+            else "No trials matched this query."
+        )
         raise EmptyResultError(
-            "No trials matched this query.",
+            message,
             build_meta(
                 plan,
                 fetched,
@@ -544,6 +584,10 @@ async def run_pipeline(
                 aggregation=None,
                 network=None,
                 extra_warnings=extra_warnings,
+            ),
+            reason=(
+                "NO_MATCHES_IN_FETCHED_SAMPLE" if indeterminate
+                else "NO_MATCHING_TRIALS"
             ),
             viz_type=plan.viz_type,
             group_by=plan.group_by,

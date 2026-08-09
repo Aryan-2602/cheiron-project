@@ -80,6 +80,12 @@ def _empty_response(error: EmptyResultError) -> QueryResponse:
         # advice; the message from the pipeline names the actual cause.
         meta.warnings = [*meta.warnings, str(error)]
         title = "No chartable data"
+    elif meta.empty_reason == "NO_MATCHES_IN_FETCHED_SAMPLE":
+        # Trials matched upstream and the sample was capped before they were
+        # all read, so broadening the query is the wrong advice too -- the
+        # pipeline's message says to widen the sample instead.
+        meta.warnings = [*meta.warnings, str(error)]
+        title = "No matches in the fetched sample"
     else:
         meta.warnings = [
             *meta.warnings,

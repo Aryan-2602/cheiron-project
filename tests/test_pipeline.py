@@ -1025,6 +1025,115 @@ class TestUnscopedSampleDisclosure:
         assert not any("capped slice of the whole registry" in w for w in response.meta.warnings)
 
 
+class TestScopedTruncationDisclosure:
+    """A scoped question skips the unscoped-sampling warning, so a filter the
+    API cannot express ran against a capped sample with nothing said about it.
+
+    AVAILABLE has no verified aggFilters code -- status:avail returns HTTP 200
+    with zero results -- so it is matched client-side, after the cap.
+    """
+
+    def studies(self, n, status="RECRUITING"):
+        return [
+            make_record(f"NCT{i:08d}", phases=["PHASE3"], status=status)
+            for i in range(n)
+        ]
+
+    @respx.mock
+    async def test_a_scoped_capped_client_filtered_query_says_so(self):
+        mock_studies(self.studies(100, status="AVAILABLE"), total=5000)
+        response = await run(
+            drugs=["Pembrolizumab"],
+            statuses=["AVAILABLE"],
+            request={"max_studies": 100},
+        )
+        assert any(
+            "cannot apply upstream were applied to the 100 fetched trials" in w
+            for w in response.meta.warnings
+        )
+
+    @respx.mock
+    async def test_an_uncapped_client_filtered_query_does_not_carry_it(self):
+        """Nothing was cut short, so the filter saw the whole population."""
+        mock_studies(self.studies(5, status="AVAILABLE"), total=5)
+        response = await run(drugs=["Pembrolizumab"], statuses=["AVAILABLE"])
+        assert not any(
+            "cannot apply upstream were applied" in w for w in response.meta.warnings
+        )
+
+    @respx.mock
+    async def test_a_capped_query_with_no_client_filter_does_not_carry_it(self):
+        mock_studies(self.studies(100), total=5000)
+        response = await run(drugs=["Pembrolizumab"], request={"max_studies": 100})
+        assert not any(
+            "cannot apply upstream were applied" in w for w in response.meta.warnings
+        )
+
+
+class TestEmptySampleIsNotAnEmptyRegistry:
+    """A capped fetch whose local filter matched nothing knows only that the
+    trials it read do not match -- the pages the cap stopped before are simply
+    unobserved, and NO_MATCHING_TRIALS claimed otherwise."""
+
+    def studies(self, n):
+        return [
+            make_record(f"NCT{i:08d}", phases=["PHASE3"], status="RECRUITING")
+            for i in range(n)
+        ]
+
+    @respx.mock
+    async def test_a_truncated_sample_filtered_to_zero_says_which_it_is(self):
+        mock_studies(self.studies(100), total=5000)
+        with pytest.raises(EmptyResultError) as exc:
+            await run(
+                statuses=["AVAILABLE"],
+                request={"max_studies": 100},
+            )
+        assert exc.value.reason == "NO_MATCHES_IN_FETCHED_SAMPLE"
+        assert exc.value.meta.total_studies_fetched == 100
+        assert exc.value.meta.total_studies_processed == 0
+        assert "says nothing about the ones not fetched" in str(exc.value)
+
+    @respx.mock
+    async def test_the_route_gives_it_a_200_and_the_right_advice(self):
+        """Broadening the query is the wrong advice: the query matched 5,000
+        trials. The sample is what needs widening."""
+        from app.api.routes import _empty_response
+
+        mock_studies(self.studies(100), total=5000)
+        with pytest.raises(EmptyResultError) as exc:
+            await run(statuses=["AVAILABLE"], request={"max_studies": 100})
+        body = _empty_response(exc.value)
+        assert body.visualization.data == []
+        assert body.meta.empty_reason == "NO_MATCHES_IN_FETCHED_SAMPLE"
+        assert not any("Try broadening" in w for w in body.meta.warnings)
+        assert any("raise max_studies" in w for w in body.meta.warnings)
+
+    @respx.mock
+    async def test_a_complete_sample_filtered_to_zero_is_still_no_matches(self):
+        """Every matching trial was read, so the registry claim is earned."""
+        mock_studies(self.studies(5), total=5)
+        with pytest.raises(EmptyResultError) as exc:
+            await run(statuses=["AVAILABLE"])
+        assert exc.value.reason == "NO_MATCHING_TRIALS"
+        assert exc.value.meta.total_studies_fetched == 5
+
+    @respx.mock
+    async def test_an_upstream_zero_is_still_no_matches(self):
+        mock_studies([], total=0)
+        with pytest.raises(EmptyResultError) as exc:
+            await run()
+        assert exc.value.reason == "NO_MATCHING_TRIALS"
+        assert exc.value.meta.total_studies_fetched == 0
+
+    @respx.mock
+    async def test_the_two_counts_agree_when_no_local_filter_ran(self):
+        mock_studies(self.studies(5), total=5)
+        response = await run(drugs=["Pembrolizumab"])
+        assert response.meta.total_studies_fetched == 5
+        assert response.meta.total_studies_processed == 5
+
+
 class TestEmptyPlaceholderMatchesTheRequestedShape:
     """A frontend routes on visualization.type, so a bar-chart placeholder for a
     failed network query sends an empty graph to the wrong renderer."""

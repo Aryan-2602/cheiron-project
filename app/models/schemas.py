@@ -390,7 +390,13 @@ class Meta(BaseModel):
     filters: dict[str, Any] = Field(default_factory=dict)
     source: str = "clinicaltrials.gov"
     data_as_of: str | None = None
+    #: Trials the aggregates were computed over, after any client-side filter.
     total_studies_processed: int = 0
+    #: Trials retrieved from the upstream API, before any client-side filter.
+    #: Equal to ``total_studies_processed`` unless a filter the API cannot
+    #: express safely ran locally -- and the gap between them is exactly what
+    #: says whether an empty chart describes the registry or just this sample.
+    total_studies_fetched: int = 0
     api_urls: list[str] = Field(default_factory=list)
     query_interpretation: str = ""
     assumptions: list[str] = Field(default_factory=list)
@@ -402,7 +408,21 @@ class Meta(BaseModel):
     #: nothing; ``NO_CHARTABLE_DATA`` means trials matched but the requested
     #: analysis produced no renderable rows -- a different answer, and one the
     #: caller may want to handle differently.
-    empty_reason: Literal["NO_MATCHING_TRIALS", "NO_CHARTABLE_DATA"] | None = None
+    #:
+    #: ``NO_MATCHES_IN_FETCHED_SAMPLE`` is the third: the upstream search did
+    #: match trials, the fetch was capped before reading them all, and a local
+    #: filter then removed every one that was read. Reporting that as
+    #: ``NO_MATCHING_TRIALS`` asserted something about the registry that this
+    #: run has no evidence for -- the answer may well be sitting in the pages
+    #: the cap stopped before.
+    empty_reason: (
+        Literal[
+            "NO_MATCHING_TRIALS",
+            "NO_CHARTABLE_DATA",
+            "NO_MATCHES_IN_FETCHED_SAMPLE",
+        ]
+        | None
+    ) = None
 
 
 class QueryResponse(BaseModel):

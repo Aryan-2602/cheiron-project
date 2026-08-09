@@ -30,10 +30,12 @@ def page(studies, *, total=None, next_token=None):
     return httpx.Response(200, json=body)
 
 
-async def run(search, *, max_studies=3000, page_size=1000):
+async def run(search, *, max_studies=3000, page_size=1000, requested_max=None):
     store = StudyStore()
     async with CTGovClient(page_size=page_size, max_retries=1) as client:
-        outcome = await client.run_search(search, store, max_studies=max_studies)
+        outcome = await client.run_search(
+            search, store, max_studies=max_studies, requested_max=requested_max
+        )
     return outcome, store
 
 
@@ -151,6 +153,81 @@ class TestPagination:
         assert outcome.truncated is True
         assert store.truncated is True
         assert any("5,000" in w and "100" in w for w in outcome.warnings)
+
+    @respx.mock
+    async def test_a_complete_sample_is_never_called_capped(self):
+        """The upstream hands back a nextPageToken after the last record.
+
+        That tripped the budget check on the next iteration and produced
+        "Fetched 2 of 2 matching trials (capped at max_studies=2)" -- a claim
+        of incompleteness about a provably whole sample. Every disclosure here
+        is load-bearing, so a false one costs as much as a missing one.
+        """
+        respx.get(f"{BASE}/studies").mock(
+            return_value=page(
+                [make_record("NCT00000001"), make_record("NCT00000002")],
+                total=2,
+                next_token="more",
+            )
+        )
+        outcome, store = await run(CTGovSearch(intr="X"), max_studies=2, page_size=2)
+        assert len(store) == 2
+        assert outcome.truncated is False
+        assert store.truncated is False
+        assert outcome.warnings == []
+
+    @respx.mock
+    async def test_an_unreported_total_does_not_crash_the_warning(self):
+        """totalCount is optional upstream. Formatting None with :, raised
+        TypeError, which is not a CTGovError -- so it escaped the route's
+        handlers as an undocumented 500 instead of the documented 502."""
+        respx.get(f"{BASE}/studies").mock(
+            return_value=page(
+                [make_record(f"NCT0000{i:04d}") for i in range(5)], next_token="more"
+            )
+        )
+        outcome, store = await run(CTGovSearch(intr="X"), max_studies=5, page_size=5)
+        assert outcome.truncated is True
+        assert len(store) == 5
+        assert any("not report a total" in w for w in outcome.warnings)
+
+    @respx.mock
+    async def test_a_repeated_page_token_stops_instead_of_cycling(self):
+        """A token pointing back at a page already read re-fetched the same
+        records until the budget ran out, then reported a capped sample when
+        the whole result set had been in hand after the first page."""
+        route = respx.get(f"{BASE}/studies")
+        route.mock(
+            return_value=page([make_record("NCT00000001")], total=1, next_token="LOOP")
+        )
+        outcome, store = await run(CTGovSearch(intr="X"), max_studies=50, page_size=1)
+        assert route.call_count == 2
+        assert len(store) == 1
+        assert outcome.truncated is False
+
+    @respx.mock
+    async def test_the_warning_names_the_requested_cap_not_the_series_share(self):
+        """fetch() splits max_studies across a comparison's series and passes
+        the share down. Quoting the share told the user they were capped at a
+        number they never set, and then advised them to raise it."""
+        respx.get(f"{BASE}/studies").mock(
+            return_value=page(
+                [make_record(f"NCT0000{i:04d}") for i in range(500)],
+                total=2922,
+                next_token="more",
+            )
+        )
+        outcome, _store = await run(
+            CTGovSearch(intr="Pembrolizumab", label="Pembrolizumab"),
+            max_studies=500,
+            page_size=500,
+            requested_max=1000,
+        )
+        warning = outcome.warnings[0]
+        assert "max_studies=1,000" in warning
+        assert "max_studies=500" not in warning
+        assert "500-trial share" in warning
+        assert "for Pembrolizumab" in warning
 
     @respx.mock
     async def test_duplicate_records_across_pages_are_deduplicated(self):
