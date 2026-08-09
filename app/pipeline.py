@@ -71,14 +71,17 @@ class EmptyResultError(RuntimeError):
         meta: Meta,
         reason: Literal["NO_MATCHING_TRIALS", "NO_CHARTABLE_DATA"] = "NO_MATCHING_TRIALS",
         viz_type: str = "bar_chart",
+        group_by: str | None = None,
     ) -> None:
         super().__init__(message)
         meta.empty_reason = reason
         self.meta = meta
         self.reason = reason
         #: What the question asked to be drawn. The placeholder response has to
-        #: match it, because a frontend routes on the spec's type.
+        #: match it, because a frontend routes on the spec's type -- and its
+        #: axis, so the empty spec does not claim an unrelated chart semantic.
         self.viz_type = viz_type
+        self.group_by = group_by
 
 
 class UnsupportedQueryError(RuntimeError):
@@ -122,6 +125,14 @@ async def fetch(
                 f"{search.label or 'every filter'}; that part of the question is "
                 f"not represented below. Raise max_studies to include it."
             )
+            if search.label:
+                # Register it empty anyway. A skipped label never reached
+                # series_membership, so the aggregator could not zero-fill it
+                # and the series vanished from a chart whose title still named
+                # it -- an earlier series eating the whole budget silently
+                # deleted the later ones.
+                membership[search.label] = set()
+                per_search_filters[search.label] = search.describe()
             continue
 
         outcome = await client.run_search(search, result.store, max_studies=budget)
@@ -510,6 +521,7 @@ async def run_pipeline(
                 extra_warnings=extra_warnings,
             ),
             viz_type=plan.viz_type,
+            group_by=plan.group_by,
         )
 
     spec, aggregation, network, analysis_warnings = await analyze(plan, fetched)
@@ -528,7 +540,11 @@ async def run_pipeline(
     unchartable = _describe_unchartable(spec, plan, fetched, aggregation, network)
     if unchartable:
         raise EmptyResultError(
-            unchartable, meta, reason="NO_CHARTABLE_DATA", viz_type=plan.viz_type
+            unchartable,
+            meta,
+            reason="NO_CHARTABLE_DATA",
+            viz_type=plan.viz_type,
+            group_by=plan.group_by,
         )
 
     response = QueryResponse(visualization=spec, meta=meta)

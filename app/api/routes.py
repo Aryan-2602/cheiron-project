@@ -34,6 +34,7 @@ from app.pipeline import (
     ValidationFailure,
     run_pipeline,
 )
+from app.services.dimensions import get_dimension
 from app.services.viz import EDGE_KEY_MAP, NODE_KEY_MAP
 
 logger = logging.getLogger(__name__)
@@ -99,12 +100,28 @@ def _empty_response(error: EmptyResultError) -> QueryResponse:
             data=[{"nodes": [], "edges": []}],
         )
     else:
+        # The axis comes from the plan's own dimension, so an empty time series
+        # still declares a temporal x and an empty histogram an enrolment one.
+        # Collapsing every chart family to a nominal bar chart made the spec
+        # claim a semantic the question never asked for.
+        dimension = get_dimension(error.group_by) if error.group_by else None
         visualization = VisualizationSpec(
-            type="bar_chart",
+            type=error.viz_type,
             title=title,
             encoding=Encoding(
-                x=FieldRef(field="key", label="Category", type="nominal"),
+                x=FieldRef(
+                    field=dimension.name if dimension else "key",
+                    label=dimension.axis_label if dimension else "Category",
+                    type=dimension.field_type if dimension else "nominal",
+                ),
                 y=FieldRef(field="trial_count", label="Number of trials", type="quantitative"),
+                # A grouped bar declares its series channel even when empty, so
+                # a renderer splitting on it finds the key it expects.
+                color=(
+                    FieldRef(field="series", label="Series", type="nominal")
+                    if error.viz_type == "grouped_bar_chart"
+                    else None
+                ),
             ),
             data=[],
         )

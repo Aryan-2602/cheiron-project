@@ -1029,11 +1029,12 @@ class TestEmptyPlaceholderMatchesTheRequestedShape:
     """A frontend routes on visualization.type, so a bar-chart placeholder for a
     failed network query sends an empty graph to the wrong renderer."""
 
-    def placeholder(self, viz_type):
+    def placeholder(self, viz_type, group_by="phase"):
         from app.api.routes import _empty_response
 
         error = EmptyResultError(
-            "nothing to chart", Meta(), reason="NO_CHARTABLE_DATA", viz_type=viz_type
+            "nothing to chart", Meta(), reason="NO_CHARTABLE_DATA",
+            viz_type=viz_type, group_by=group_by,
         )
         return _empty_response(error).visualization
 
@@ -1050,8 +1051,37 @@ class TestEmptyPlaceholderMatchesTheRequestedShape:
         assert viz.data == []
         assert viz.encoding.x and viz.encoding.y
 
-    def test_the_time_series_case_keeps_the_chart_placeholder(self):
-        assert self.placeholder("time_series").type == "bar_chart"
+    @pytest.mark.parametrize(
+        "viz_type,group_by,axis,axis_type",
+        [
+            ("bar_chart", "phase", "phase", "ordinal"),
+            ("grouped_bar_chart", "phase", "phase", "ordinal"),
+            ("time_series", "start_year", "start_year", "temporal"),
+            ("histogram", "enrollment_bucket", "enrollment_bucket", "ordinal"),
+            ("geo_bar_chart", "country", "country", "nominal"),
+        ],
+    )
+    def test_every_chart_family_keeps_its_type_and_axis(
+        self, viz_type, group_by, axis, axis_type
+    ):
+        """Replaces a pin asserting time series collapsed to a bar chart. An
+        empty spec must not claim a chart semantic the question never asked
+        for -- the frontend routes on both type and encoding."""
+        viz = self.placeholder(viz_type, group_by)
+        assert viz.type == viz_type
+        assert viz.encoding.x.field == axis
+        assert viz.encoding.x.type == axis_type
+        assert viz.data == []
+
+    def test_a_grouped_bar_placeholder_declares_its_series_channel(self):
+        viz = self.placeholder("grouped_bar_chart", "phase")
+        assert viz.encoding.color is not None
+        assert viz.encoding.color.field == "series"
+
+    def test_a_placeholder_without_a_dimension_still_validates(self):
+        viz = self.placeholder("bar_chart", None)
+        assert viz.type == "bar_chart"
+        assert viz.encoding.x is not None
 
     @respx.mock
     async def test_the_requested_type_is_carried_from_the_plan(self):
@@ -1201,3 +1231,69 @@ class TestNetworkWithoutRxNorm:
         # No RxNorm identity, but the graph is still fully cited.
         assert all(n["rxcui"] is None for n in graph["nodes"])
         assert graph["edges"][0]["citations"]
+
+
+class TestEveryPromisedSeriesIsRegistered:
+    """A label skipped for want of budget never reached series_membership, so
+    the aggregator could not zero-fill it and the series vanished from a chart
+    whose title still named it."""
+
+    def honest_page(self, request):
+        """Mirrors the real API: pageSize is respected, so a search cannot
+        overshoot its share of the budget."""
+        from urllib.parse import parse_qs, urlparse
+
+        size = int(parse_qs(urlparse(str(request.url)).query).get("pageSize", ["10"])[0])
+        return httpx.Response(
+            200,
+            json={
+                "studies": [make_record(f"NCT{i:08d}") for i in range(size)],
+                "totalCount": 9999,
+            },
+        )
+
+    async def fetch_series(self, n_series, max_studies):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-09"})
+        )
+        respx.get(f"{BASE}/studies").mock(side_effect=self.honest_page)
+        names = [f"Drug{i:03d}" for i in range(n_series)]
+        plan_obj = plan(
+            query_type="comparison", viz_type="grouped_bar_chart",
+            compare_entities=names, compare_entity_kind="drug",
+            drugs=names, max_studies=max_studies,
+        )
+        searches, _ = build_searches(plan_obj)
+        async with CTGovClient() as client:
+            fetched = await fetch(plan_obj, searches, client)
+        return searches, fetched
+
+    @respx.mock
+    async def test_a_normal_comparison_fetches_every_series(self):
+        searches, fetched = await self.fetch_series(3, 100)
+        assert set(fetched.series_membership) == {s.label for s in searches}
+        assert all(fetched.series_membership.values())
+
+    @respx.mock
+    async def test_series_beyond_the_budget_are_registered_empty_not_dropped(self):
+        """More series than the cap can fund: the surplus zero-fills rather
+        than disappearing from a chart that still names them."""
+        searches, fetched = await self.fetch_series(120, 100)
+        assert set(fetched.series_membership) == {s.label for s in searches}
+        assert any(not ids for ids in fetched.series_membership.values())
+
+    @respx.mock
+    async def test_skipped_series_keep_their_provenance_entry(self):
+        _searches, fetched = await self.fetch_series(120, 100)
+        assert set(fetched.filters) == set(fetched.series_membership)
+
+    @respx.mock
+    async def test_the_skip_is_disclosed(self):
+        _searches, fetched = await self.fetch_series(120, 100)
+        assert any("fetch cap before searching" in w for w in fetched.warnings)
+
+    @respx.mock
+    async def test_the_global_cap_still_holds(self):
+        """Registering skipped series must not become a way to exceed it."""
+        _searches, fetched = await self.fetch_series(120, 100)
+        assert len(fetched.store) <= 100
