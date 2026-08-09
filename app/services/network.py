@@ -18,15 +18,18 @@ Two network kinds are supported:
 
 from __future__ import annotations
 
+import inspect
 import re
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping
+from functools import cache
 from itertools import combinations
 from typing import Any
 
 from app.models.schemas import (
     DrugResolution,
     NetworkEdge,
+    NetworkKind,
     NetworkNode,
     NetworkResult,
 )
@@ -188,6 +191,30 @@ def _merge_sources(
     return sources
 
 
+@cache
+def _accepts_resolutions(extract: ExtractEntities) -> bool:
+    """Whether an extractor takes a ``resolutions`` keyword.
+
+    Decided by inspecting the signature rather than by calling and catching
+    ``TypeError``. The exception-probing version could not tell "this callable
+    has a different signature" from "this callable has a bug": an extractor
+    whose *resolution-handling branch* raised TypeError had the error
+    swallowed, was silently re-run without resolutions, and RxNorm merging
+    quietly stopped working with nothing reported anywhere.
+
+    Cached per callable, since this is called once per record otherwise.
+    """
+    try:
+        parameters = inspect.signature(extract).parameters
+    except (TypeError, ValueError):
+        # Builtins and some C callables expose no signature; assume the
+        # narrower contract rather than guessing.
+        return False
+    return "resolutions" in parameters or any(
+        p.kind is inspect.Parameter.VAR_KEYWORD for p in parameters.values()
+    )
+
+
 def _extract(
     extract: ExtractEntities,
     record: dict[str, Any],
@@ -195,14 +222,12 @@ def _extract(
 ) -> list[tuple[str, str]]:
     """Call an extractor, passing ``resolutions`` only to those that accept it.
 
-    Keeps custom extractors (and ``extract_sponsors``) usable unchanged.
+    Keeps custom extractors (and ``extract_sponsors``) usable unchanged. Any
+    exception raised *inside* an extractor now propagates.
     """
-    if resolutions is None:
+    if resolutions is None or not _accepts_resolutions(extract):
         return extract(record)
-    try:
-        return extract(record, resolutions=resolutions)
-    except TypeError:
-        return extract(record)
+    return extract(record, resolutions=resolutions)
 
 
 def _label_for(candidates: Iterable[str]) -> str:
@@ -275,7 +300,8 @@ def build_cooccurrence_network(
     records: Mapping[str, dict[str, Any]],
     *,
     extract: ExtractEntities = extract_drugs,
-    kind: str = "drug",
+    node_kind: str = "drug",
+    result_kind: NetworkKind = "drug_drug",
     min_edge_weight: int = 2,
     max_nodes: int = 30,
     resolutions: Mapping[str, DrugResolution] | None = None,
@@ -286,6 +312,11 @@ def build_cooccurrence_network(
         min_edge_weight: Minimum shared trials for an edge to be kept. The
             default of 2 drops pairs that co-occur exactly once, which are
             overwhelmingly incidental rather than a studied combination.
+        node_kind: What the nodes *are* ("drug"), used for their ids and the
+            ``kind`` a frontend colours by.
+        result_kind: What the *graph* is ("drug_drug"). A separate concept from
+            node_kind, and previously hardcoded on the return value while the
+            signature implied it was configurable.
         max_nodes: Cap on graph size, reported via ``truncated_to_top_n``.
         resolutions: Optional RxNorm ingredient map. Applied before sizes and
             weights are computed, so a merged compound competes for a place in
@@ -305,11 +336,11 @@ def build_cooccurrence_network(
         for (left, _), (right, _) in combinations(entities, 2):
             pairs[(min(left, right), max(left, right))].add(nct_id)
 
-    nodes = _build_nodes(members, labels, kind, kind, originals)
+    nodes = _build_nodes(members, labels, node_kind, node_kind, originals)
     edges = [
         NetworkEdge(
-            source=f"{kind}:{left}",
-            target=f"{kind}:{right}",
+            source=f"{node_kind}:{left}",
+            target=f"{node_kind}:{right}",
             weight=len(ids),
             nct_ids=sorted(ids),
         )
@@ -324,7 +355,7 @@ def build_cooccurrence_network(
 
     kept_nodes, kept_edges, truncated = _prune(nodes, edges, max_nodes=max_nodes)
     return NetworkResult(
-        kind="drug_drug",
+        kind=result_kind,
         nodes=kept_nodes,
         edges=kept_edges,
         truncated_to_top_n=truncated,

@@ -1,5 +1,7 @@
 """Network graphs: normalization, co-occurrence, bipartite, and pruning."""
 
+import pytest
+
 from app.services.network import (
     build_bipartite_network,
     build_cooccurrence_network,
@@ -370,3 +372,117 @@ class TestCandidatePool:
     def test_ranking_is_deterministic_on_ties(self):
         records = {"NCT00000001": trial("NCT00000001", ["Bbb", "Aaa", "Ccc"])}
         assert rank_candidate_names(records, top_k=3) == ["aaa", "bbb", "ccc"]
+
+
+class TestExtractorErrorsSurface:
+    """A signature mismatch and a bug are different things. Deciding by
+    catching TypeError could not tell them apart."""
+
+    def records(self):
+        return {
+            f"NCT0000000{i}": trial(f"NCT0000000{i}", ["Alpha", "Beta"]) for i in (1, 2)
+        }
+
+    def resolutions(self):
+        from app.models.schemas import DrugResolution
+
+        return {
+            "alpha": DrugResolution(
+                rxcui="111", canonical_name="alpha", resolved=True
+            )
+        }
+
+    def test_a_bug_in_the_resolution_branch_is_not_swallowed(self):
+        """The dangerous shape: the extractor accepts `resolutions` but its
+        resolution-handling branch is broken. The old catch-and-retry swallowed
+        the error, silently re-ran without resolutions, and RxNorm merging
+        quietly stopped working with nothing reported."""
+
+        def buggy(record, *, resolutions=None):
+            if resolutions is not None:
+                len(None)  # genuine bug, unrelated to the signature
+            return [("alpha", "Alpha"), ("beta", "Beta")]
+
+        with pytest.raises(TypeError, match="NoneType"):
+            build_cooccurrence_network(
+                self.records(),
+                extract=buggy,
+                resolutions=self.resolutions(),
+                min_edge_weight=1,
+            )
+
+    def test_an_extractor_without_the_keyword_is_still_supported(self):
+        """Older/simpler extractors keep working -- decided by signature, not
+        by provoking an exception."""
+
+        def simple(record):
+            return [("alpha", "Alpha"), ("beta", "Beta")]
+
+        result = build_cooccurrence_network(
+            self.records(),
+            extract=simple,
+            resolutions=self.resolutions(),
+            min_edge_weight=1,
+        )
+        assert {n.label for n in result.nodes} == {"Alpha", "Beta"}
+
+    def test_an_extractor_with_the_keyword_receives_resolutions(self):
+        seen = {}
+
+        def capturing(record, *, resolutions=None):
+            seen["got"] = resolutions is not None
+            return [("alpha", "Alpha"), ("beta", "Beta")]
+
+        build_cooccurrence_network(
+            self.records(),
+            extract=capturing,
+            resolutions=self.resolutions(),
+            min_edge_weight=1,
+        )
+        assert seen["got"] is True
+
+    def test_kwargs_only_extractor_is_treated_as_accepting_resolutions(self):
+        seen = {}
+
+        def flexible(record, **kwargs):
+            seen["got"] = "resolutions" in kwargs
+            return [("alpha", "Alpha"), ("beta", "Beta")]
+
+        build_cooccurrence_network(
+            self.records(),
+            extract=flexible,
+            resolutions=self.resolutions(),
+            min_edge_weight=1,
+        )
+        assert seen["got"] is True
+
+
+class TestNetworkKinds:
+    """node_kind labels the nodes; result_kind names the graph. They are
+    different concepts, and the result kind used to be hardcoded while the
+    signature implied otherwise."""
+
+    def records(self):
+        return {
+            "NCT00000001": trial("NCT00000001", ["Alpha", "Beta"]),
+            "NCT00000002": trial("NCT00000002", ["Alpha", "Beta"]),
+        }
+
+    def test_result_kind_is_honoured(self):
+        result = build_cooccurrence_network(
+            self.records(), result_kind="sponsor_drug", min_edge_weight=1
+        )
+        assert result.kind == "sponsor_drug"
+
+    def test_result_kind_defaults_to_drug_drug(self):
+        assert build_cooccurrence_network(self.records(), min_edge_weight=1).kind == (
+            "drug_drug"
+        )
+
+    def test_node_kind_drives_node_ids_and_kinds(self):
+        result = build_cooccurrence_network(
+            self.records(), node_kind="sponsor", min_edge_weight=1
+        )
+        assert all(n.id.startswith("sponsor:") for n in result.nodes)
+        assert all(n.kind == "sponsor" for n in result.nodes)
+        assert all(e.source.startswith("sponsor:") for e in result.edges)
