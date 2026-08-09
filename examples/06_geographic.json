@@ -473,12 +473,13 @@
       "source": "clinicaltrials.gov",
       "data_as_of": "2026-08-07T09:00:05",
       "total_studies_processed": 478,
+      "total_studies_fetched": 478,
       "api_urls": [
         "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=600&query.cond=melanoma&aggFilters=status%3Arec&countTotal=true"
       ],
       "query_interpretation": "Interpreted as a geographic question, grouped by country, rendered as a geo bar chart.",
       "assumptions": [
-        "I treated \"have the most\" as a geographic breakdown by country of recruiting trials for melanoma."
+        "Interpreted 'most' as a geographic breakdown of recruiting trials by country."
       ],
       "warnings": [
         "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials.",

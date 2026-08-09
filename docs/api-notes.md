@@ -108,6 +108,42 @@ Each verified by checking the filtered sample contains **only** that status:
 — the same silent-failure shape as `phase:PHASE3`. AVAILABLE and
 NO_LONGER_AVAILABLE are therefore filtered client-side.
 
+### Phase values — `phase:0` is Early Phase 1 (verified 2026-08-09)
+
+| Value | Meaning | totalCount |
+|---|---|---|
+| `phase:0` | EARLY_PHASE1 | 6,431 |
+| `phase:1` | PHASE1 | 65,325 |
+| `phase:0 1` | union of both | 71,756 |
+
+Exactly 6,431 + 65,325 = 71,756, and a 20-record sample of `phase:0` was
+EARLY_PHASE1 in every row. Early Phase 1 is its own registry phase, not a
+flavour of Phase 1 — folding them together overstates Phase 1 by 6,431 trials.
+
+⚠️ `phase:early_phase1` is **another silent-failure trap**: HTTP 200 with zero
+results, exactly like `phase:PHASE3`. Spelled-out phase values never work; the
+bare number is the only correct form.
+
+### Boolean operators in `query.*` are case-sensitive (verified 2026-08-09)
+
+Uppercase `OR` is the union operator. A **lowercase** connector inside a value
+is ordinary phrase text, and a comma inside a value is part of the name:
+
+| Query | totalCount |
+|---|---|
+| `query.cond=Head and Neck Cancer` | 8,637 |
+| `query.cond=melanoma` | 3,743 |
+| `query.cond=melanoma OR Head and Neck Cancer` | 11,953 |
+| `query.spons=Merck Sharp & Dohme, LLC` | 4,276 |
+| `query.spons=Pfizer` | 6,061 |
+| `query.spons=Merck Sharp & Dohme, LLC OR Pfizer` | 10,260 |
+
+11,953 = 3,743 + 8,637 − 427 and 10,260 = 4,276 + 6,061 − 77, so the union is
+exact in both cases: neither the lowercase "and" nor the comma is read as an
+operator. Quoting a value *does* change it — `query.cond="Head and Neck Cancer"`
+returns 2,863, a true phrase match rather than a term intersection — so quoting
+is a narrowing, not a no-op, and is deliberately not applied.
+
 ### ⚠️ DOES NOT EXIST — confirmed 400 error live
 - `filter.phase=PHASE3` → **`{"error": "unknown parameter"}` (HTTP 400)**
   Multiple third-party doc sources (GitHub reference docs, dev.to tutorials,
@@ -243,6 +279,12 @@ done
 
 - [ ] `filter.overallStatus` as a standalone param — still valid, or folded into `aggFilters`?
 - [ ] Full list of valid `aggFilters` keys beyond `phase` and `status` (e.g. `studyType`, `ages`)
+- [x] Whether Early Phase 1 is reachable through `aggFilters` — **answered 2026-08-09**:
+      yes, as `phase:0`; the spelled-out `phase:early_phase1` is a silent-failure
+      trap. See the phase-values table above.
+- [x] Whether a lowercase "and"/"or" or a comma inside a `query.*` value acts as an
+      operator — **answered 2026-08-09**: no. Only uppercase booleans are operators.
+      See the case-sensitivity table above.
 - [x] Exact abbreviated status codes accepted by `aggFilters=status:*` beyond `rec` —
       **answered 2026-08-09**: nine verified (`rec com act not enr ter sus wit unk`),
       two are silent-failure traps (`avail`, `no_lon`). See the table above.

@@ -330,12 +330,13 @@
       "source": "clinicaltrials.gov",
       "data_as_of": "2026-08-07T09:00:05",
       "total_studies_processed": 185,
+      "total_studies_fetched": 185,
       "api_urls": [
         "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=600&query.intr=Nivolumab&aggFilters=phase%3A3&countTotal=true"
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by lead sponsor, rendered as a bar chart.",
       "assumptions": [
-        "'this drug' refers to the drug being discussed in the surrounding context."
+        "I interpreted \"this drug\" as a drug entity mentioned in the query, though no specific drug name is provided."
       ],
       "warnings": [
         "Showing the top 15 of 75 lead sponsor values by trial count; 60 lower-frequency values are omitted."

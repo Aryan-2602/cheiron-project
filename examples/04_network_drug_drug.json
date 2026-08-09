@@ -31,7 +31,7 @@
               "id": "drug:rxcui:1547545",
               "label": "pembrolizumab",
               "kind": "drug",
-              "size": 175,
+              "size": 176,
               "rxcui": "1547545",
               "merged_from": [
                 "200 mg Pembrolizumab",
@@ -67,7 +67,7 @@
                   "url": "https://clinicaltrials.gov/study/NCT07739966"
                 }
               ],
-              "total_supporting_trials": 175
+              "total_supporting_trials": 176
             },
             {
               "id": "drug:rxcui:40048",
@@ -103,10 +103,11 @@
               "id": "drug:rxcui:2555",
               "label": "cisplatin",
               "kind": "drug",
-              "size": 39,
+              "size": 40,
               "rxcui": "2555",
               "merged_from": [
                 "Cisplatin",
+                "Cisplatin 100 mg/m^2",
                 "cisplatin"
               ],
               "citations": [
@@ -126,7 +127,7 @@
                   "url": "https://clinicaltrials.gov/study/NCT07622186"
                 }
               ],
-              "total_supporting_trials": 39
+              "total_supporting_trials": 40
             },
             {
               "id": "drug:rxcui:56946",
@@ -911,7 +912,7 @@
             {
               "source": "drug:rxcui:1547545",
               "target": "drug:rxcui:2555",
-              "weight": 39,
+              "weight": 40,
               "citations": [
                 {
                   "nct_id": "NCT02393248",
@@ -929,7 +930,7 @@
                   "url": "https://clinicaltrials.gov/study/NCT07622186"
                 }
               ],
-              "total_supporting_trials": 39
+              "total_supporting_trials": 40
             },
             {
               "source": "drug:rxcui:1547545",
@@ -3423,18 +3424,19 @@
       "source": "clinicaltrials.gov",
       "data_as_of": "2026-08-07T09:00:05",
       "total_studies_processed": 600,
+      "total_studies_fetched": 600,
       "api_urls": [
         "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=600&query.intr=pembrolizumab&countTotal=true"
       ],
       "query_interpretation": "Interpreted as a relationship question, rendered as a network graph.",
       "assumptions": [
-        "Interpreted 'co-occur in combination studies' as a drug-drug relationship centered on pembrolizumab."
+        "Interpreted \"frequently co-occur in combination studies\" as a drug-drug relationship network centered on pembrolizumab."
       ],
       "warnings": [
         "Fetched 600 of 2,922 matching trials (capped at max_studies=600); figures below describe that sample, not the full result set.",
         "Merged brand and generic names into 16 shared compound node(s) using RxNorm; each merged node lists its source names.",
         "Graph truncated to 30 nodes for readability, by keeping the nodes appearing in the most trials.",
-        "Node sizes count every fetched trial the node appears in, including trials whose other drugs were pruned from the drawing, so a node can be larger than its visible edges alone would suggest.",
+        "Node sizes count the trials supporting a drawn connection, so a node pruned away takes its trials with it: a node here can be smaller than the full fetched sample would make it.",
         "Edges require at least 2 shared trials; single-trial co-occurrences are omitted as incidental."
       ],
       "sorting": "node size descending",

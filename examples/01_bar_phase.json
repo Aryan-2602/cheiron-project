@@ -186,11 +186,13 @@
       "source": "clinicaltrials.gov",
       "data_as_of": "2026-08-07T09:00:05",
       "total_studies_processed": 1000,
+      "total_studies_fetched": 1000,
       "api_urls": [
         "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=1000&query.cond=lung+cancer&countTotal=true"
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by phase, rendered as a bar chart.",
       "assumptions": [
+        "Interpreted 'distributed across phases' as grouping trials by phase.",
         "Interpreted 'lung cancer trials' as trials with the condition 'lung cancer'."
       ],
       "warnings": [

@@ -61,7 +61,7 @@ curl -s -X POST http://127.0.0.1:8000/api/v1/query \
 Run the tests, or regenerate every example output against the live API:
 
 ```bash
-pytest -q                              # 795 tests, no network or API key needed
+pytest -q                              # 985 tests, no network or API key needed
 python scripts/run_examples.py         # writes examples/*.json from live data
 ```
 
@@ -200,9 +200,9 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
         "trial_count": 84,
         "citations": [
           {
-            "nct_id": "NCT00003117",
-            "excerpt": "\"Paclitaxel With or Without Carboplatin in Treating Patients With Advanced Non-small Cell Lung Cancer\" — designModule.phases: [PHASE3]",
-            "url": "https://clinicaltrials.gov/study/NCT00003117"
+            "nct_id": "NCT00002583",
+            "excerpt": "\"Vinorelbine + Cisplatin or No Further Therapy in Non-small Cell Lung Cancer That Has Been Surgically Removed\" — designModule.phases: [PHASE3]",
+            "url": "https://clinicaltrials.gov/study/NCT00002583"
           }
         ],
         "total_supporting_trials": 84
@@ -213,10 +213,14 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
     "filters": {"condition": "lung cancer"},
     "source": "clinicaltrials.gov",
     "data_as_of": "2026-08-07T09:00:05",
+    "total_studies_fetched": 1000,
     "total_studies_processed": 1000,
     "api_urls": ["https://clinicaltrials.gov/api/v2/studies?fields=...&query.cond=lung+cancer&countTotal=true"],
     "query_interpretation": "Interpreted as a distribution question, grouped by phase, rendered as a bar chart.",
-    "assumptions": ["Interpreted 'across phases' as grouping trials by phase."],
+    "assumptions": [
+      "Interpreted 'distributed across phases' as grouping trials by phase.",
+      "Interpreted 'lung cancer trials' as trials with the condition 'lung cancer'."
+    ],
     "warnings": [
       "Fetched 1,000 of 14,425 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",
       "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials.",
@@ -422,7 +426,7 @@ Node identity comes from [RxNorm](https://rxnav.nlm.nih.gov/) (NLM, no API key).
 
 Step 2 is idempotent (an ingredient relates to itself), so brand and generic input converge through one code path, and the response carries the canonical name — no third call needed.
 
-**Ordering matters: resolution happens before the graph is built, not after pruning.** Merging changes node size and edge weight, and those are what pruning ranks on. Resolved afterwards, two fragments of one compound could each miss a node cap their merged form would clear, and a weight-1 `Keytruda—carboplatin` edge would be discarded before it could join the `pembrolizumab—carboplatin` edge it belongs to. What *is* deferred is the choice of *which* names to resolve: provisional sizes are computed from string normalization alone (no API calls), and only the top candidates are sent to RxNorm — on a 600-trial query that is 87 lookups instead of 628, **86% avoided**.
+**Ordering matters: resolution happens before the graph is built, not after pruning.** Merging changes node size and edge weight, and those are what pruning ranks on. Resolved afterwards, two fragments of one compound could each miss a node cap their merged form would clear, and a weight-1 `Keytruda—carboplatin` edge would be discarded before it could join the `pembrolizumab—carboplatin` edge it belongs to. What *is* deferred is the choice of *which* names to resolve: provisional sizes are computed from string normalization alone (no API calls), and only the top candidates are sent to RxNorm — on a 600-trial query that is 120 lookups instead of 626, **81% avoided**.
 
 **The confidence threshold is 11.0**, and the score scale is unbounded (~0–15), not 0–1. Measured against the live API, every correct match scored ≥ 11.49 while the worst false positive scored 6.38 (`MK-3475` → an unrelated concept; `study drug` → a hand sanitizer gel at 2.63). The threshold sits inside that empty band and is deliberately strict, because the costs are asymmetric: **a wrong merge fuses two compounds into one node and is invisible in the output**, while a missed merge only leaves the pre-RxNorm behavior.
 
@@ -476,7 +480,10 @@ No LLM is involved, and no extra API calls are made — every field quoted was a
 | **Count integrity** | `value != len(set(nct_ids))` for any datum, node, or edge; published rows that disagree with the aggregation they came from; **published network node sizes and edge weights that disagree with the graph they were built from**; an edge referencing a node not in the graph. |
 | **Citation grounding** | A citation pointing at a trial that was never fetched; **a citation naming a real trial that is not in that specific datum's contributor set**; an empty excerpt; a non-zero value with no citations (unless zero citations were requested); more citations than claimed supporters. |
 | **Non-empty** | A chart with zero rows, or a network with no nodes, shipping as if it were an answer. |
+| **Series completeness** | A promised comparison series missing from the chart entirely — a reader comparing three drugs and seeing two bars cannot tell an absent series from a zero. Asserted independently of the zero-fill that is supposed to prevent it. |
 | **Meta integrity** | A processed-trial count that disagrees with the store; missing upstream URLs (without which a result cannot be reproduced). |
+
+Rows are paired to buckets with `strict=True`, so a future change that breaks the index alignment fails loudly here rather than validating a prefix and leaving the surplus rows unchecked.
 
 Failures raise `ValidationFailure` → HTTP 500 with a diagnostic. The response is withheld rather than degraded.
 
@@ -519,7 +526,7 @@ INFO  dad3a22c  query received              {"query":"Which drugs co-occur ...",
 INFO  dad3a22c  llm call completed          {"query_type":"relationship","viz_type":"network_graph","duration_ms":1402.7}
 INFO  dad3a22c  ctgov search completed      {"records":200,"pages":1,"total_count":2922,"truncated":true,"duration_ms":292.1}
 INFO  dad3a22c  drug resolution completed   {"resolved":41,"live_lookups":119,"cache_hits":0,"duration_ms":2498.3}
-INFO  dad3a22c  network built               {"nodes":28,"edges":58,"merged_nodes":9}
+INFO  dad3a22c  network built               {"nodes":30,"edges":119,"merged_nodes":16}
 INFO  dad3a22c  validation passed           {"viz_type":"network_graph","rows":1,"citations":221}
 INFO  dad3a22c  request completed           {"status":200,"duration_ms":5183.6}
 ```
@@ -606,7 +613,9 @@ A negation whose complement is a **list** governs the whole list: `"neither recr
 
 `"active, not recruiting"` and `"trials that are not recruiting"` are deliberately *not* treated as the same request: the first is the specific `ACTIVE_NOT_RECRUITING` status and is filtered upstream; the second is an exclusion of `RECRUITING` and is filtered locally. The negation check runs after longer phrases are matched and masked, so the `"not"` belonging to `ACTIVE_NOT_RECRUITING` or `NOT_YET_RECRUITING` can never trigger it, and a clause boundary stops it spreading — in `"not completed and recruiting"`, only `COMPLETED` is excluded.
 
-**Brand and generic drug names are merged, conservatively.** Node identity comes from RxNorm ingredients, so `Keytruda` and `pembrolizumab` are one node (see [Drug synonym resolution](#drug-synonym-resolution)). The filter is deliberately strict rather than maximal: on a 600-trial pembrolizumab query, **22% of the 628 distinct drug names resolve, producing 15 merges, all clinically correct** (`keytruda`/`pembrolizumab`, `opdivo`/`nivolumab`, `xeloda`/`capecitabine`, `abraxane`/`nab-paclitaxel`, `5-FU`/`fluorouracil`, `aldesleukin`/`recombinant human interleukin-2`) **with zero false merges**. The unresolved 78% is mostly research codes (`ACE2016`, `MK-3475`) and genuine multi-drug arms that *should not* merge. An earlier, looser filter resolved 34% but produced merges that folded placebo arms and combination partners into the active drug — so the lower rate is the feature working, not a shortfall.
+**Brand and generic drug names are merged, conservatively.** Node identity comes from RxNorm ingredients, so `Keytruda` and `pembrolizumab` are one node (see [Drug synonym resolution](#drug-synonym-resolution)). Measured on the 600-trial pembrolizumab query in [`examples/04_network_drug_drug.json`](examples/04_network_drug_drug.json): 626 distinct cleaned drug names, of which the top 120 are looked up and **67 resolve**. Four of those are multi-name merges at the ingredient level — `keytruda`/`pembrolizumab`, `abraxane`/`nab paclitaxel`/`nab-paclitaxel`/`paclitaxel`, `5-fu`/`5-fluorouracil`/`fluorouracil`, and `doxorubicin`/`doxorubicin hydrochloride`/`pegylated liposomal doxorubicin` — **all clinically correct, with zero false merges**. Counted at the *node* level, where each node also absorbs the raw surface forms behind each name, that is the **16 merged nodes** the response discloses.
+
+What does not resolve is mostly research codes (`ACE2016`, `MK-3475`) and genuine multi-drug arms that *should not* merge. An earlier, looser filter resolved a far higher share but produced merges that folded placebo arms and combination partners into the active drug — so the lower rate is the feature working, not a shortfall.
 
 **Excerpts quote fields already fetched.** Prose spans from full trial text would need a `GET /studies/{nctId}` call per cited trial. The spec explicitly allows "a specific field/value", and the field-level excerpt is more verifiable anyway — it names the exact path a reader should check.
 
@@ -633,7 +642,7 @@ A negation whose complement is a **list** governs the whole list: `"neither recr
 ## Testing
 
 ```bash
-pytest -q      # 795 tests, ~10s, no network access or API key required
+pytest -q      # 985 tests, ~11s, no network access or API key required
 ```
 
 | File | Covers |

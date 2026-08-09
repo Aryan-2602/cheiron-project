@@ -363,17 +363,18 @@
       "source": "clinicaltrials.gov",
       "data_as_of": "2026-08-07T09:00:05",
       "total_studies_processed": 944,
+      "total_studies_fetched": 944,
       "api_urls": [
         "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=500&query.intr=Pembrolizumab&countTotal=true",
         "https://clinicaltrials.gov/api/v2/studies?fields=NCTId%2CBriefTitle%2COverallStatus%2CPhase%2CLeadSponsorName%2CLeadSponsorClass%2CStartDate%2CEnrollmentCount%2CInterventionName%2CInterventionType%2CLocationCountry&pageSize=500&query.intr=Nivolumab&countTotal=true"
       ],
       "query_interpretation": "Interpreted as a comparison question, grouped by phase, rendered as a grouped bar chart.",
       "assumptions": [
-        "I treated \"phases\" as the grouping axis for the comparison between the two drugs."
+        "I treated 'Compare phases' as a comparison of trials grouped by phase for the two named drugs."
       ],
       "warnings": [
-        "Fetched 500 of 2,922 matching trials (capped at max_studies=500); figures below describe that sample, not the full result set.",
-        "Fetched 500 of 2,016 matching trials (capped at max_studies=500); figures below describe that sample, not the full result set.",
+        "Fetched 500 of 2,922 matching trials for Pembrolizumab (capped at max_studies=1,000, split into a 500-trial share for this series); figures below describe that sample, not the full result set.",
+        "Fetched 500 of 2,016 matching trials for Nivolumab (capped at max_studies=1,000, split into a 500-trial share for this series); figures below describe that sample, not the full result set.",
         "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials.",
         "72 of 944 trials had no value for this axis and are shown as a separate bucket."
       ],
