@@ -214,14 +214,103 @@ def _appears_in(candidate: str, haystack: str) -> bool:
     return False
 
 
+# --------------------------------------------------------------------------
+# Deterministic extraction for the closed-vocabulary fields
+#
+# Phases and statuses are small, closed sets with unambiguous surface forms, so
+# they can be read straight out of the query text. That is a strictly stronger
+# guarantee than checking the model's answer: the value provably comes from the
+# user's words. The model's own extraction is kept only as a cross-check, and
+# anything it proposed that the text does not support is dropped and reported.
+# --------------------------------------------------------------------------
+
+#: A phase mention plus the contiguous list that follows it. Anchoring on the
+#: word "phase" and capturing only the run of connected tokens is what stops
+#: "phase 2 study of 3 drugs" from yielding phase 3.
+_PHASE_LIST = re.compile(
+    r"\bphases?\b[\s:]*((?:(?:[1-4]|iv|iii|ii|i)\b[\s]*(?:[/,&+-]|or|and|to)?[\s]*)+)",
+    re.IGNORECASE,
+)
+_PHASE_TOKEN = re.compile(r"\b([1-4]|iv|iii|ii|i)\b", re.IGNORECASE)
+_ROMAN_PHASES = {"i": 1, "ii": 2, "iii": 3, "iv": 4}
+
+#: Four-digit years plausible for a trial start date. Bounded so that a dose
+#: ("200 mg") or an NCT id can never be mistaken for a year.
+_YEAR = re.compile(r"\b(19[89]\d|20[0-3]\d)\b")
+
+#: ClinicalTrials.gov ``overallStatus`` values, verified live against the API,
+#: mapped from the words a person actually types. Ordered longest-phrase-first
+#: within each entry so "not yet recruiting" is consumed before "recruiting".
+STATUS_VOCABULARY: dict[str, tuple[str, ...]] = {
+    "NOT_YET_RECRUITING": ("not yet recruiting", "not-yet-recruiting", "upcoming"),
+    "ACTIVE_NOT_RECRUITING": ("active not recruiting", "active, not recruiting"),
+    "ENROLLING_BY_INVITATION": ("enrolling by invitation",),
+    "NO_LONGER_AVAILABLE": ("no longer available",),
+    "RECRUITING": ("recruiting", "enrolling", "actively enrolling"),
+    "COMPLETED": ("completed", "complete", "finished", "concluded"),
+    "TERMINATED": ("terminated", "halted", "stopped early", "stopped"),
+    "SUSPENDED": ("suspended", "paused", "on hold"),
+    "WITHDRAWN": ("withdrawn",),
+    "AVAILABLE": ("available",),
+    "UNKNOWN": ("unknown status",),
+}
+
+
+def extract_phases_from_query(query: str) -> list[int]:
+    """Phase numbers the user actually wrote. Handles "phase 3", "phase 1/2",
+    "phases 2 and 3", and roman numerals."""
+    found: set[int] = set()
+    for match in _PHASE_LIST.finditer(query):
+        for token in _PHASE_TOKEN.findall(match.group(1)):
+            token = token.lower()
+            found.add(int(token) if token.isdigit() else _ROMAN_PHASES[token])
+    return sorted(found)
+
+
+def extract_years_from_query(query: str) -> set[int]:
+    """Every four-digit year literally present in the query."""
+    return {int(y) for y in _YEAR.findall(query)}
+
+
+def extract_statuses_from_query(query: str) -> list[str]:
+    """Trial statuses the user actually named, as API enum values.
+
+    Longer phrases are matched and masked out first, so "not yet recruiting"
+    cannot also register as "recruiting".
+    """
+    haystack = query.lower()
+    found: list[str] = []
+    phrases = sorted(
+        ((phrase, status) for status, ps in STATUS_VOCABULARY.items() for phrase in ps),
+        key=lambda pair: -len(pair[0]),
+    )
+    for phrase, status in phrases:
+        index = haystack.find(phrase)
+        if index >= 0:
+            if status not in found:
+                found.append(status)
+            haystack = haystack[:index] + " " * len(phrase) + haystack[index + len(phrase) :]
+    return found
+
+
 def ground_entities(
     understanding: QueryUnderstanding, query: str
 ) -> tuple[ExtractedEntities, list[str]]:
-    """Drop extracted entities that do not appear in the user's question.
+    """Constrain every extracted field to what the question actually supports.
 
     This is the guard against the one thing the LLM could still get wrong in a
     way that reaches real data: searching for something nobody asked about.
-    Returns the filtered entities and a warning per dropped item.
+    *Every* field that reaches the query builder or the client-side filters is
+    grounded here, because each of them changes which trials are retrieved:
+
+    * free-text entities -- must appear in the question (fuzzy, for inflection)
+    * phases and statuses -- read from the question directly, against closed
+      vocabularies; the model's answer is only cross-checked against that
+    * year bounds -- the year must appear literally in the question
+
+    Returns the constrained entities and a warning per dropped item, so a
+    divergence between what the model proposed and what the question supports
+    is visible in the response rather than silently applied.
     """
     entities = understanding.entities
     warnings: list[str] = []
@@ -237,18 +326,75 @@ def ground_entities(
                 )
         return kept
 
+    # Phases: the text is authoritative.
+    grounded_phases = extract_phases_from_query(query)
+    for phase in entities.phases:
+        if phase in (1, 2, 3, 4) and phase not in grounded_phases:
+            warnings.append(
+                f"Ignored phase {phase}: the question does not mention it."
+            )
+
+    # Statuses: likewise, and this also keeps an unrecognised status string out
+    # of the client-side filter, where it would have matched no trial at all.
+    grounded_statuses = extract_statuses_from_query(query)
+    for status in entities.statuses:
+        normalized = status.strip().upper().replace(" ", "_")
+        if normalized and normalized not in grounded_statuses:
+            warnings.append(
+                f"Ignored status {status!r}: the question does not support it."
+            )
+
+    # Year bounds: the value must be written in the question. Note this grounds
+    # *which* years may be used, not which end of the range each belongs to --
+    # that reading stays with the model and is disclosed in meta.warnings when
+    # the filter is applied.
+    years_in_query = extract_years_from_query(query)
+    grounded_range = None
+    if entities.year_range is not None:
+        start, end = entities.year_range.start, entities.year_range.end
+        if start is not None and start not in years_in_query:
+            warnings.append(
+                f"Ignored start year {start}: it does not appear in the question."
+            )
+            start = None
+        if end is not None and end not in years_in_query:
+            warnings.append(
+                f"Ignored end year {end}: it does not appear in the question."
+            )
+            end = None
+        if start is not None or end is not None:
+            grounded_range = YearRange(start=start, end=end)
+
     grounded = ExtractedEntities(
         drugs=keep(entities.drugs, "drug"),
         conditions=keep(entities.conditions, "condition"),
         sponsors=keep(entities.sponsors, "sponsor"),
-        # Phases are a closed set of integers, so range-checking is the whole
-        # validation; there is nothing to hallucinate beyond an invalid number.
-        phases=[p for p in entities.phases if p in (1, 2, 3, 4)],
-        statuses=[s.strip() for s in entities.statuses if s.strip()],
+        phases=grounded_phases,
+        statuses=grounded_statuses,
         countries=keep(entities.countries, "country"),
-        year_range=entities.year_range,
+        year_range=grounded_range,
     )
     return grounded, warnings
+
+
+def ground_compare_entities(
+    compare_entities: list[str], query: str
+) -> tuple[list[str], list[str]]:
+    """Comparison series must be named in the question too.
+
+    These drive one upstream search each, so an invented entity would not just
+    mislabel a series -- it would fetch and chart trials nobody asked about.
+    """
+    kept, warnings = [], []
+    for entity in compare_entities:
+        if _appears_in(entity, query):
+            kept.append(entity.strip())
+        else:
+            warnings.append(
+                f"Ignored comparison entity {entity!r}: it does not appear in "
+                f"the question."
+            )
+    return kept, warnings
 
 
 #: The chart shape each query type must produce. The LLM proposes; this decides.
@@ -335,7 +481,10 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
             "was specified."
         )
 
-    compare_entities = understanding.compare_entities
+    compare_entities, compare_warnings = ground_compare_entities(
+        understanding.compare_entities, request.query
+    )
+    warnings.extend(compare_warnings)
     compare_kind = understanding.compare_entity_kind
     if understanding.query_type == "comparison" and len(compare_entities) < 2:
         # Nothing concrete to compare; fall back to a plain distribution so the

@@ -133,7 +133,19 @@ Three independent mechanisms, in order of how early they act:
 
 **1. Structural — the LLM's output type has no field for a value.** The model's entire output is a `QueryUnderstanding`: a query type, a list of entity strings, a group-by dimension, a chart type. There is no count field, no bucket, no data array. A model that tried to report "Phase 3: 41 trials" has nowhere to put it.
 
-**2. Grounding — extracted entities must appear in the question.** The one way the model could still influence real data is by naming an entity nobody asked about, which would silently change what gets searched. After the call, `ground_entities()` drops any drug, condition, sponsor, or country that does not appear in the user's text (exact substring, with a tight fuzzy fallback for inflection like "lung cancers"). Dropped entities are reported in `meta.warnings`.
+**2. Grounding — every field that can change what gets searched must be supported by the question.** The one way the model could still influence real data is by introducing a filter nobody asked for. Eight fields reach the query builder or the client-side filters, and each is constrained differently according to what it is:
+
+| Field | How it is grounded |
+|---|---|
+| `drugs`, `conditions`, `sponsors`, `countries` | Must appear in the query text — exact substring, with a tight fuzzy fallback for inflection ("lung cancers" → "lung cancer"). |
+| `compare_entities` | Same text check. Each one drives its own upstream search, so an invented entity would not merely mislabel a series — it would fetch and chart trials nobody asked about. |
+| `phases` | **Read from the query text directly**, not taken from the model: `phase 3`, `phase 1/2`, `phases 2 and 3`, `Phase II or III`. Anchoring on the word "phase" and reading only the contiguous list keeps `"phase 2 study of 3 drugs"` from producing a Phase 3 filter. |
+| `statuses` | **Read from the query text directly**, mapped to the live-verified `overallStatus` vocabulary via a synonym table ("stopped early" → `TERMINATED`). Longer phrases match first, so `"not yet recruiting"` cannot also register as `RECRUITING` — they are opposite filters. |
+| `year_range` | Each bound is accepted only if that four-digit year appears literally in the query. `"the last five years"` therefore applies no filter rather than a silently computed one. |
+
+For phases and statuses, reading the text is a *stronger* guarantee than checking the model's answer: the value provably comes from the user's words. The model's own extraction is kept only as a cross-check, and anything it proposed that the text does not support is dropped and reported in `meta.warnings` — so a divergence is visible rather than silently applied.
+
+**One honest limit.** Year *values* are grounded, but **which bound a year maps to is still the model's reading** — "since 2015" versus "before 2015". Full directional parsing was out of scope for this pass. The applied range is stated verbatim in `meta.warnings` ("Restricted to trials starting from 2015 client-side…"), so a misreading is visible in the response rather than hidden.
 
 **3. Validation — every published value is re-derived before the response ships.** The validator receives the aggregator's own result alongside the formatted spec and recomputes each value from the pre-truncation id sets. It rejects any citation whose `nct_id` is not among the records actually fetched. A response that fails any check is withheld with HTTP 500 rather than returned — a chart that renders but cannot be traced to source data is worse than an error, because a reader has no way to tell it is wrong.
 
@@ -450,8 +462,8 @@ No LLM is involved, and no extra API calls are made — every field quoted was a
 |---|---|
 | **Schema conformance** | A response that resembles the contract but does not re-parse as it. |
 | **Encoding ↔ data** | An encoding naming a field absent from the rows — which renders as an empty axis and looks like "no data" rather than a bug. |
-| **Count integrity** | `value != len(set(nct_ids))` for any datum, node, or edge; published rows that disagree with the aggregation they came from; an edge referencing a node not in the graph. |
-| **Citation grounding** | A citation pointing at a trial that was never fetched; an empty excerpt; a non-zero value with no citations; more citations than claimed supporters. |
+| **Count integrity** | `value != len(set(nct_ids))` for any datum, node, or edge; published rows that disagree with the aggregation they came from; **published network node sizes and edge weights that disagree with the graph they were built from**; an edge referencing a node not in the graph. |
+| **Citation grounding** | A citation pointing at a trial that was never fetched; **a citation naming a real trial that is not in that specific datum's contributor set**; an empty excerpt; a non-zero value with no citations (unless zero citations were requested); more citations than claimed supporters. |
 | **Non-empty** | A chart with zero rows, or a network with no nodes, shipping as if it were an answer. |
 | **Meta integrity** | A processed-trial count that disagrees with the store; missing upstream URLs (without which a result cannot be reproduced). |
 
@@ -558,7 +570,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 **A trial in both comparison series is counted in both.** It genuinely is evidence for both, and series membership comes from the upstream searches themselves rather than client-side guessing.
 
-**Year ranges and most status filters are applied client-side.** There is no live-verified date-range parameter, and only `status:rec` was confirmed among the status codes. Sending an unverified filter risks a silently-empty result; filtering locally is exact, keeps citations intact, and is disclosed in `meta.warnings`.
+**Year ranges, most status filters, and multi-phase requests are applied client-side.** There is no live-verified date-range parameter, and only `status:rec` was confirmed among the status codes. `aggFilters` also carries only *one* phase and repeating the key does not OR them, so a single phase is filtered upstream while two or more are fetched unfiltered and OR-ed locally — matching by intersection, since a combined Phase 1/2 trial genuinely satisfies a request for either. Sending an unverified filter risks a silently-empty result; filtering locally is exact, keeps citations intact, and is disclosed in `meta.warnings`.
 
 **Brand and generic drug names are merged, conservatively.** Node identity comes from RxNorm ingredients, so `Keytruda` and `pembrolizumab` are one node (see [Drug synonym resolution](#drug-synonym-resolution)). The filter is deliberately strict rather than maximal: on a 600-trial pembrolizumab query, **22% of the 628 distinct drug names resolve, producing 15 merges, all clinically correct** (`keytruda`/`pembrolizumab`, `opdivo`/`nivolumab`, `xeloda`/`capecitabine`, `abraxane`/`nab-paclitaxel`, `5-FU`/`fluorouracil`, `aldesleukin`/`recombinant human interleukin-2`) **with zero false merges**. The unresolved 78% is mostly research codes (`ACE2016`, `MK-3475`) and genuine multi-drug arms that *should not* merge. An earlier, looser filter resolved 34% but produced merges that folded placebo arms and combination partners into the active drug — so the lower rate is the feature working, not a shortfall.
 

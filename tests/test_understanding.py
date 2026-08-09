@@ -8,6 +8,10 @@ import pytest
 
 from app.agents.understanding import (
     build_plan,
+    extract_phases_from_query,
+    extract_statuses_from_query,
+    extract_years_from_query,
+    ground_compare_entities,
     ground_entities,
     reconcile_viz_type,
 )
@@ -79,7 +83,9 @@ class TestEntityGrounding:
         )
         assert entities.drugs == []
 
-    def test_phases_are_range_checked_rather_than_text_matched(self):
+    def test_phases_come_from_the_query_text(self):
+        """Out-of-range values are discarded, and so is any in-range phase the
+        question never mentions."""
         entities, _ = ground_entities(
             understanding(phases=[3, 7, 0]), "phase 3 trials"
         )
@@ -218,3 +224,183 @@ class TestRequestValidation:
     def test_rejects_an_out_of_range_phase(self):
         with pytest.raises(ValueError):
             QueryRequest(query="trials", phase=9)
+
+
+class TestDeterministicPhaseExtraction:
+    """Phases are read from the query text rather than trusted from the model,
+    so a phase filter provably comes from the user's words."""
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("Phase 3 melanoma trials", [3]),
+            ("phase 1/2 studies", [1, 2]),
+            ("phases 2 and 3", [2, 3]),
+            ("Phase II or III trials", [2, 3]),
+            ("phase I trials", [1]),
+            ("trials in phase 4", [4]),
+        ],
+    )
+    def test_reads_phases_the_user_wrote(self, query, expected):
+        assert extract_phases_from_query(query) == expected
+
+    def test_only_the_contiguous_list_after_phase_counts(self):
+        """Anchoring on the word "phase" is what stops an unrelated number from
+        becoming a filter."""
+        assert extract_phases_from_query("phase 2 study of 3 drugs") == [2]
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "melanoma trials",
+            "How are lung cancer trials distributed across phases?",
+            "Compare phases for trials involving Drug A vs Drug B",
+        ],
+    )
+    def test_no_phase_stated_means_no_phase_filter(self, query):
+        assert extract_phases_from_query(query) == []
+
+    def test_a_year_is_never_read_as_a_phase(self):
+        assert extract_phases_from_query("phase 3 trials started in 2020") == [3]
+
+
+class TestDeterministicStatusExtraction:
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("recruiting melanoma trials", ["RECRUITING"]),
+            ("completed studies", ["COMPLETED"]),
+            ("trials that were stopped early", ["TERMINATED"]),
+            ("enrolling patients", ["RECRUITING"]),
+            ("active not recruiting", ["ACTIVE_NOT_RECRUITING"]),
+        ],
+    )
+    def test_maps_plain_words_to_the_api_vocabulary(self, query, expected):
+        assert extract_statuses_from_query(query) == expected
+
+    def test_longer_phrases_win_over_the_words_inside_them(self):
+        """"not yet recruiting" must not also register as "recruiting" -- they
+        are opposite filters."""
+        assert extract_statuses_from_query("not yet recruiting trials") == [
+            "NOT_YET_RECRUITING"
+        ]
+
+    def test_several_statuses(self):
+        assert set(extract_statuses_from_query("terminated or suspended")) == {
+            "TERMINATED",
+            "SUSPENDED",
+        }
+
+    def test_no_status_stated(self):
+        assert extract_statuses_from_query("melanoma trials") == []
+
+
+class TestYearGrounding:
+    def test_reads_years_present_in_the_query(self):
+        assert extract_years_from_query("between 2010 and 2020") == {2010, 2020}
+
+    def test_a_dosage_is_not_a_year(self):
+        assert extract_years_from_query("Pembrolizumab 200 mg trials") == set()
+
+    def test_a_computed_year_is_not_grounded(self):
+        """"the last five years" has no literal year, so no filter is applied
+        rather than one the user never stated."""
+        assert extract_years_from_query("trials over the last five years") == set()
+
+
+class TestOverExtractionIsDroppedAndReported:
+    """The model plausibly over-extracts on a bare query. Every such field
+    changes which trials are fetched, so each must be dropped and reported."""
+
+    BARE = "How are melanoma trials distributed?"
+
+    def test_phase_not_in_the_question_is_dropped(self):
+        entities, warnings = ground_entities(
+            understanding(conditions=["melanoma"], phases=[3]), self.BARE
+        )
+        assert entities.phases == []
+        assert any("phase 3" in w for w in warnings)
+
+    def test_status_not_in_the_question_is_dropped(self):
+        entities, warnings = ground_entities(
+            understanding(conditions=["melanoma"], statuses=["recruiting"]), self.BARE
+        )
+        assert entities.statuses == []
+        assert any("status" in w for w in warnings)
+
+    def test_year_not_in_the_question_is_dropped(self):
+        entities, warnings = ground_entities(
+            understanding(conditions=["melanoma"], year_range=YearRange(start=2015, end=None)),
+            self.BARE,
+        )
+        assert entities.year_range is None
+        assert any("2015" in w for w in warnings)
+
+    def test_an_unrecognised_status_string_never_reaches_the_filter(self):
+        """Previously any non-empty string was accepted and then matched against
+        overallStatus, silently filtering everything out."""
+        entities, warnings = ground_entities(
+            understanding(conditions=["melanoma"], statuses=["ongoing-ish"]), self.BARE
+        )
+        assert entities.statuses == []
+        assert warnings
+
+    def test_stated_values_survive(self):
+        query = "recruiting phase 3 melanoma trials since 2015"
+        entities, warnings = ground_entities(
+            understanding(
+                conditions=["melanoma"],
+                phases=[3],
+                statuses=["recruiting"],
+                year_range=YearRange(start=2015, end=None),
+            ),
+            query,
+        )
+        assert entities.phases == [3]
+        assert entities.statuses == ["RECRUITING"]
+        assert entities.year_range == YearRange(start=2015, end=None)
+        assert warnings == []
+
+    def test_partial_year_range_keeps_the_grounded_bound(self):
+        entities, warnings = ground_entities(
+            understanding(year_range=YearRange(start=2015, end=2099)),
+            "trials since 2015",
+        )
+        assert entities.year_range == YearRange(start=2015, end=None)
+        assert any("2099" in w for w in warnings)
+
+
+class TestCompareEntityGrounding:
+    """Each comparison entity drives its own upstream search, so an invented one
+    would fetch and chart trials nobody asked about."""
+
+    def test_entities_named_in_the_question_survive(self):
+        kept, warnings = ground_compare_entities(
+            ["Pembrolizumab", "Nivolumab"],
+            "Compare phases for Pembrolizumab vs Nivolumab.",
+        )
+        assert kept == ["Pembrolizumab", "Nivolumab"]
+        assert warnings == []
+
+    def test_an_invented_entity_is_dropped_and_reported(self):
+        kept, warnings = ground_compare_entities(
+            ["Pembrolizumab", "Keytruda"],
+            "Compare phases for Pembrolizumab vs Nivolumab.",
+        )
+        assert kept == ["Pembrolizumab"]
+        assert any("Keytruda" in w for w in warnings)
+
+    def test_grounding_runs_through_build_plan(self):
+        plan = build_plan(
+            QueryRequest(query="Compare phases for Pembrolizumab vs Nivolumab."),
+            understanding(
+                query_type="comparison",
+                viz_type="grouped_bar_chart",
+                compare_entities=["Pembrolizumab", "Atezolizumab"],
+                compare_entity_kind="drug",
+            ),
+        )
+        assert "Atezolizumab" not in plan.compare_entities
+        assert any("Atezolizumab" in w for w in plan.warnings)
+        # Only one entity survives, so the existing degrade path takes over.
+        assert plan.viz_type == "bar_chart"
