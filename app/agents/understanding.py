@@ -96,14 +96,34 @@ Use `assumptions` to record any interpretation you had to make, in one short \
 sentence each, so the user can see how their question was read."""
 
 
+#: One client for the process, built on first use.
+#:
+#: A fresh AsyncOpenAI per call opens its own connection pool and is never
+#: closed, so every request leaked sockets and paid a TLS handshake it did not
+#: need. The client is documented as safe to share and is what its own
+#: connection pooling is for. Built lazily rather than at import so a missing
+#: key is a request-time UnderstandingError -- the shape the route already
+#: reports -- instead of a crash at startup.
+_CLIENT: AsyncOpenAI | None = None
+
+
 def _client() -> AsyncOpenAI:
+    global _CLIENT
     api_key = settings.openai_api_key
     if not api_key:
         raise UnderstandingError(
             "No OpenAI API key configured. Set OPEN_AI_API_KEY (or OPENAI_API_KEY) "
             "in the environment or .env file."
         )
-    return AsyncOpenAI(api_key=api_key)
+    if _CLIENT is None:
+        _CLIENT = AsyncOpenAI(api_key=api_key)
+    return _CLIENT
+
+
+def reset_client() -> None:
+    """Drop the cached client. For tests, and for a key rotation in place."""
+    global _CLIENT
+    _CLIENT = None
 
 
 async def call_llm(query: str, *, model: str | None = None) -> QueryUnderstanding:

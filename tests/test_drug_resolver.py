@@ -553,3 +553,32 @@ class TestResolveAll:
             )
         assert peak <= 5
         assert peak > 1, "should actually run concurrently"
+
+
+class TestBatchTimeout:
+    """Per-request timeouts bound one lookup. Nothing bounded the batch, so an
+    RxNorm that is slow without ever timing out could hold a response open for
+    as long as there were names to resolve."""
+
+    @respx.mock
+    async def test_a_slow_batch_degrades_instead_of_hanging(self, monkeypatch):
+        from app.core.config import settings as live_settings
+
+        monkeypatch.setattr(live_settings, "RXNORM_BATCH_TIMEOUT_SECONDS", 0.05)
+
+        async def slow(_request):
+            await asyncio.sleep(5)
+            return httpx.Response(200, json={})
+
+        respx.get(f"{BASE}/approximateTerm.json").mock(side_effect=slow)
+        records = {
+            "NCT00000001": make_record(
+                "NCT00000001", interventions=[("DRUG", "Pembrolizumab")]
+            )
+        }
+        async with RxNormClient(max_retries=0) as client:
+            resolutions, warnings = await resolve_all(
+                records, cache=DrugCache(), client=client
+            )
+        assert resolutions == {}
+        assert warnings  # the degradation is disclosed, not silent

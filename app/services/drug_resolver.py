@@ -552,15 +552,32 @@ async def resolve_all(
     if owns_client:
         await client.__aenter__()
     try:
-        results = await asyncio.gather(
-            *(one(cleaned, originals) for cleaned, originals in names.items())
+        # Per-request timeouts bound one lookup; nothing bounded the batch, so
+        # an RxNorm that is slow without ever timing out could hold a response
+        # open for as long as there were names to resolve. Falling back to
+        # string normalization is this module's whole failure story, so the
+        # ceiling costs nothing but a disclosed degradation.
+        results = await asyncio.wait_for(
+            asyncio.gather(
+                *(one(cleaned, originals) for cleaned, originals in names.items())
+            ),
+            timeout=settings.RXNORM_BATCH_TIMEOUT_SECONDS,
         )
+    except TimeoutError:
+        logger.warning(
+            "drug resolution timed out for the batch",
+            extra={
+                "names": len(names),
+                "timeout_s": settings.RXNORM_BATCH_TIMEOUT_SECONDS,
+            },
+        )
+        results = []
     finally:
         if owns_client:
             await client.__aexit__()
 
     resolutions = {cleaned: r for cleaned, r in results if r is not None}
-    failed = len(results) - len(resolutions)
+    failed = len(names) - len(resolutions)
 
     warnings: list[str] = []
     if failed and not resolutions:
