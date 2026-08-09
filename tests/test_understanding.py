@@ -1356,3 +1356,103 @@ class TestComparisonKindRequiresFullGrounding:
                     field = {"drug": "drugs", "condition": "conditions",
                              "sponsor": "sponsors"}[plan.compare_entity_kind]
                     assert search.label in getattr(plan.entities, field)
+
+
+class TestStopVerbsBeforeRecruiting:
+    """A trial that paused, suspended, halted, or withdrew its recruitment is
+    not recruiting. Read positively these produced the near-opposite of the
+    question: "paused recruiting trials" asked upstream for RECRUITING or
+    SUSPENDED."""
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "paused recruiting melanoma trials",
+            "suspended recruiting trials",
+            "withdrawn recruiting trials",
+            "halted recruiting trials",
+            "stopped recruiting trials",
+            "ceased recruiting",
+        ],
+    )
+    def test_every_stop_verb_form_is_an_exclusion_only(self, query):
+        assert _match_statuses(query) == ([], ["RECRUITING"])
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("suspended trials", "SUSPENDED"),
+            ("paused trials", "SUSPENDED"),
+            ("on hold", "SUSPENDED"),
+            ("halted trials", "TERMINATED"),
+            ("halted early", "TERMINATED"),
+            ("trials that were halted", "TERMINATED"),
+            ("withdrawn trials", "WITHDRAWN"),
+            ("terminated trials", "TERMINATED"),
+        ],
+    )
+    def test_the_same_verbs_alone_still_name_their_status(self, query, expected):
+        """The cue is only consumed when it negates a following status."""
+        assert _match_statuses(query)[0] == [expected]
+
+    def test_a_verb_that_is_also_a_status_is_not_counted_twice(self):
+        """"halted recruiting" used to mean TERMINATED *and* not-RECRUITING,
+        while "stopped recruiting" -- whose verb is not a status phrase -- meant
+        only the exclusion."""
+        positive, negated = _match_statuses("halted recruiting trials")
+        assert positive == []
+        assert negated == ["RECRUITING"]
+
+    def test_unaffected_status_questions(self):
+        assert _match_statuses("active, not recruiting")[0] == ["ACTIVE_NOT_RECRUITING"]
+        assert _match_statuses("not yet recruiting")[0] == ["NOT_YET_RECRUITING"]
+        assert _match_statuses("recruiting trials")[0] == ["RECRUITING"]
+
+
+class TestSurvivorPromotionUsesMembership:
+    """Trusting the model's claimed kind put a sponsor into `drugs`, so the
+    search ANDed query.intr=Pfizer with query.spons=Pfizer and returned
+    nothing, with no disclosure."""
+
+    def plan_for(self, query, **kwargs):
+        understanding = QueryUnderstanding(
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=kwargs.pop("compare_entities"),
+            compare_entity_kind=kwargs.pop("compare_entity_kind", "drug"),
+            network_kind=None, assumptions=[],
+            entities=ExtractedEntities(
+                drugs=kwargs.pop("drugs", []),
+                conditions=kwargs.pop("conditions", []),
+                sponsors=kwargs.pop("sponsors", []),
+                phases=[], statuses=[], countries=[], year_range=None,
+            ),
+        )
+        plan = build_plan(QueryRequest(query=query), understanding)
+        return plan, build_searches(plan)[0]
+
+    def test_a_sponsor_survivor_lands_in_sponsors_despite_a_drug_label(self):
+        plan, searches = self.plan_for(
+            "compare Pfizer trials by phase",
+            compare_entities=["Pfizer", "Novartis"], sponsors=["Pfizer"],
+        )
+        assert plan.entities.sponsors == ["Pfizer"]
+        assert plan.entities.drugs == []
+        assert searches[0].spons == "Pfizer"
+        assert searches[0].intr is None
+
+    def test_an_unplaceable_survivor_is_dropped_with_a_warning(self):
+        """Never default to drugs: that is a guess at a search field."""
+        plan, searches = self.plan_for(
+            "compare Zeta trials by phase",
+            compare_entities=["Zeta"], compare_entity_kind=None,
+        )
+        assert plan.entities.drugs == []
+        assert any("Dropped 'Zeta'" in w for w in plan.warnings)
+        assert searches[0].intr is None
+
+    def test_a_correctly_labelled_survivor_is_promoted(self):
+        plan, _ = self.plan_for(
+            "compare Pembrolizumab trials by phase",
+            compare_entities=["Pembrolizumab"], drugs=["Pembrolizumab"],
+        )
+        assert plan.entities.drugs == ["Pembrolizumab"]

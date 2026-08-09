@@ -628,3 +628,65 @@ class TestPopulationScopeVsPredicates:
         it must not be removed, only stopped from firing over a filter."""
         params = self.params(query="trials about long covid fatigue")
         assert params == {"query.term": "trials about long covid fatigue"}
+
+
+class TestExclusionCountsAsAPredicate:
+    """A status exclusion narrows the population exactly as a requested status
+    does; it is simply enforced after fetching. Omitting it from the predicate
+    test sent exclusion-only questions down the free-text fallback, which ANDs
+    the analytical wording into retrieval."""
+
+    plan = TestBuildSearches.plan
+
+    def params(self, **kwargs):
+        searches, _ = build_searches(self.plan(**kwargs))
+        return {
+            k: v
+            for k, v in searches[0].to_params(page_size=10).items()
+            if k not in ("fields", "pageSize")
+        }
+
+    @pytest.mark.parametrize(
+        "query,excluded",
+        [
+            ("Show trials that are not recruiting", ["RECRUITING"]),
+            ("Show trials that are not recruiting by phase", ["RECRUITING"]),
+            ("Show trials that are not completed", ["COMPLETED"]),
+        ],
+    )
+    def test_an_exclusion_only_query_sends_no_free_text(self, query, excluded):
+        assert self.params(query=query, excluded_statuses=excluded) == {}
+
+    def test_exclusion_plus_year_sends_no_free_text(self):
+        assert self.params(
+            query="trials not recruiting since 2020",
+            excluded_statuses=["RECRUITING"],
+            year_range=YearRange(start=2020, end=None),
+        ) == {}
+
+    def test_exclusion_plus_phase_keeps_the_upstream_filter(self):
+        params = self.params(
+            query="phase 3 trials not recruiting",
+            phases=[3], excluded_statuses=["RECRUITING"],
+        )
+        assert params == {"aggFilters": "phase:3"}
+
+    def test_a_positive_and_negative_status_together(self):
+        params = self.params(
+            query="completed trials that are not recruiting",
+            statuses=["COMPLETED"], excluded_statuses=["RECRUITING"],
+        )
+        assert params == {"aggFilters": "status:com"}
+
+    def test_analytical_words_never_become_the_search_topic(self):
+        for query in (
+            "Show trials that are not recruiting by phase",
+            "How are trials that are not completed distributed across sponsors?",
+        ):
+            params = self.params(query=query, excluded_statuses=["RECRUITING"])
+            assert "query.term" not in params
+
+    def test_the_free_text_fallback_still_fires_with_nothing_structured(self):
+        assert self.params(query="trials about long covid fatigue") == {
+            "query.term": "trials about long covid fatigue"
+        }

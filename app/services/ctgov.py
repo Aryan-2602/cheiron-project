@@ -587,6 +587,11 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
         agg
         or entities.phases
         or entities.statuses
+        # A status *exclusion* narrows the population exactly as a requested one
+        # does; it is simply enforced after fetching. Omitting it here sent
+        # "Show trials that are not recruiting by phase" down the free-text
+        # fallback, which ANDs the analytical wording into retrieval.
+        or getattr(plan, "excluded_statuses", None)
         or (year_range and (year_range.start is not None or year_range.end is not None))
     )
     if not has_scope and not has_predicate:

@@ -399,7 +399,18 @@ _NEGATION_CUES = (
     "stopped",
     "ceased",
     "halted",
+    # A trial that paused, suspended, or withdrew its recruitment is not
+    # recruiting. Read positively these produced the near-opposite of the
+    # question: "paused recruiting trials" asked upstream for
+    # RECRUITING *or* SUSPENDED.
+    "paused",
+    "suspended",
+    "withdrawn",
 )
+
+#: How far back to look when masking a consumed cue. Comfortably covers the
+#: word-based lookback without reaching into an earlier clause.
+_CUE_MASK_WINDOW = 40
 
 #: Scanning back stops here, so a negation in one clause cannot reach into the
 #: next: in "not completed and recruiting", the "and" protects "recruiting".
@@ -410,8 +421,15 @@ _CLAUSE_BOUNDARIES = frozenset({"and", "or", "but", "plus", "also"})
 _NEGATION_LOOKBACK = 3
 
 
-def _is_negated(text_before: str) -> bool:
-    """True when the words immediately preceding a status match negate it.
+def _negation_cue(text_before: str) -> str | None:
+    """The cue negating a status match, or None.
+
+    Returns the cue itself rather than a bool so the caller can mask it. A verb
+    like "halted" or "suspended" is both a cue and a status phrase in its own
+    right, so leaving it in the haystack made "halted recruiting" mean
+    TERMINATED *and* not-RECRUITING at once -- while "stopped recruiting",
+    whose verb is not a status phrase, meant only the exclusion. Masking the
+    consumed cue makes every "<verb> recruiting" form behave the same way.
 
     Walks back a few words rather than requiring the cue to be adjacent, so
     "not currently recruiting" is caught, and stops at a clause boundary so
@@ -424,14 +442,18 @@ def _is_negated(text_before: str) -> bool:
             break
         tail.insert(0, word)
     if not tail:
-        return False
+        return None
     # "non-recruiting" and "aren't recruiting" attach the cue to the match or
     # to the preceding word, so the joined tail is checked as well as each
     # token -- that also covers the two-word cues ("no longer", "other than").
     joined = " ".join(tail).rstrip("-")
-    if any(joined.endswith(cue) for cue in _NEGATION_CUES):
-        return True
-    return any(word.rstrip("-") in _NEGATION_CUES for word in tail)
+    for cue in _NEGATION_CUES:
+        if joined.endswith(cue):
+            return cue
+    for word in tail:
+        if word.rstrip("-") in _NEGATION_CUES:
+            return word.rstrip("-")
+    return None
 
 
 #: Vocabulary phrases as whole-word patterns, longest first. Every phrase both
@@ -470,12 +492,22 @@ def _match_statuses(query: str) -> tuple[list[str], list[str]]:
         while match:
             index = match.start()
             phrase = match.group()
-            bucket = negated if _is_negated(haystack[:index]) else found
+            cue = _negation_cue(haystack[:index])
+            bucket = negated if cue else found
             if status not in bucket:
                 bucket.append(status)
             # Masked with spaces rather than deleted, so indices stay stable
             # for the negation lookback on later phrases.
             haystack = haystack[:index] + " " * len(phrase) + haystack[index + len(phrase) :]
+            if cue:
+                # Consume the cue too. Otherwise a verb that is also a status
+                # phrase ("halted", "suspended") would be counted a second time
+                # as a positive status it never meant.
+                cue_at = haystack.rfind(cue, max(0, index - _CUE_MASK_WINDOW), index)
+                if cue_at >= 0:
+                    haystack = (
+                        haystack[:cue_at] + " " * len(cue) + haystack[cue_at + len(cue) :]
+                    )
             match = pattern.search(haystack, index + len(phrase))
     # A status asked for and excluded in the same question is contradictory;
     # excluding wins, because acting on the positive reading is the failure
@@ -912,8 +944,19 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
         # condition alone, and pembrolizumab vanished from a question that
         # named it.
         for survivor in compare_entities:
-            kind = compare_kind or _infer_compare_kind([survivor], entities)
-            field_name = COMPARE_KIND_SOURCES.get(kind or "", "drugs")
+            # Membership first, the claimed kind only as a fallback, and never
+            # a default. Trusting the label put a sponsor into `drugs`, so the
+            # search ANDed query.intr=Pfizer with query.spons=Pfizer and
+            # returned nothing, silently.
+            kind = _infer_compare_kind([survivor], entities) or compare_kind
+            field_name = COMPARE_KIND_SOURCES.get(kind or "")
+            if field_name is None:
+                warnings.append(
+                    f"Dropped {survivor!r} from the search: the question does not "
+                    f"say whether it is a drug, condition, or sponsor, and "
+                    f"guessing would search the wrong field."
+                )
+                continue
             current = list(getattr(entities, field_name))
             if not any(series_key(v) == series_key(survivor) for v in current):
                 setattr(entities, field_name, [*current, survivor])
