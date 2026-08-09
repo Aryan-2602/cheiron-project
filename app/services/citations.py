@@ -96,6 +96,26 @@ EVIDENCE: dict[str, tuple[str, Callable[[dict[str, Any]], Any]]] = {
 }
 
 
+def _render_field(record: dict[str, Any], dimension: str) -> str:
+    """One ``path: value`` fragment, exactly as it appears in the record."""
+    path, reader = EVIDENCE[dimension]
+    value = reader(record)
+    if value in (None, [], ""):
+        return f"{path}: not reported"
+    if isinstance(value, list):
+        return f"{path}: [{', '.join(str(v) for v in value)}]"
+    return f'{path}: "{value}"' if isinstance(value, str) else f"{path}: {value}"
+
+
+#: Dimensions whose evidence spans two fields, because the datum they support
+#: has two endpoints. A sponsor-drug edge cited with intervention names alone
+#: proves the drug end and leaves the sponsor end unevidenced -- the reader has
+#: to take it on trust that this trial was Merck's.
+COMPOSITE_EVIDENCE: dict[str, tuple[str, ...]] = {
+    "sponsor_drug": ("sponsor", "drug"),
+}
+
+
 def build_excerpt(record: dict[str, Any], dimension: str) -> str:
     """Render the supporting excerpt for one trial on one dimension.
 
@@ -104,6 +124,16 @@ def build_excerpt(record: dict[str, Any], dimension: str) -> str:
     record that landed in an "unknown" bucket precisely because the field was
     absent.
     """
+    parts = COMPOSITE_EVIDENCE.get(dimension)
+    if parts:
+        # Both endpoints from their own real fields, so one citation verifies
+        # the whole edge. The title is carried once rather than per part.
+        title = _title(record)
+        rendered = "; ".join(
+            _render_field(record, part) for part in parts if EVIDENCE.get(part)
+        )
+        return f'"{title}" — {rendered}' if title else rendered
+
     title = _title(record)
     entry = EVIDENCE.get(dimension)
     if entry is None:

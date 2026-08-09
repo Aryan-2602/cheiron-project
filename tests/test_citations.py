@@ -169,3 +169,77 @@ class TestCitationSelection:
         ids = self.bucket(97)
         for limit in (1, 3, 7, 20):
             assert set(self.cite(ids, limit)[0]) <= set(ids)
+
+
+class TestEdgeEvidenceCoversBothEndpoints:
+    """An edge asserts a link between two things, so its citation has to
+    evidence both. A sponsor-drug edge cited with intervention names alone
+    proved the drug end and left the sponsor end on trust."""
+
+    def graph(self, kind):
+        from app.models.schemas import ExtractedEntities, QueryPlan
+        from app.services.network import (
+            build_bipartite_network,
+            build_cooccurrence_network,
+        )
+        from app.services.viz import build_network_spec
+
+        records = [
+            make_record(
+                f"NCT0000000{i}",
+                sponsor="Merck",
+                interventions=[("DRUG", "Pembrolizumab"), ("DRUG", "Carboplatin")],
+            )
+            for i in (1, 2)
+        ]
+        store = StudyStore()
+        store.add_records(records)
+        store.add_url("https://example.test")
+        network = (
+            build_bipartite_network(store.records)
+            if kind == "sponsor_drug"
+            else build_cooccurrence_network(store.records, min_edge_weight=1)
+        )
+        plan = QueryPlan(
+            query="q", query_type="relationship", group_by=None,
+            viz_type="network_graph", network_kind=kind,
+            entities=ExtractedEntities(
+                drugs=[], conditions=[], sponsors=[], phases=[], statuses=[],
+                countries=[], year_range=None,
+            ),
+        )
+        return build_network_spec(network, plan, store), store, network
+
+    def test_a_sponsor_drug_edge_cites_the_sponsor_field(self):
+        spec, _, _ = self.graph("sponsor_drug")
+        excerpt = spec.data[0]["edges"][0]["citations"][0]["excerpt"]
+        assert "leadSponsor.name" in excerpt
+        assert "Merck" in excerpt
+
+    def test_a_sponsor_drug_edge_still_cites_the_drug_field(self):
+        spec, _, _ = self.graph("sponsor_drug")
+        excerpt = spec.data[0]["edges"][0]["citations"][0]["excerpt"]
+        assert "interventions[].name" in excerpt
+
+    def test_the_cited_trial_belongs_to_the_edge(self):
+        spec, _, network = self.graph("sponsor_drug")
+        edge_row = spec.data[0]["edges"][0]
+        edge = next(
+            e for e in network.edges
+            if (e.source, e.target) == (edge_row["source"], edge_row["target"])
+        )
+        for citation in edge_row["citations"]:
+            assert citation["nct_id"] in edge.nct_ids
+
+    def test_a_drug_drug_edge_is_unchanged(self):
+        """The intervention list already names both endpoints there."""
+        spec, _, _ = self.graph("drug_drug")
+        excerpt = spec.data[0]["edges"][0]["citations"][0]["excerpt"]
+        assert "interventions[].name" in excerpt
+        assert "leadSponsor" not in excerpt
+
+    def test_the_excerpt_quotes_real_fields_not_prose(self):
+        spec, _, _ = self.graph("sponsor_drug")
+        excerpt = spec.data[0]["edges"][0]["citations"][0]["excerpt"]
+        # Every fragment is a path: value pair from the record itself.
+        assert excerpt.count(":") >= 2

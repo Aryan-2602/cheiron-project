@@ -287,9 +287,18 @@ def build_meta(
                 f"omitted."
             )
     if network is not None and network.truncated_to_top_n:
+        # Say what the code actually ranks by. Pruning sorts on node size --
+        # the number of trials a node appears in -- not on degree, and the
+        # bipartite builder keeps the busiest sponsors first.
+        how = (
+            "retaining the busiest sponsors first, then the drugs those "
+            "sponsors study"
+            if network.kind == "sponsor_drug"
+            else "keeping the nodes appearing in the most trials"
+        )
         warnings.append(
-            f"Graph truncated to the {network.truncated_to_top_n} highest-degree "
-            f"nodes for readability."
+            f"Graph truncated to {network.truncated_to_top_n} nodes for "
+            f"readability, by {how}."
         )
     if network is not None and network.min_edge_weight > 1:
         warnings.append(

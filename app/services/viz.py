@@ -211,8 +211,13 @@ def build_network_spec(
     edges: list[dict[str, Any]] = []
     for edge in result.edges:
         # An edge's evidence is the set of trials containing *both* endpoints,
-        # so the drug-name field is what a reader should check.
-        citations, total = build_citations(edge.nct_ids, store, "drug", limit=limit)
+        # so the excerpt has to show both. For a drug-drug edge the
+        # intervention list covers them; for a sponsor-drug edge it proves only
+        # the drug end, so the lead sponsor is quoted alongside it.
+        edge_evidence = "sponsor_drug" if result.kind == "sponsor_drug" else "drug"
+        citations, total = build_citations(
+            edge.nct_ids, store, edge_evidence, limit=limit
+        )
         edges.append(
             {
                 "source": edge.source,
