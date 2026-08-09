@@ -389,14 +389,15 @@ def build_searches(plan: Any) -> list[CTGovSearch]:
     base_locn = _first(entities.countries)
 
     agg: list[AggFilter] = []
-    for phase in entities.phases:
-        try:
-            agg.append(AggFilter.phase(phase))
-        except ValueError:
-            continue
-    # Only one phase filter is meaningful at a time upstream; extra phases are
-    # applied client-side by the aggregator's own bucketing.
-    agg = agg[:1]
+    # aggFilters expresses only a single phase, and repeating the key does not
+    # OR them. So exactly one requested phase is filtered upstream (cheap and
+    # verified); two or more are left unfiltered here and OR-ed client-side by
+    # apply_client_side_filters, the same way unverified statuses are handled.
+    # Truncating to the first phase instead -- as this once did -- silently
+    # answered a different question than the one asked.
+    valid_phases = [p for p in entities.phases if p in (1, 2, 3, 4)]
+    if len(valid_phases) == 1:
+        agg.append(AggFilter.phase(valid_phases[0]))
     if any(s.lower().startswith("recruit") for s in entities.statuses):
         agg.append(AggFilter.status("rec"))
 

@@ -29,7 +29,7 @@ from app.models.schemas import (
 )
 from app.services.aggregate import aggregate, zero_fill_years
 from app.services.ctgov import CTGovClient, CTGovError, CTGovSearch, build_searches
-from app.services.dimensions import extract_start_year, get_dimension
+from app.services.dimensions import extract_phases, extract_start_year, get_dimension
 from app.services.drug_resolver import resolve_all
 from app.services.network import (
     build_bipartite_network,
@@ -104,11 +104,32 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
       live; other abbreviations are guesses.
     * **Year ranges.** There is no verified date-range parameter, so "since
       2015" is enforced against the start date already present in each record.
+    * **Multiple phases.** ``aggFilters`` carries only one phase and repeating
+      the key does not OR them, so a request for phases 2 *and* 3 is fetched
+      unfiltered and OR-ed here. Phases are multi-valued per trial, so a
+      combined Phase 1/2 study legitimately matches a request for either.
 
     Filtering locally is exact and keeps citations intact, because the records
     being filtered are the same ones the citations point at.
     """
     warnings: list[str] = []
+
+    wanted_phases = {p for p in plan.entities.phases if p in (1, 2, 3, 4)}
+    if len(wanted_phases) > 1:
+        wanted_enum = {f"PHASE{p}" for p in wanted_phases}
+        before = len(store.records)
+        store.records = {
+            nct_id: record
+            for nct_id, record in store.records.items()
+            # Intersection, not equality: a Phase 1/2 trial matches either.
+            if wanted_enum & set(extract_phases(record))
+        }
+        warnings.append(
+            f"Filtered to phase {', '.join(str(p) for p in sorted(wanted_phases))} "
+            f"client-side ({len(store.records):,} of {before:,} fetched trials); "
+            f"ClinicalTrials.gov accepts only one phase per search, so a "
+            f"multi-phase request is narrowed after fetching."
+        )
 
     wanted_status = {s.strip().upper().replace(" ", "_") for s in plan.entities.statuses}
     wanted_status = {s for s in wanted_status if s and not s.startswith("RECRUIT")}

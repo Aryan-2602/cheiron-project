@@ -435,3 +435,79 @@ class TestCitationLimits:
         mock_studies(SAMPLE)
         response = await run(max_citations_per_datum=2)
         assert all(r["citations"] for r in response.visualization.data)
+
+
+#: Phases 1-4 plus a combined Phase 1/2 trial, which must match a request for
+#: either 1 or 2.
+PHASE_MIX = [
+    make_record("NCT00000001", phases=["PHASE1"]),
+    make_record("NCT00000002", phases=["PHASE2"]),
+    make_record("NCT00000003", phases=["PHASE3"]),
+    make_record("NCT00000004", phases=["PHASE4"]),
+    make_record("NCT00000005", phases=["PHASE1", "PHASE2"]),
+]
+
+
+class TestPhaseFiltering:
+    """aggFilters carries only one phase, so a multi-phase request has to be
+    OR-ed client-side. Truncating to the first phase silently answered a
+    different question."""
+
+    @respx.mock
+    async def test_single_phase_is_filtered_upstream(self):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        route = respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(
+                200, json={"studies": [PHASE_MIX[2]], "totalCount": 1}
+            )
+        )
+        await run(phases=[3])
+        assert "aggFilters=phase%3A3" in str(route.calls[0].request.url)
+
+    @respx.mock
+    async def test_multiple_phases_are_not_truncated_to_the_first(self):
+        mock_studies(PHASE_MIX)
+        response = await run(phases=[2, 3])
+        cited = {
+            c["nct_id"]
+            for row in response.visualization.data
+            for c in row["citations"]
+        }
+        # The union: phase 2, phase 3, and the combined 1/2 trial.
+        assert cited == {"NCT00000002", "NCT00000003", "NCT00000005"}
+        # Not just phase 2's results, and not phase 1 or 4 alone.
+        assert "NCT00000001" not in cited
+        assert "NCT00000004" not in cited
+
+    @respx.mock
+    async def test_multiple_phases_send_no_upstream_phase_filter(self):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        route = respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(
+                200, json={"studies": PHASE_MIX, "totalCount": 5}
+            )
+        )
+        await run(phases=[2, 3])
+        assert "aggFilters" not in str(route.calls[0].request.url)
+
+    @respx.mock
+    async def test_multi_phase_narrowing_is_disclosed(self):
+        mock_studies(PHASE_MIX)
+        response = await run(phases=[2, 3])
+        assert any(
+            "phase 2, 3" in w and "client-side" in w for w in response.meta.warnings
+        )
+
+    @respx.mock
+    async def test_combined_phase_trial_matches_either_requested_phase(self):
+        """A Phase 1/2 study is genuinely evidence for both."""
+        mock_studies([PHASE_MIX[4]])
+        response = await run(phases=[1, 4])
+        cited = {
+            c["nct_id"] for row in response.visualization.data for c in row["citations"]
+        }
+        assert cited == {"NCT00000005"}
