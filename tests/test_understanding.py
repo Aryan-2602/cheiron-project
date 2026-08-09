@@ -1144,6 +1144,7 @@ class TestComparisonNeverBecomesAUnion:
         )
         assert plan.viz_type == "bar_chart"
         assert plan.compare_entities == []
+        assert not any(s.label for s in searches)
         assert any("Could not tell whether" in a for a in plan.assumptions)
 
     def test_a_grouped_bar_chart_always_has_at_least_two_labelled_searches(self):
