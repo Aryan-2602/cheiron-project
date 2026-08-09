@@ -2,6 +2,7 @@
 
 import pytest
 
+from app.models.schemas import AggregatedDatum, AggregationResult
 from app.services.aggregate import aggregate, zero_fill_years
 from app.services.dimensions import DIMENSIONS, get_dimension
 from tests.conftest import make_record
@@ -238,3 +239,67 @@ class TestCategoryTruncationBookkeeping:
         assert shown == {"Big", "Mid"}
         assert result.displayed_categories == len(shown)
         assert result.omitted_categories == 1
+
+
+class TestZeroFillBounds:
+    """Filling only the observed range cropped the axis to the data: "2020
+    through 2024" with trials only in 2021-2023 hid the two empty years, which
+    are exactly the answer to "how many started each year"."""
+
+    def result(self, years):
+        return AggregationResult(
+            dimension="start_year",
+            data=[
+                AggregatedDatum(key=str(y), series=None, value=1, nct_ids=[f"NCT{y}"])
+                for y in years
+            ],
+            total_studies_matched=len(years),
+        )
+
+    def keys(self, result):
+        return [d.key for d in result.data]
+
+    def test_explicit_bounds_fill_the_whole_requested_interval(self):
+        filled = zero_fill_years(self.result([2021, 2022, 2023]), start=2020, end=2024)
+        assert self.keys(filled) == ["2020", "2021", "2022", "2023", "2024"]
+        assert [d.value for d in filled.data] == [0, 1, 1, 1, 0]
+
+    def test_a_single_observed_year_still_fills_the_requested_interval(self):
+        """Previously bailed out entirely when fewer than two years were seen."""
+        filled = zero_fill_years(self.result([2022]), start=2020, end=2024)
+        assert self.keys(filled) == ["2020", "2021", "2022", "2023", "2024"]
+
+    def test_without_bounds_the_observed_range_is_used(self):
+        filled = zero_fill_years(self.result([2020, 2023]))
+        assert self.keys(filled) == ["2020", "2021", "2022", "2023"]
+
+    def test_a_single_observed_year_without_bounds_is_left_alone(self):
+        """Inventing an axis around one point would be inventing a bound."""
+        assert self.keys(zero_fill_years(self.result([2022]))) == ["2022"]
+
+    def test_internal_gaps_are_filled(self):
+        filled = zero_fill_years(self.result([2018, 2021]))
+        assert self.keys(filled) == ["2018", "2019", "2020", "2021"]
+
+    def test_one_bound_extends_only_that_end(self):
+        filled = zero_fill_years(self.result([2021, 2023]), start=2019)
+        assert self.keys(filled) == ["2019", "2020", "2021", "2022", "2023"]
+
+    def test_an_absurd_span_is_refused_rather_than_rendered(self):
+        filled = zero_fill_years(self.result([2021]), start=1000, end=2024)
+        assert self.keys(filled) == ["2021"]
+
+    def test_reversed_bounds_are_refused(self):
+        filled = zero_fill_years(self.result([2021]), start=2024, end=2020)
+        assert self.keys(filled) == ["2021"]
+
+    def test_no_data_stays_empty(self):
+        """Fabricating a row of zeros would claim an answer; this case is
+        reported as NO_CHARTABLE_DATA instead."""
+        assert zero_fill_years(self.result([]), start=2020, end=2024).data == []
+
+    def test_filled_years_carry_no_citations(self):
+        filled = zero_fill_years(self.result([2021]), start=2020, end=2022)
+        for datum in filled.data:
+            if datum.value == 0:
+                assert datum.nct_ids == []

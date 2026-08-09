@@ -391,7 +391,14 @@ async def analyze(
         include_unknown=not is_time_series,
     )
     if is_time_series:
-        result = zero_fill_years(result)
+        # The requested bounds, so "2020 through 2024" shows explicit zeros at
+        # both ends rather than cropping the axis to whatever data exists.
+        years = plan.entities.year_range
+        result = zero_fill_years(
+            result,
+            start=years.start if years else None,
+            end=years.end if years else None,
+        )
     logger.info(
         "aggregation completed",
         extra={

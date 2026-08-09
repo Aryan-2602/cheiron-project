@@ -135,23 +135,45 @@ def aggregate(
     )
 
 
-def zero_fill_years(result: AggregationResult) -> AggregationResult:
+#: A guard against an absurd axis if a bound is ever wrong; the fetch cap means
+#: no realistic request spans anything like this many years.
+MAX_FILLED_YEARS = 120
+
+
+def zero_fill_years(
+    result: AggregationResult,
+    *,
+    start: int | None = None,
+    end: int | None = None,
+) -> AggregationResult:
     """Insert empty year buckets so a time series has no phantom gaps.
 
     A year with no trials is real information: leaving it out would make a
     line chart interpolate straight through it and imply activity that did not
     happen. Filled years carry ``value=0`` and no citations, which is honest --
     there are no records to cite for a year with no trials.
+
+    ``start``/``end`` are the bounds the *question* asked for. When both are
+    known the axis spans exactly that interval, so "2020 through 2024" with
+    data only in 2021-2023 shows the empty years at both ends rather than
+    quietly cropping to the data. Without them the observed range is used, as
+    before -- inferring a bound the question never gave would be inventing one.
     """
     years = [d.key for d in result.data if d.key.isdigit()]
-    if len(years) < 2:
+    explicit = start is not None and end is not None
+    if not years or (len(years) < 2 and not explicit):
+        return result
+
+    low = start if start is not None else int(min(years))
+    high = end if end is not None else int(max(years))
+    if high < low or high - low + 1 > MAX_FILLED_YEARS:
         return result
 
     series_labels = sorted({d.series for d in result.data})
     present = {(d.series, d.key) for d in result.data}
     filled = list(result.data)
     for series in series_labels:
-        for year in range(int(min(years)), int(max(years)) + 1):
+        for year in range(low, high + 1):
             if (series, str(year)) not in present:
                 filled.append(
                     AggregatedDatum(key=str(year), series=series, value=0, nct_ids=[])

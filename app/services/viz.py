@@ -30,42 +30,85 @@ from app.services.store import StudyStore
 VALUE_FIELD = "trial_count"
 
 
-def _entity_phrase(plan: QueryPlan) -> str:
-    """What was searched for, as a noun phrase: 'Pembrolizumab trials in melanoma'.
+#: Beyond this, a title stops being readable; the count carries the rest.
+_MAX_TITLE_VALUES = 3
 
-    Built from the plan's own entities rather than asked of the LLM, so a
-    chart's caption can never describe something other than what was queried.
+
+def _join(values: list[str]) -> str:
+    """Render a set of searched values the way the query treats them: a union.
+
+    Naming only the first was a correct chart with a misleading caption --
+    "Pembrolizumab trials" over a chart of pembrolizumab *or* nivolumab trials.
+    """
+    if not values:
+        return ""
+    if len(values) == 1:
+        return values[0]
+    if len(values) <= _MAX_TITLE_VALUES:
+        return f"{', '.join(values[:-1])} or {values[-1]}"
+    shown = ", ".join(values[:_MAX_TITLE_VALUES])
+    return f"{shown} or {len(values) - _MAX_TITLE_VALUES} more"
+
+
+def applied_scope(plan: QueryPlan) -> str:
+    """The population actually being measured, as a noun phrase.
+
+    One canonical description derived from the plan itself -- never asked of
+    the LLM, and never rebuilt per call site -- so a caption cannot describe
+    something other than what was queried. Every applied value appears: naming
+    only the first drug captioned a pembrolizumab-*or*-nivolumab chart as
+    "Pembrolizumab trials", and country and year filters were invisible.
+
+    'Pembrolizumab or Nivolumab trials in melanoma (phase 3, 2018-2024)'
     """
     entities = plan.entities
     if plan.compare_entities:
         head = " vs ".join(plan.compare_entities)
     elif entities.drugs:
-        head = entities.drugs[0]
+        head = _join(entities.drugs)
     elif entities.conditions:
-        head = entities.conditions[0]
+        head = _join(entities.conditions)
     else:
         head = ""
 
     qualifiers: list[str] = []
-    if entities.conditions and head != entities.conditions[0]:
-        qualifiers.append(f"in {entities.conditions[0]}")
+    if entities.conditions and head != _join(entities.conditions):
+        qualifiers.append(f"in {_join(entities.conditions)}")
     if entities.sponsors:
-        qualifiers.append(f"sponsored by {entities.sponsors[0]}")
+        qualifiers.append(f"sponsored by {_join(entities.sponsors)}")
+    if entities.countries:
+        qualifiers.append(f"in {_join(entities.countries)}")
     # Statuses are held as API enum values (RECRUITING, ACTIVE_NOT_RECRUITING)
     # so they can be matched against records; a title is for a reader.
     status_bits = [s.replace("_", " ").lower() for s in sorted(entities.statuses)]
+    status_bits += [
+        f"not {s.replace('_', ' ').lower()}" for s in sorted(plan.excluded_statuses)
+    ]
     phase_bits = [str(p) for p in sorted(entities.phases)]
     detail = status_bits + ([f"phase {', '.join(phase_bits)}"] if phase_bits else [])
+    years = entities.year_range
+    if years and (years.start is not None or years.end is not None):
+        if years.start is not None and years.end is not None:
+            detail.append(f"{years.start}–{years.end}")
+        elif years.start is not None:
+            detail.append(f"from {years.start}")
+        else:
+            detail.append(f"to {years.end}")
     if detail:
         qualifiers.append(f"({', '.join(detail)})")
 
-    phrase = " ".join(part for part in [head, *qualifiers] if part).strip()
-    return phrase[:1].upper() + phrase[1:] if phrase else ""
+    # "trials" sits right after the head, so qualifiers read as qualifiers:
+    # "Pembrolizumab trials in the United States", not "Pembrolizumab in the
+    # United States trials".
+    phrase = " ".join(part for part in [f"{head} trials" if head else "", *qualifiers] if part)
+    phrase = phrase.strip()
+    if not phrase:
+        return "Clinical trials"
+    return phrase[:1].upper() + phrase[1:]
 
 
 def build_title(plan: QueryPlan, dimension: Dimension) -> str:
-    subject = _entity_phrase(plan)
-    subject = f"{subject} trials" if subject else "Clinical trials"
+    subject = applied_scope(plan)
     if plan.viz_type == "time_series":
         return f"{subject} by start year"
     return f"{subject} by {dimension.axis_label.lower()}"
@@ -180,11 +223,12 @@ def build_network_spec(
             }
         )
 
-    subject = _entity_phrase(plan)
-    if result.kind == "drug_drug":
-        title = f"Drug co-occurrence network{f' for {subject} trials' if subject else ''}"
-    else:
-        title = f"Sponsor-drug network{f' for {subject} trials' if subject else ''}"
+    subject = applied_scope(plan)
+    kind_label = (
+        "Drug co-occurrence network" if result.kind == "drug_drug"
+        else "Sponsor-drug network"
+    )
+    title = f"{kind_label} for {subject[:1].lower() + subject[1:]}"
 
     return VisualizationSpec(
         type="network_graph",
