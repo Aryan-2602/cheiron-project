@@ -54,6 +54,20 @@ STOPWORD_DRUGS = {
     "no intervention",
 }
 
+#: Tokens that make an intervention a control rather than a studied agent,
+#: wherever they appear in the name. Exact-match alone left "Placebo for
+#: lenvatinib" and "Saline solution" as graph nodes -- and, once citations were
+#: aligned with this extractor, in the evidence for real drugs too.
+STOPWORD_DRUG_TOKENS = {"placebo", "saline", "vehicle"}
+
+
+def is_stopword_drug(key: str) -> bool:
+    """Whether a normalized intervention name is a control arm, not an agent."""
+    if key in STOPWORD_DRUGS:
+        return True
+    return bool(STOPWORD_DRUG_TOKENS & set(key.split()))
+
+
 _PARENTHETICAL = re.compile(r"\([^)]*\)")
 _DOSAGE = re.compile(
     r"\b\d+(\.\d+)?\s*(mg|mcg|g|ml|mg/kg|mg/m2|iu|units?|%)\b", re.IGNORECASE
@@ -123,7 +137,7 @@ def extract_drugs(
         if not isinstance(name, str) or not name.strip():
             continue
         key = normalize_intervention(name)
-        if not key or key in STOPWORD_DRUGS:
+        if not key or is_stopword_drug(key):
             continue
         display = name.strip()
         if resolutions:

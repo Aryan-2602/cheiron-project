@@ -420,10 +420,11 @@ class TestMultipleExtractedValues:
 
 
 class TestStatusAggFilter:
-    """The upstream status:rec optimisation is only safe when RECRUITING is the
-    sole request. Applying it whenever *any* requested status was recruiting
-    turned a union into an intersection: the fetch returned recruiting trials
-    only, and the client-side pass then kept just the other status."""
+    """Verified statuses are unioned in one aggFilters clause. An earlier
+    version applied status:rec whenever *any* requested status was recruiting
+    and then filtered client-side for the other, turning a union into an
+    intersection: the fetch returned recruiting trials only, and the local pass
+    kept just the other status."""
 
     plan = TestBuildSearches.plan
 

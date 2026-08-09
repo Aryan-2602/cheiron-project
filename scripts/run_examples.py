@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 load_dotenv()
 
+from app.api.routes import _empty_response
 from app.models.schemas import QueryRequest
 from app.pipeline import EmptyResultError, run_pipeline
 from app.services.ctgov import CTGovClient
@@ -104,8 +105,12 @@ async def main() -> int:
                     f"{response.meta.total_studies_processed} trials processed"
                 )
             except EmptyResultError as exc:
-                body = {"request": payload, "empty": True, "meta": exc.meta.model_dump()}
-                print("  -> no results")
+                # The route turns this into a normal 200 QueryResponse, so the
+                # example has to record that -- an ad-hoc {"empty": true} shape
+                # is one the API never returns and no client would handle.
+                empty = _empty_response(exc)
+                body = {"request": payload, "response": empty.model_dump()}
+                print(f"  -> no results ({empty.meta.empty_reason})")
             except Exception as exc:  # noqa: BLE001 - report and continue
                 failures += 1
                 print(f"  !! FAILED: {type(exc).__name__}: {exc}")

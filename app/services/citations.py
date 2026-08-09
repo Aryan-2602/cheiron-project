@@ -27,7 +27,7 @@ from app.services.dimensions import (
     extract_sponsor_class,
     extract_status,
 )
-from app.services.network import DRUG_TYPES
+from app.services.network import extract_drugs
 from app.services.store import StudyStore
 
 #: How many characters of a brief title to quote before eliding.
@@ -86,17 +86,15 @@ EVIDENCE: dict[str, tuple[str, Callable[[dict[str, Any]], Any]]] = {
         "designModule.enrollmentInfo.count",
         lambda r: _raw_value(r, "designModule.enrollmentInfo.count"),
     ),
-    # Same type filter the graph builder uses, so a drug node's evidence quotes
-    # the interventions that could have produced it. Listing every intervention
-    # buried the drug among placebo and procedure entries the node was never
-    # built from.
+    # The graph builder's own extractor, so a drug node's evidence quotes
+    # exactly the interventions that could have produced it. Filtering by type
+    # alone was not enough: "Placebo for lenvatinib" is typed DRUG, so it
+    # passed the type check and buried the real agent among entries the node
+    # was never built from. extract_drugs also applies the stopword and
+    # normalization rules, which is what makes the two agree.
     "drug": (
         "armsInterventionsModule.interventions[].name",
-        lambda r: [
-            i.get("name")
-            for i in (_raw_value(r, "armsInterventionsModule.interventions") or [])
-            if isinstance(i, dict) and i.get("name") and i.get("type") in DRUG_TYPES
-        ],
+        lambda r: [label for _key, label in extract_drugs(r)],
     ),
 }
 

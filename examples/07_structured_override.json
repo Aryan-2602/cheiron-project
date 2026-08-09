@@ -335,7 +335,7 @@
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by lead sponsor, rendered as a bar chart.",
       "assumptions": [
-        "The drug name was not provided in the question, so no specific drug entity was extracted."
+        "'this drug' refers to the drug being discussed in the surrounding context."
       ],
       "warnings": [
         "Showing the top 15 of 75 lead sponsor values by trial count; 60 lower-frequency values are omitted."

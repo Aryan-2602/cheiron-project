@@ -110,7 +110,10 @@
           </label>
           <label>start_year <input name="start_year" type="number" autocomplete="off"></label>
           <label>end_year <input name="end_year" type="number" autocomplete="off"></label>
-          <label>max_studies <input name="max_studies" type="number" value="600"></label>
+          <label>max_studies <input name="max_studies" type="number" value="3000"></label>
+          <label>max_citations_per_datum
+            <input name="max_citations_per_datum" type="number" min="0" max="20" value="3">
+          </label>
         </div>
       </details>
     </form>
@@ -153,9 +156,14 @@ const $ = (id) => document.getElementById(id);
 let chart = null;      // Chart.js instance
 let network = null;    // vis-network instance
 
+// One per example on disk, so every documented output is reachable without
+// typing.
 const EXAMPLES = [
   ["Phase distribution", "How are lung cancer trials distributed across phases?"],
   ["Trials per year", "How has the number of trials for Pembrolizumab changed per year since 2015?"],
+  ["Comparison", "Compare trial phases for Pembrolizumab vs Nivolumab."],
+  ["Geographic", "Which countries have the most recruiting melanoma trials?"],
+  ["Enrollment histogram", "Show the enrollment-size distribution for melanoma trials."],
   ["Drug ↔ drug network", "Which drugs frequently co-occur in combination studies with pembrolizumab?"],
   ["Sponsor ↔ drug network", "Show a network of sponsors and drugs for melanoma trials."],
 ];
@@ -541,9 +549,14 @@ const overrideInputs = () => $("overrides").querySelectorAll("input, select");
  * explain why the answer changed -- the badge makes that state impossible to
  * miss.
  */
+// Tuning knobs, not entity overrides: they never silently change *which*
+// trials a later query is about, so they do not belong in the badge or get
+// cleared with the rest.
+const TUNING_KNOBS = new Set(["max_studies", "max_citations_per_datum"]);
+
 function refreshOverrideBadge() {
   const active = [...overrideInputs()].filter(
-    (i) => i.value.trim() && i.name !== "max_studies"
+    (i) => i.value.trim() && !TUNING_KNOBS.has(i.name)
   );
   $("override-badge").textContent = active.length
     ? `${active.length} active: ${active.map((i) => `${i.name}=${i.value}`).join(", ")}`
@@ -552,7 +565,7 @@ function refreshOverrideBadge() {
 
 function clearOverrides() {
   for (const input of overrideInputs()) {
-    if (input.name !== "max_studies") input.value = "";
+    if (!TUNING_KNOBS.has(input.name)) input.value = "";
   }
   refreshOverrideBadge();
 }

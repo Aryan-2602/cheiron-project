@@ -61,7 +61,7 @@ curl -s -X POST http://127.0.0.1:8000/api/v1/query \
 Run the tests, or regenerate every example output against the live API:
 
 ```bash
-pytest -q                              # 603 tests, no network or API key needed
+pytest -q                              # 795 tests, no network or API key needed
 python scripts/run_examples.py         # writes examples/*.json from live data
 ```
 
@@ -77,7 +77,7 @@ cd frontend && python -m http.server 5500  # terminal 2
 open http://localhost:5500
 ```
 
-Four buttons run the documented example queries, so a walkthrough needs no typing. An "Advanced options" panel exposes the structured overrides; whenever any are set, a badge shows which ones, because a stale override silently filtering later queries is otherwise invisible.
+Seven buttons run the documented example queries -- one per file in `examples/` -- so a walkthrough needs no typing. An "Advanced options" panel exposes the structured overrides; whenever any are set, a badge shows which ones, because a stale override silently filtering later queries is otherwise invisible.
 
 **What it demonstrates.** The renderer contains no domain knowledge — it never names `phase`, `trial_count`, `country`, or any other field. One `buildChartConfig()` reads `encoding.x`, `encoding.y`, and `encoding.color` to place the axes and split series, and serves `bar_chart`, `grouped_bar_chart`, `geo_bar_chart`, `histogram`, and `time_series` with a single `type === "time_series" ? "line" : "bar"` branch. Network graphs go through `buildNetworkData()`, which maps nodes and edges through the `encoding.nodes` / `encoding.edges` key maps. Renaming a field in the backend would require no frontend change; a renderer with per-chart-type branches would have proved the opposite.
 
@@ -223,7 +223,8 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
       "228 of 1,000 trials had no value for this axis and are shown as a separate bucket."
     ],
     "sorting": "phase order (Early Phase 1 -> Phase 4)",
-    "time_granularity": null
+    "time_granularity": null,
+    "empty_reason": null
   }
 }
 ```
@@ -306,7 +307,7 @@ Every example below is a real run; outputs are in [`examples/`](examples/), rege
 | 1 | "How are lung cancer trials distributed across phases?" | distribution | `bar_chart`, 7 buckets |
 | 2 | "How has the number of trials for Pembrolizumab changed per year since 2015?" | time trend | `time_series`, 12 years |
 | 3 | "Compare phases for trials involving Pembrolizumab vs Nivolumab." | comparison | `grouped_bar_chart`, 2 series |
-| 4 | "Which drugs frequently co-occur in combination studies with pembrolizumab?" | relationship | `network_graph`, 30 nodes / 120 edges |
+| 4 | "Which drugs frequently co-occur in combination studies with pembrolizumab?" | relationship | `network_graph`, 30 nodes / 119 edges |
 | 5 | "Show a network of sponsors and drugs for melanoma trials." | relationship | `network_graph`, 40 nodes / 66 edges |
 | 6 | "Which countries have the most recruiting trials for melanoma?" | geographic | `geo_bar_chart`, 20 countries |
 | 7 | `{"query": "...distributed across sponsors?", "drug_name": "Nivolumab", "phase": 3}` | structured override | `bar_chart`, 15 sponsors |
@@ -558,7 +559,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 **`OR` is a real set union inside `query.*`; a comma is an intersection.** Both are silent, so the only way to distinguish them is to count. Pembrolizumab returns 2,922 trials and Nivolumab 2,016; `Pembrolizumab OR Nivolumab` returns 4,648 and `Pembrolizumab, Nivolumab` returns 290 — and `2922 + 2016 − 290 = 4648` closes exactly. This is why every extracted value reaches the query instead of only the first: asking about "pembrolizumab and nivolumab" searches for both, and the union reading is stated in `meta.assumptions` rather than applied silently. The comma form is never emitted — it reads as a list and behaves as an `AND`. Comparison queries are unaffected: each compared entity keeps its own search, which is what makes per-series membership exact. The join is capped at five values, and truncating past that is disclosed as a warning.
 
-**Request field names do not map mechanically to response paths.** `Phase` → `designModule.phases`, `StartDate` → `statusModule.startDateStruct.date`. Every mapping used here was confirmed against a live response and is pinned by `tests/test_dimensions.py`, which runs every extractor against a captured API page and fails if any stops finding values.
+**Request field names do not map mechanically to response paths.** `Phase` → `designModule.phases`, `StartDate` → `statusModule.startDateStruct.date`. Every mapping used here was confirmed against a live response and is pinned by `tests/test_dimensions.py`, which runs every extractor against a captured live-API response and fails if any stops finding values.
 
 **Other verified behaviour:** `pageSize` defaults to 10 if omitted (max 1000) so it is always set explicitly; pagination is `pageToken` only, with no offset; `phases` is always an array; date granularity varies (`2024-08-22`, `2024-08`, `2024` all appear); `GET /stats/field/values` returns 500.
 
@@ -582,7 +583,15 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 **Phase and status filtering happen upstream; year ranges and status exclusions do not.** Values inside one `aggFilters` key are space-separated and union — verified live: `status:rec` 64,847 + `status:com` 326,301 = `status:rec com` **391,148** exactly, and `phase:2` 89,652 + `phase:3` 49,614 = `phase:2 3` **131,704**, fewer than the sum because a combined Phase 2/3 trial is counted once. Nine status codes are verified this way, so a multi-phase or multi-status request is expressed in one clause instead of being fetched broad and narrowed afterwards, which used to spend the fetch budget on trials that were about to be discarded. Two codes are *not* verified — `status:avail` and `status:no_lon` return HTTP 200 with zero results, the same silent trap as `phase:PHASE3` — so AVAILABLE and NO_LONGER_AVAILABLE are matched client-side, as are year ranges (no verified date parameter) and status exclusions (no such parameter exists). A partial upstream filter is never emitted: if any requested status lacks a verified code, the whole set falls back to the local union. Everything filtered locally is disclosed in `meta.warnings`.
 
-**Several requested statuses are a union, and the upstream shortcut applies only when one status is requested.** `status:rec` is emitted **only** when `RECRUITING` is the sole request. Applying it whenever *any* requested status was recruiting composed two filters into an intersection — the fetch returned recruiting trials, then the client-side pass kept only the other status, so "recruiting or completed melanoma trials" charted a confident zero. Multiple statuses now skip the upstream filter entirely and are OR-ed client-side, exactly as multiple phases already were. Live: sole `recruiting` gives 478 melanoma trials via `status:rec`; `recruiting or completed` gives 1,774 via the union.
+**Several requested statuses are a union, expressed in one upstream clause.** `status:rec com` is a single verified filter, so "recruiting or completed melanoma trials" narrows upstream rather than being fetched broad and cut down afterwards. An earlier version applied `status:rec` whenever *any* requested status was recruiting and then filtered client-side for the other, composing two filters into an intersection and charting a confident zero.
+
+**A comparison only ships when grounding supports it.** A compared name reaches `query.intr` / `query.cond` / `query.spons` only if *every* compared value was grounded into that same list. "Compare Pembrolizumab vs melanoma" is therefore not a drug comparison with melanoma searched as a drug — it demotes to a single distribution, keeps both entities in their own fields, and says so in `meta.assumptions`. A grouped bar chart is a claim that the data has series, so it is never emitted without at least two labelled searches behind it.
+
+**"Stopped recruiting" is an exclusion, not a status.** Completed, terminated and active-not-recruiting trials have all stopped recruiting, so every stop- or pause-verb form (`stopped`/`paused`/`suspended`/`withdrawn`/`halted` + "recruiting") excludes `RECRUITING` rather than requesting a status. The same verbs alone still name their own status — `halted trials` is `TERMINATED`, `paused trials` is `SUSPENDED`.
+
+**Year cues distinguish inclusive from exclusive.** `after 2015` starts in 2016 and `before 2020` ends in 2019; `since`/`from`/`through`/`until`/`up to` include the year they name, as do the structured `start_year`/`end_year`. A contradictory pair such as "after 2020 and before 2015" is left as written and disclosed rather than reordered — swapping it would answer a different, answerable question. A bare span (`2020-2015`) still normalises, because it states no direction.
+
+**Network node size describes the drawn graph.** After pruning, a node's trials are exactly those on its surviving edges, so a hub cannot show a size the visible structure fails to explain, and clicking it cannot cite a trial whose only connection was pruned away. The validator enforces the equality.
 
 **Status words are matched on whole-word boundaries.** A raw substring search read `"unavailable"` as `AVAILABLE` and `"incomplete"` as `COMPLETED`, inventing filters the question never asked for. The same class covered `uncompleted`, `preterminated`, and `reenrolling`. Both the query builder and the client-side filter now normalise statuses through one shared function, so a padded or oddly-cased value cannot pass the first check and fail the second — which previously meant no status filter applied anywhere, silently.
 
@@ -618,12 +627,12 @@ That both catches a silent-filter regression and gives the user a useful answer 
 ## Testing
 
 ```bash
-pytest -q      # 603 tests, ~9s, no network access or API key required
+pytest -q      # 795 tests, ~10s, no network access or API key required
 ```
 
 | File | Covers |
 |---|---|
-| `test_dimensions.py` | Every extractor, including against an unmodified live API page — this is the guard against upstream field changes. |
+| `test_dimensions.py` | Every extractor, including against an unmodified *captured* live-API response — the guard against upstream field changes. No test touches the network. |
 | `test_aggregate.py` | The core invariant (`value == len(set(nct_ids))`) across every dimension, multi-phase double counting, unknown buckets, zero-fill, series splitting, top-N, determinism. |
 | `test_ctgov.py` | Parameter construction, `pageToken` pagination, fetch caps, 429/5xx retry, non-retry on 400, the empty-filtered-result probe, and the pure query builder. |
 | `test_citations.py` | Excerpt construction, truncation reporting, and that citations track the aggregation exactly. |

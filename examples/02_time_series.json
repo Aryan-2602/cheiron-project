@@ -301,11 +301,13 @@
       ],
       "query_interpretation": "Interpreted as a time trend question, grouped by start year, rendered as a time series.",
       "assumptions": [
-        "I interpreted \"per year since 2015\" as a year-by-year trend starting in 2015."
+        "Interpreted 'per year since 2015' as a time trend grouped by trial start year.",
+        "Treated Pembrolizumab as the trial entity to track across years."
       ],
       "warnings": [
         "Fetched 1,000 of 2,922 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",
-        "Restricted to trials starting from 2015 client-side (975 of 1,000 fetched trials, 1 excluded for having no start date); ClinicalTrials.gov has no live-verified date-range parameter."
+        "Restricted to trials starting from 2015 client-side (975 of 1,000 fetched trials, 1 excluded for having no start date); ClinicalTrials.gov has no live-verified date-range parameter.",
+        "Filters that ClinicalTrials.gov cannot apply upstream were applied to the 975 fetched trials, not to every matching trial, because the fetch hit its cap first. Raise max_studies for a count over the full population."
       ],
       "sorting": "year ascending",
       "time_granularity": "year",
