@@ -510,3 +510,66 @@ class TestNetworkKinds:
         assert all(n.id.startswith("sponsor:") for n in result.nodes)
         assert all(n.kind == "sponsor" for n in result.nodes)
         assert all(e.source.startswith("sponsor:") for e in result.edges)
+
+
+class TestPostPruneNodeMembership:
+    """A node in a relationship graph answers "how much of the drawn structure
+    rests on this node". Global membership answered a different question: a hub
+    showed 40 while its drawn edges accounted for 8, and clicking cited trials
+    whose only connection had been pruned away."""
+
+    def hub_graph(self, partners=40, max_nodes=5):
+        records = {}
+        for i in range(partners):
+            for rep in (0, 1):  # twice, so each pair clears min_edge_weight
+                nct = f"NCT{i * 2 + rep:08d}"
+                records[nct] = trial(nct, ["HubDrug", f"Partner{i}"])
+        return build_cooccurrence_network(records, max_nodes=max_nodes)
+
+    def visible_trials(self, network, node_id):
+        seen = set()
+        for edge in network.edges:
+            if node_id in (edge.source, edge.target):
+                seen |= set(edge.nct_ids)
+        return seen
+
+    def test_node_size_matches_its_visible_edges(self):
+        network = self.hub_graph()
+        hub = next(n for n in network.nodes if n.label.lower() == "hubdrug")
+        assert hub.size == len(self.visible_trials(network, hub.id))
+
+    def test_every_cited_trial_is_on_a_visible_edge(self):
+        network = self.hub_graph()
+        hub = next(n for n in network.nodes if n.label.lower() == "hubdrug")
+        assert set(hub.nct_ids) <= self.visible_trials(network, hub.id)
+
+    def test_the_size_identity_still_holds(self):
+        network = self.hub_graph()
+        assert all(n.size == len(set(n.nct_ids)) for n in network.nodes)
+
+    def test_pruning_shrinks_the_hub_rather_than_leaving_it_global(self):
+        wide = self.hub_graph(partners=40, max_nodes=5)
+        whole = self.hub_graph(partners=40, max_nodes=100)
+        wide_hub = next(n for n in wide.nodes if n.label.lower() == "hubdrug")
+        whole_hub = next(n for n in whole.nodes if n.label.lower() == "hubdrug")
+        assert wide_hub.size < whole_hub.size
+
+    def test_an_isolated_node_is_dropped_rather_than_shown_at_zero(self):
+        """A point with no edge asserts a relationship that is not there."""
+        network = self.hub_graph()
+        assert all(
+            any(n.id in (e.source, e.target) for e in network.edges)
+            for n in network.nodes
+        )
+
+    def test_bipartite_nodes_follow_the_same_rule(self):
+        records = {
+            f"NCT{i:08d}": make_record(
+                f"NCT{i:08d}", sponsor="Merck", interventions=[("DRUG", "Pembrolizumab")]
+            )
+            for i in range(3)
+        }
+        network = build_bipartite_network(records)
+        assert all(n.size == len(set(n.nct_ids)) for n in network.nodes)
+        for node in network.nodes:
+            assert set(node.nct_ids) == self.visible_trials(network, node.id)

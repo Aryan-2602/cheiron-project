@@ -12,6 +12,7 @@ because a reader has no way to tell it is wrong.
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 
 from app.models.schemas import (
     AggregationResult,
@@ -115,12 +116,30 @@ def _check_counts(
                     f"edge {edge.source}->{edge.target} claims weight {edge.weight} "
                     f"but carries {len(set(edge.nct_ids))} distinct NCT ids"
                 )
+        # Structural first: a dangling edge is a clearer diagnosis than the
+        # membership mismatch it would also cause.
         node_ids = {n.id for n in network.nodes}
         for edge in network.edges:
             if edge.source not in node_ids or edge.target not in node_ids:
                 raise ValidationFailure(
                     f"edge {edge.source}->{edge.target} references a node that is "
                     f"not in the graph"
+                )
+
+        # A node's trials must be exactly those on its surviving edges. Global
+        # membership would let a node claim trials whose only connection was
+        # pruned away -- a size and a citation list the drawn graph cannot
+        # account for.
+        incident: dict[str, set[str]] = defaultdict(set)
+        for edge in network.edges:
+            incident[edge.source] |= set(edge.nct_ids)
+            incident[edge.target] |= set(edge.nct_ids)
+        for node in network.nodes:
+            expected = incident.get(node.id, set())
+            if set(node.nct_ids) != expected:
+                raise ValidationFailure(
+                    f"node {node.id!r} carries {len(set(node.nct_ids))} trials but "
+                    f"its surviving edges account for {len(expected)}"
                 )
         # Re-derive the *published* graph from the one that was computed. The
         # checks above prove the NetworkResult is internally consistent; this

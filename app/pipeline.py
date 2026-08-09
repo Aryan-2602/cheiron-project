@@ -263,6 +263,20 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
     return warnings
 
 
+def _has_client_side_filter(plan: QueryPlan) -> bool:
+    """Whether any filter runs after fetching rather than upstream.
+
+    Derived from the plan rather than from warning text, so the disclosure
+    cannot drift from what actually ran.
+    """
+    years = plan.entities.year_range
+    return bool(
+        plan.excluded_statuses
+        or (normalize_statuses(plan.entities.statuses) - set(STATUS_FILTER_CODES))
+        or (years and (years.start is not None or years.end is not None))
+    )
+
+
 def build_meta(
     plan: QueryPlan,
     fetched: FetchResult,
@@ -292,6 +306,17 @@ def build_meta(
             "order rather than a random sample. Differences between the bars or "
             "years reflect that ordering as much as real activity -- add a "
             "condition or drug for a figure that can be relied on."
+        )
+    elif fetched.store.truncated and _has_client_side_filter(plan):
+        # Scoped, so the sample is of the right population -- but a filter the
+        # API cannot express ran *after* the cap, so the counts are "among the
+        # first N fetched", not "among all matching trials". Only the cap was
+        # disclosed; that the filter saw a capped sample was not.
+        warnings.append(
+            f"Filters that ClinicalTrials.gov cannot apply upstream were applied "
+            f"to the {len(fetched.store):,} fetched trials, not to every matching "
+            f"trial, because the fetch hit its cap first. Raise max_studies for a "
+            f"count over the full population."
         )
 
     if aggregation is not None:

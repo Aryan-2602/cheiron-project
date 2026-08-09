@@ -267,6 +267,35 @@ def _build_nodes(
     return nodes
 
 
+def _membership_from_edges(
+    nodes: Iterable[NetworkNode], edges: Iterable[NetworkEdge]
+) -> list[NetworkNode]:
+    """Re-derive each node's trials from the edges that survived pruning.
+
+    A node in a relationship graph answers "how much of the drawn structure
+    rests on this node". Global membership answered a different question: a
+    drug studied on its own contributes to size but to no edge, so even before
+    pruning a hub could show 40 while its drawn edges accounted for 9 -- and a
+    click cited trials whose only connection had been pruned away.
+
+    Nodes left with no surviving edge are dropped: an isolated point in a
+    co-occurrence or bipartite graph asserts a relationship that is not there.
+    """
+    incident: dict[str, set[str]] = defaultdict(set)
+    for edge in edges:
+        incident[edge.source] |= set(edge.nct_ids)
+        incident[edge.target] |= set(edge.nct_ids)
+    rebuilt = []
+    for node in nodes:
+        ids = incident.get(node.id)
+        if not ids:
+            continue
+        rebuilt.append(
+            node.model_copy(update={"nct_ids": sorted(ids), "size": len(ids)})
+        )
+    return rebuilt
+
+
 def _prune(
     nodes: dict[str, NetworkNode],
     edges: list[NetworkEdge],
@@ -292,6 +321,12 @@ def _prune(
     kept_edges = sorted(
         (e for e in edges if e.source in kept_ids and e.target in kept_ids),
         key=lambda e: (-e.weight, e.source, e.target),
+    )
+    # Ranking used the global size on purpose -- the busiest nodes are the ones
+    # worth drawing -- but what ships describes the drawn graph.
+    kept_nodes = sorted(
+        _membership_from_edges(kept_nodes, kept_edges),
+        key=lambda n: (-n.size, n.id),
     )
     return kept_nodes, kept_edges, truncated
 
@@ -461,9 +496,8 @@ def build_bipartite_network(
         key=lambda e: (-e.weight, e.source, e.target),
     )
 
-    connected = {e.source for e in edges} | {e.target for e in edges}
     kept_nodes = sorted(
-        (n for n in nodes.values() if n.id in connected),
+        _membership_from_edges(nodes.values(), edges),
         key=lambda n: (n.kind, -n.size, n.id),
     )
     truncated = (

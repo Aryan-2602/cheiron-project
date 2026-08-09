@@ -570,3 +570,48 @@ class TestSupportingTotalIsExact:
             validate_response(
                 response, store, aggregation=aggregation, max_citations_per_datum=0
             )
+
+
+class TestNodeMembershipIsEnforced:
+    """The validator must reject a node claiming trials the drawn edges cannot
+    account for -- the corruption that global post-prune membership was."""
+
+    def graph(self):
+        records = {
+            f"NCT{i:08d}": make_record(
+                f"NCT{i:08d}", interventions=[("DRUG", "A"), ("DRUG", "B")]
+            )
+            for i in range(3)
+        }
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        network = build_cooccurrence_network(store.records, min_edge_weight=1)
+        spec = build_network_spec(network, plan(query_type="relationship"), store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        return response, store, network
+
+    def test_a_consistent_graph_passes(self):
+        response, store, network = self.graph()
+        validate_response(response, store, network=network)
+
+    def test_rejects_a_node_claiming_a_trial_not_on_any_edge(self):
+        response, store, network = self.graph()
+        tampered = network.model_copy(deep=True)
+        node = tampered.nodes[0]
+        node.nct_ids = [*node.nct_ids, "NCT09999999"]
+        node.size = len(node.nct_ids)
+        with pytest.raises(ValidationFailure, match="surviving edges account for"):
+            validate_response(response, store, network=tampered)
+
+    def test_rejects_a_node_missing_a_trial_its_edges_carry(self):
+        response, store, network = self.graph()
+        tampered = network.model_copy(deep=True)
+        node = tampered.nodes[0]
+        node.nct_ids = node.nct_ids[:-1]
+        node.size = len(node.nct_ids)
+        with pytest.raises(ValidationFailure, match="surviving edges account for"):
+            validate_response(response, store, network=tampered)
