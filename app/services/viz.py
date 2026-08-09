@@ -51,10 +51,13 @@ def _entity_phrase(plan: QueryPlan) -> str:
         qualifiers.append(f"in {entities.conditions[0]}")
     if entities.sponsors:
         qualifiers.append(f"sponsored by {entities.sponsors[0]}")
-    if entities.statuses:
-        qualifiers.append(f"({', '.join(sorted(entities.statuses))})")
-    if entities.phases:
-        qualifiers.append(f"(phase {', '.join(str(p) for p in sorted(entities.phases))})")
+    # Statuses are held as API enum values (RECRUITING, ACTIVE_NOT_RECRUITING)
+    # so they can be matched against records; a title is for a reader.
+    status_bits = [s.replace("_", " ").lower() for s in sorted(entities.statuses)]
+    phase_bits = [str(p) for p in sorted(entities.phases)]
+    detail = status_bits + ([f"phase {', '.join(phase_bits)}"] if phase_bits else [])
+    if detail:
+        qualifiers.append(f"({', '.join(detail)})")
 
     phrase = " ".join(part for part in [head, *qualifiers] if part).strip()
     return phrase[:1].upper() + phrase[1:] if phrase else ""

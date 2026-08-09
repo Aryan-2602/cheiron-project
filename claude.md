@@ -20,4 +20,6 @@ No langchain/langgraph — one LLM call with a fixed schema needs no framework.
   in route handlers or the pipeline
 
 ## Current focus
-Complete. All 6 pipeline stages implemented, 166 tests passing, 7 live examples in examples/.
+Complete. All 6 pipeline stages implemented, plus RxNorm drug resolution, structured
+logging, and a demo frontend in frontend/. Run `pytest -q` for the current test count --
+do not hardcode it here, it only goes stale.
