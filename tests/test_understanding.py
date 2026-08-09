@@ -4,11 +4,16 @@ The LLM call itself is mocked; what is tested here is the deterministic layer
 around it -- the part that decides what the model is *allowed* to influence.
 """
 
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from app.agents.understanding import (
+    UnderstandingError,
     _appears_in,
     build_plan,
+    call_llm,
     extract_phases_from_query,
     extract_statuses_from_query,
     extract_years_from_query,
@@ -478,3 +483,34 @@ class TestEntityMatchingPrecision:
         )
         assert entities.conditions == []
         assert any("SCLC" in w for w in warnings)
+
+
+class TestMalformedCompletion:
+    """A completion with no usable choices must fail as a typed LLM error, not
+    as an IndexError that escapes to an unhandled 500."""
+
+    def stub(self, choices):
+        client = MagicMock()
+        client.chat.completions.parse.return_value = SimpleNamespace(choices=choices)
+        return client
+
+    @pytest.mark.parametrize("choices", [[], None])
+    def test_absent_choices_raise_understanding_error(self, choices):
+        with (
+            patch("app.agents.understanding._client", return_value=self.stub(choices)),
+            pytest.raises(UnderstandingError, match="no completion choices"),
+        ):
+            call_llm("how many trials by phase")
+
+    def test_route_returns_502_llm_error_not_500(self):
+        from fastapi.testclient import TestClient
+
+        from app.main import app
+
+        with (
+            patch("app.agents.understanding._client", return_value=self.stub([])),
+            TestClient(app, raise_server_exceptions=False) as client,
+        ):
+            response = client.post("/api/v1/query", json={"query": "trials by phase"})
+        assert response.status_code == 502
+        assert response.json()["detail"]["error"]["code"] == "LLM_ERROR"

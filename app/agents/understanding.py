@@ -138,6 +138,17 @@ def call_llm(query: str, *, model: str | None = None) -> QueryUnderstanding:
         )
         raise UnderstandingError(f"LLM request failed: {exc}") from exc
 
+    # An absent or empty `choices` is a documented possibility (content
+    # filtering, upstream anomaly). Indexing it blindly raised IndexError /
+    # TypeError, which OpenAIError above does not catch, so it escaped as an
+    # unhandled 500 instead of the 502 LLM_ERROR the contract promises.
+    if not completion.choices:
+        logger.warning(
+            "llm returned no choices",
+            extra={"model": model, "duration_ms": _elapsed_ms()},
+        )
+        raise UnderstandingError("Model returned no completion choices.")
+
     message = completion.choices[0].message
     if message.refusal:
         logger.warning(
