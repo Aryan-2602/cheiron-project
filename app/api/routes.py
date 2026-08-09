@@ -68,17 +68,24 @@ def _empty_response(error: EmptyResultError) -> QueryResponse:
     """An empty but fully-formed response, so a frontend renders 'no results'
     with the same code path it uses for data."""
     meta = error.meta
-    meta.warnings = [
-        *meta.warnings,
-        (
-            "No trials matched this query. Try broadening the condition, drug, "
-            "or phase filters."
-        ),
-    ]
+    if meta.empty_reason == "NO_CHARTABLE_DATA":
+        # Trials *were* found, so "try broadening the filters" would be wrong
+        # advice; the message from the pipeline names the actual cause.
+        meta.warnings = [*meta.warnings, str(error)]
+        title = "No chartable data"
+    else:
+        meta.warnings = [
+            *meta.warnings,
+            (
+                "No trials matched this query. Try broadening the condition, drug, "
+                "or phase filters."
+            ),
+        ]
+        title = "No matching trials"
     return QueryResponse(
         visualization=VisualizationSpec(
             type="bar_chart",
-            title="No matching trials",
+            title=title,
             encoding=Encoding(
                 x=FieldRef(field="key", label="Category", type="nominal"),
                 y=FieldRef(field="trial_count", label="Number of trials", type="quantitative"),

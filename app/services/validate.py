@@ -278,8 +278,16 @@ def _check_citations(
                 raise ValidationFailure(f"citation for {nct_id} has an empty excerpt")
 
 
-def _check_non_empty(spec: VisualizationSpec) -> None:
-    """A chart with no rows must never ship as if it were an answer."""
+def _check_non_empty(response: QueryResponse) -> None:
+    """A chart with no rows must never ship as if it were an answer.
+
+    Emptiness is legitimate only when the pipeline declared why -- the caller
+    then gets a 200 with ``meta.empty_reason`` set. An empty spec with no
+    declared reason is still a bug and still fails here.
+    """
+    spec = response.visualization
+    if response.meta.empty_reason is not None:
+        return
     if spec.type == "network_graph":
         if not spec.data or not spec.data[0].get("nodes"):
             raise ValidationFailure("network graph has no nodes")
@@ -308,7 +316,7 @@ def validate_response(
 ) -> QueryResponse:
     """Run every grounding check. Raises :class:`ValidationFailure` on any breach."""
     _check_schema(response)
-    _check_non_empty(response.visualization)
+    _check_non_empty(response)
     _check_encoding_matches_data(response.visualization)
     _check_counts(response.visualization, aggregation, network)
     _check_citations(

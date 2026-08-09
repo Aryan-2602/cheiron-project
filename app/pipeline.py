@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 from app.agents.understanding import UnderstandingError, understand
 from app.core.config import settings
@@ -55,11 +55,26 @@ TOP_N_DIMENSIONS = {"sponsor": 15, "country": 20, "intervention_type": 15}
 
 
 class EmptyResultError(RuntimeError):
-    """No trials matched. Carries the diagnostics needed to explain why."""
+    """There is nothing to chart. Carries the diagnostics explaining why.
 
-    def __init__(self, message: str, meta: Meta) -> None:
+    Two distinct outcomes, both correct answers rather than faults:
+    ``NO_MATCHING_TRIALS`` (the search found nothing) and
+    ``NO_CHARTABLE_DATA`` (trials matched, but the requested analysis produced
+    no renderable rows -- no usable start dates, no surviving network edges).
+    The second used to reach the validator, which rejected the empty spec and
+    turned a legitimate analytical answer into an HTTP 500.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        meta: Meta,
+        reason: Literal["NO_MATCHING_TRIALS", "NO_CHARTABLE_DATA"] = "NO_MATCHING_TRIALS",
+    ) -> None:
         super().__init__(message)
+        meta.empty_reason = reason
         self.meta = meta
+        self.reason = reason
 
 
 class UnsupportedQueryError(RuntimeError):
@@ -434,6 +449,14 @@ async def run_pipeline(
         network=network,
         extra_warnings=extra_warnings + analysis_warnings,
     )
+
+    # Trials matched, but the requested analysis produced nothing renderable.
+    # That is an answer, not a fault -- previously the empty spec reached the
+    # validator and surfaced as an HTTP 500.
+    unchartable = _describe_unchartable(spec, plan, fetched, aggregation, network)
+    if unchartable:
+        raise EmptyResultError(unchartable, meta, reason="NO_CHARTABLE_DATA")
+
     response = QueryResponse(visualization=spec, meta=meta)
     return validate_response(
         response,
@@ -441,6 +464,45 @@ async def run_pipeline(
         aggregation=aggregation,
         network=network,
         max_citations_per_datum=plan.max_citations_per_datum,
+    )
+
+
+def _describe_unchartable(
+    spec: VisualizationSpec,
+    plan: QueryPlan,
+    fetched: FetchResult,
+    aggregation: AggregationResult | None,
+    network: NetworkResult | None,
+) -> str | None:
+    """Explain an empty chart built from a non-empty result set, or None.
+
+    The count is stated because "no trials had a start date" and "no trials
+    matched" are different answers, and the reader cannot tell them apart from
+    an empty axis alone.
+    """
+    matched = len(fetched.store)
+    if network is not None:
+        if network.nodes and network.edges:
+            return None
+        # Isolated nodes are pruned, so nodes and edges empty together and the
+        # result cannot say whether the entities were missing or merely never
+        # paired. The wording is therefore true of both.
+        if network.kind == "sponsor_drug":
+            return (
+                f"{matched:,} trials matched the filters, but none of them linked "
+                f"a sponsor to a drug, so the graph has no edges to draw."
+            )
+        return (
+            f"{matched:,} trials matched the filters, but no two drugs appeared "
+            f"together in at least {network.min_edge_weight} of them, so the "
+            f"graph has no edges to draw."
+        )
+    if spec.data:
+        return None
+    axis = get_dimension(aggregation.dimension).axis_label.lower() if aggregation else "axis"
+    return (
+        f"{matched:,} trials matched the filters, but none reported a usable "
+        f"{axis} value, so there is nothing to chart."
     )
 
 

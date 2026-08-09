@@ -364,6 +364,12 @@ class Meta(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     sorting: str | None = None
     time_granularity: str | None = None
+    #: Why ``visualization.data`` is empty, when it legitimately is. Absent for
+    #: a populated chart. ``NO_MATCHING_TRIALS`` means the search itself found
+    #: nothing; ``NO_CHARTABLE_DATA`` means trials matched but the requested
+    #: analysis produced no renderable rows -- a different answer, and one the
+    #: caller may want to handle differently.
+    empty_reason: Literal["NO_MATCHING_TRIALS", "NO_CHARTABLE_DATA"] | None = None
 
 
 class QueryResponse(BaseModel):

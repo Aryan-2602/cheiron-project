@@ -916,3 +916,74 @@ class TestCategoryTruncationDisclosure:
         mock_studies(SAMPLE)
         response = await run()
         assert not any("omitted" in w for w in response.meta.warnings)
+
+
+class TestEmptyResultKinds:
+    """"No trials matched" and "trials matched but nothing is chartable" are
+    different answers, and neither is a server fault. The second used to reach
+    the validator and surface as an HTTP 500."""
+
+    @respx.mock
+    async def test_zero_matching_trials_reports_no_matching_trials(self):
+        mock_studies([])
+        with pytest.raises(EmptyResultError) as exc:
+            await run()
+        assert exc.value.reason == "NO_MATCHING_TRIALS"
+        assert exc.value.meta.empty_reason == "NO_MATCHING_TRIALS"
+
+    @respx.mock
+    async def test_matched_trials_with_no_usable_start_date(self):
+        """A time series over trials that all lack a start date."""
+        undated = [
+            make_record("NCT00000001", start_date=None, phases=["PHASE3"]),
+            make_record("NCT00000002", start_date=None, phases=["PHASE3"]),
+        ]
+        mock_studies(undated)
+        with pytest.raises(EmptyResultError) as exc:
+            await run(
+                query_type="time_trend", group_by="start_year", viz_type="time_series"
+            )
+        assert exc.value.reason == "NO_CHARTABLE_DATA"
+        # The count is stated, so the reader can tell this from "nothing matched".
+        assert "2 trials matched" in str(exc.value)
+
+    @respx.mock
+    async def test_matched_trials_with_no_surviving_network_edge(self):
+        """Single-drug trials: nodes exist, but no pair co-occurs."""
+        singles = [
+            make_record(f"NCT0000000{i}", interventions=[("DRUG", f"Drug{i}")])
+            for i in range(1, 4)
+        ]
+        mock_rxnorm_unmatched()
+        mock_studies(singles)
+        with pytest.raises(EmptyResultError) as exc:
+            await run(
+                query_type="relationship", viz_type="network_graph",
+                group_by=None, network_kind="drug_drug",
+            )
+        assert exc.value.reason == "NO_CHARTABLE_DATA"
+        assert "no two drugs appeared together" in str(exc.value)
+
+    @respx.mock
+    async def test_the_route_returns_200_with_the_reason(self):
+        """The whole point: a legitimate analytical emptiness is not a 500."""
+        undated = [make_record("NCT00000001", start_date=None, phases=["PHASE3"])]
+        mock_studies(undated)
+        with respx.mock:
+            mock_studies(undated)
+            body = None
+            try:
+                await run(
+                    query_type="time_trend", group_by="start_year",
+                    viz_type="time_series",
+                )
+            except EmptyResultError as exc:
+                from app.api.routes import _empty_response
+
+                body = _empty_response(exc)
+        assert body is not None
+        assert body.visualization.data == []
+        assert body.meta.empty_reason == "NO_CHARTABLE_DATA"
+        assert any("usable" in w for w in body.meta.warnings)
+        # And it must not offer the wrong advice: trials *were* found.
+        assert not any("No trials matched" in w for w in body.meta.warnings)
