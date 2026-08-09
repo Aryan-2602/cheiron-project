@@ -137,7 +137,7 @@ Three independent mechanisms, in order of how early they act:
 
 | Field | How it is grounded |
 |---|---|
-| `drugs`, `conditions`, `sponsors`, `countries` | Must appear in the query text — exact substring, with a tight fuzzy fallback for inflection ("lung cancers" → "lung cancer"). |
+| `drugs`, `conditions`, `sponsors`, `countries` | Must appear in the query text, matched on **word boundaries** so an acronym cannot match inside a longer word — the leukemia `ALL` must not match "sm**all**-cell", and `SCLC` must not match `NSCLC`, which is a different disease. A fuzzy fallback handles inflection ("lung cancers" → "lung cancer") but is skipped below 6 characters, where a single character is too much of the string to forgive. |
 | `compare_entities` | Same text check. Each one drives its own upstream search, so an invented entity would not merely mislabel a series — it would fetch and chart trials nobody asked about. |
 | `phases` | **Read from the query text directly**, not taken from the model: `phase 3`, `phase 1/2`, `phases 2 and 3`, `Phase II or III`. Anchoring on the word "phase" and reading only the contiguous list keeps `"phase 2 study of 3 drugs"` from producing a Phase 3 filter. |
 | `statuses` | **Read from the query text directly**, mapped to the live-verified `overallStatus` vocabulary via a synonym table ("stopped early" → `TERMINATED`). Longer phrases match first, so `"not yet recruiting"` cannot also register as `RECRUITING` — they are opposite filters. |

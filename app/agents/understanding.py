@@ -186,19 +186,43 @@ def _tokens(text: str) -> list[str]:
     return _WORD_RE.findall(text.lower())
 
 
+#: Below this length the fuzzy fallback is skipped and an exact, word-bounded
+#: match is required. For a four-character acronym a single character is a
+#: quarter of the string, so "SCLC" scores 0.889 against "NSCLC" -- above the
+#: threshold, and a different disease. Acronyms need no inflection tolerance
+#: anyway; the exact path already handles them.
+#:
+#: 6, not 8: a floor of 8 would stop "sarcoma" (7) matching "sarcomas", which
+#: is exactly the inflection the fallback exists for.
+_MIN_FUZZY_LENGTH = 6
+
+#: Similarity required of the fuzzy fallback. Verified against similar drug
+#: names (nivolumab/pembrolizumab, olaparib/niraparib, imatinib/dasatinib,
+#: trastuzumab/pertuzumab and others) -- none come close to matching.
+_FUZZY_THRESHOLD = 0.87
+
+
 def _appears_in(candidate: str, haystack: str) -> bool:
     """True when ``candidate`` is plausibly present in ``haystack``.
 
-    Exact substring is the common case. The fuzzy fallback exists only to
-    tolerate inflection and spacing ("lung cancers" for "lung cancer"), not to
-    admit entities the user never wrote -- the 0.87 threshold is tight enough
-    that unrelated drug names do not pass.
+    An exact, **word-bounded** match is the common case. Boundaries matter:
+    a plain substring test let an acronym match inside a longer word, so the
+    leukemia "ALL" matched the ordinary word "sm-ALL-cell", and "SCLC" matched
+    inside "NSCLC" -- non-small-cell and small-cell lung cancer are different
+    diseases with different treatments.
+
+    The fuzzy fallback exists only to tolerate inflection and spacing ("lung
+    cancers" for "lung cancer"), not to admit entities the user never wrote,
+    and is skipped entirely for short strings (see ``_MIN_FUZZY_LENGTH``).
     """
     candidate = candidate.strip().lower()
     if not candidate:
         return False
     haystack = haystack.lower()
-    if candidate in haystack:
+
+    # (?<!\w) / (?!\w) rather than \b: the candidate may begin or end with a
+    # non-word character ("5-fu"), where \b would assert the wrong thing.
+    if re.search(rf"(?<!\w){re.escape(candidate)}(?!\w)", haystack):
         return True
 
     candidate_tokens = _tokens(candidate)
@@ -206,10 +230,13 @@ def _appears_in(candidate: str, haystack: str) -> bool:
     if not candidate_tokens:
         return False
 
+    joined = " ".join(candidate_tokens)
     window = len(candidate_tokens)
     for i in range(len(haystack_tokens) - window + 1):
         chunk = " ".join(haystack_tokens[i : i + window])
-        if SequenceMatcher(None, " ".join(candidate_tokens), chunk).ratio() >= 0.87:
+        if min(len(joined), len(chunk)) < _MIN_FUZZY_LENGTH:
+            continue
+        if SequenceMatcher(None, joined, chunk).ratio() >= _FUZZY_THRESHOLD:
             return True
     return False
 

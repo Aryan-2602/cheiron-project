@@ -7,6 +7,7 @@ around it -- the part that decides what the model is *allowed* to influence.
 import pytest
 
 from app.agents.understanding import (
+    _appears_in,
     build_plan,
     extract_phases_from_query,
     extract_statuses_from_query,
@@ -404,3 +405,76 @@ class TestCompareEntityGrounding:
         assert any("Atezolizumab" in w for w in plan.warnings)
         # Only one entity survives, so the existing degrade path takes over.
         assert plan.viz_type == "bar_chart"
+
+
+class TestEntityMatchingPrecision:
+    """The matching heuristic, investigated rather than assumed safe.
+
+    Two defects were found and fixed: an unanchored substring test that let an
+    acronym match inside a longer word, and a fuzzy fallback whose
+    length-relative threshold was too forgiving for short strings. These cases
+    stay in the suite as the record of what was checked.
+    """
+
+    @pytest.mark.parametrize(
+        "entity,query,why",
+        [
+            ("SCLC", "NSCLC trials", "small-cell vs non-small-cell: different diseases"),
+            ("NSCLC", "SCLC trials", "and in the other direction"),
+            ("ALL", "SMALL cell lung cancer trials", "a leukemia inside the word 'small'"),
+            ("HCC", "HCV trials", "liver cancer vs hepatitis C"),
+        ],
+    )
+    def test_acronyms_do_not_match_inside_longer_words(self, entity, query, why):
+        assert _appears_in(entity, query) is False, why
+
+    @pytest.mark.parametrize(
+        "entity,query",
+        [
+            # Distinct agents with shared suffixes -- the -mab and -nib families
+            # are where a loose threshold would do real damage.
+            ("Nivolumab", "pembrolizumab trials"),
+            ("Atezolizumab", "durvalumab trials"),
+            ("Ipilimumab", "nivolumab trials"),
+            ("Trastuzumab", "pertuzumab trials"),
+            ("Olaparib", "niraparib trials"),
+            ("Imatinib", "dasatinib trials"),
+            ("Axitinib", "afatinib trials"),
+            ("Lenvatinib", "lorlatinib trials"),
+            ("Dabrafenib", "vemurafenib trials"),
+            ("Carboplatin", "cisplatin trials"),
+            ("Sunitinib", "sorafenib trials"),
+            ("AML", "ALL trials"),
+            ("CLL", "CML trials"),
+        ],
+    )
+    def test_similar_names_are_not_confused(self, entity, query):
+        assert _appears_in(entity, query) is False
+
+    @pytest.mark.parametrize(
+        "entity,query",
+        [
+            ("lung cancer", "trials in lung cancers"),
+            ("melanoma", "melanomas trials"),
+            ("breast cancer", "breast cancers"),
+            ("glioblastoma", "glioblastomas"),
+            # 7 characters: a fuzzy floor of 8 would have broken this, which is
+            # why the floor is 6.
+            ("sarcoma", "sarcomas"),
+            ("non-small cell lung cancer", "non small cell lung cancer trials"),
+            ("pembrolizumab", "PEMBROLIZUMAB trials"),
+            ("5-FU", "5-FU and leucovorin"),
+            ("HER2", "HER2 positive breast cancer"),
+            ("NSCLC", "NSCLC trials"),
+        ],
+    )
+    def test_legitimate_matches_still_work(self, entity, query):
+        assert _appears_in(entity, query) is True
+
+    def test_a_wrong_disease_is_dropped_and_reported(self):
+        """End to end: the model extracts SCLC from an NSCLC question."""
+        entities, warnings = ground_entities(
+            understanding(conditions=["SCLC"]), "How are NSCLC trials distributed?"
+        )
+        assert entities.conditions == []
+        assert any("SCLC" in w for w in warnings)
