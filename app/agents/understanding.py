@@ -359,32 +359,49 @@ def _is_negated(text_before: str) -> bool:
     return any(word.rstrip("-") in _NEGATION_CUES for word in tail)
 
 
+#: Vocabulary phrases as whole-word patterns, longest first. Every phrase both
+#: starts and ends with a word character (including "active, not recruiting"
+#: and "not-yet-recruiting"), so \b is well defined at both ends and the
+#: embedded comma and hyphens are unaffected. Compiled once at import.
+_STATUS_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple(
+    (re.compile(rf"\b{re.escape(phrase)}\b"), status)
+    for phrase, status in sorted(
+        ((phrase, status) for status, ps in STATUS_VOCABULARY.items() for phrase in ps),
+        key=lambda pair: -len(pair[0]),
+    )
+)
+
+
 def _match_statuses(query: str) -> tuple[list[str], list[str]]:
     """Statuses the question asks *for* and statuses it asks to *exclude*.
+
+    Matching is on whole words: a raw substring search read "unavailable" as
+    AVAILABLE and "incomplete" as COMPLETED, inventing a filter the question
+    never asked for.
 
     Longer phrases are matched and masked out first, so "not yet recruiting"
     cannot also register as "recruiting". A match whose preceding text carries
     a negation cue is recorded as excluded rather than requested -- without
-    that check, "trials that are not recruiting" matched the bare substring
-    and filtered to exactly the opposite set.
+    that check, "trials that are not recruiting" matched the bare phrase and
+    filtered to exactly the opposite set.
     """
     haystack = query.lower()
     found: list[str] = []
     negated: list[str] = []
-    phrases = sorted(
-        ((phrase, status) for status, ps in STATUS_VOCABULARY.items() for phrase in ps),
-        key=lambda pair: -len(pair[0]),
-    )
-    for phrase, status in phrases:
+    for pattern, status in _STATUS_PATTERNS:
         # Every occurrence, not just the first: in "recruiting and not
         # recruiting" the second mention is the one carrying the negation.
-        index = haystack.find(phrase)
-        while index >= 0:
+        match = pattern.search(haystack)
+        while match:
+            index = match.start()
+            phrase = match.group()
             bucket = negated if _is_negated(haystack[:index]) else found
             if status not in bucket:
                 bucket.append(status)
+            # Masked with spaces rather than deleted, so indices stay stable
+            # for the negation lookback on later phrases.
             haystack = haystack[:index] + " " * len(phrase) + haystack[index + len(phrase) :]
-            index = haystack.find(phrase, index + len(phrase))
+            match = pattern.search(haystack, index + len(phrase))
     # A status asked for and excluded in the same question is contradictory;
     # excluding wins, because acting on the positive reading is the failure
     # mode this exists to prevent.

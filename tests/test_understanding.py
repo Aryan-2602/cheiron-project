@@ -643,6 +643,21 @@ class TestCompareEntityDeduplication:
         kept, _ = ground_compare_entities(["Aspirin", "ASPIRIN"], self.QUERY)
         assert kept == ["Aspirin"]
 
+    @pytest.mark.parametrize(
+        "entities",
+        [
+            ["Aspirin", "Aspirin"],
+            ["Aspirin", "aspirin"],
+            ["Aspirin", " aspirin "],
+            ["  Aspirin  ", "ASPIRIN"],
+        ],
+    )
+    def test_every_equivalent_pair_from_the_brief_collapses(self, entities):
+        """Whitespace, casing, and internal-space variants all name one series."""
+        kept, warnings = ground_compare_entities(entities, self.QUERY)
+        assert len(kept) == 1
+        assert len(warnings) == 1
+
     def test_whitespace_variants_collapse(self):
         kept, _ = ground_compare_entities(["Aspirin", "  Aspirin  "], self.QUERY)
         assert kept == ["Aspirin"]
@@ -691,3 +706,74 @@ class TestCompareEntityDeduplication:
         )
         assert not any("does not support" in w for w in warnings)
         assert any("exclusion is not supported" in w for w in warnings)
+
+
+class TestStatusWordBoundaries:
+    """Matching was a raw substring search, so a vocabulary phrase buried
+    inside an unrelated English word invented a filter the question never
+    asked for: "unavailable" read as AVAILABLE, "incomplete" as COMPLETED."""
+
+    @pytest.mark.parametrize(
+        "query,leaked",
+        [
+            ("unavailable", "AVAILABLE"),
+            ("temporarily unavailable", "AVAILABLE"),
+            ("incomplete", "COMPLETED"),
+            ("incompleted data", "COMPLETED"),
+            ("uncompleted", "COMPLETED"),
+            ("noncompleted", "COMPLETED"),
+            ("preterminated", "TERMINATED"),
+            ("reenrolling", "RECRUITING"),
+            ("withdrawnness", "WITHDRAWN"),
+        ],
+    )
+    def test_a_phrase_inside_a_longer_word_does_not_match(self, query, leaked):
+        positive, negated = _match_statuses(query)
+        assert leaked not in positive
+        assert leaked not in negated
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("recruiting studies", "RECRUITING"),
+            ("Recruiting studies", "RECRUITING"),
+            ("completed", "COMPLETED"),
+            ("terminated", "TERMINATED"),
+            ("withdrawn", "WITHDRAWN"),
+            ("enrolling by invitation", "ENROLLING_BY_INVITATION"),
+            ("available", "AVAILABLE"),
+            ("no longer available", "NO_LONGER_AVAILABLE"),
+            ("suspended", "SUSPENDED"),
+            ("on hold", "SUSPENDED"),
+            ("stopped early", "TERMINATED"),
+            ("unknown status", "UNKNOWN"),
+        ],
+    )
+    def test_genuine_whole_word_mentions_still_match(self, query, expected):
+        """The boundary guard must not cost any real match."""
+        assert _match_statuses(query)[0] == [expected]
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("active, not recruiting", "ACTIVE_NOT_RECRUITING"),
+            ("active not recruiting", "ACTIVE_NOT_RECRUITING"),
+            ("not yet recruiting", "NOT_YET_RECRUITING"),
+        ],
+    )
+    def test_shorter_phrases_do_not_leak_out_of_longer_ones(self, query, expected):
+        """"recruiting" lives inside all three, and must not also register."""
+        positive, negated = _match_statuses(query)
+        assert positive == [expected]
+        assert "RECRUITING" not in positive
+        assert negated == []
+
+    def test_punctuated_and_hyphenated_phrases_still_match(self):
+        """The \\b anchors sit outside the comma and hyphens, so these are
+        unaffected by the boundary change."""
+        assert _match_statuses("active, not recruiting")[0] == [
+            "ACTIVE_NOT_RECRUITING"
+        ]
+        assert _match_statuses("not-yet-recruiting trials")[0] == [
+            "NOT_YET_RECRUITING"
+        ]
