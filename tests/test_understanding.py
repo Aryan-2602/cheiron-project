@@ -1402,6 +1402,62 @@ class TestComparisonKindRequiresFullGrounding:
         assert plan.compare_entity_kind is None
 
 
+class TestCoordinatedNegation:
+    """A negation whose complement is a list negates the whole list.
+
+    Read one item at a time, "neither recruiting nor completed" returned
+    exactly the two sets the question ruled out -- an inverted answer, and the
+    kind that looks entirely plausible on the chart.
+    """
+
+    @pytest.mark.parametrize(
+        "query,excluded",
+        [
+            ("neither recruiting nor completed", {"RECRUITING", "COMPLETED"}),
+            ("trials that are neither recruiting nor completed",
+             {"RECRUITING", "COMPLETED"}),
+            ("excluding recruiting and completed trials",
+             {"RECRUITING", "COMPLETED"}),
+            ("melanoma trials except recruiting and completed",
+             {"RECRUITING", "COMPLETED"}),
+            ("trials other than recruiting and completed",
+             {"RECRUITING", "COMPLETED"}),
+            ("studies without recruiting or completed status",
+             {"RECRUITING", "COMPLETED"}),
+            ("neither recruiting, completed, nor terminated",
+             {"RECRUITING", "COMPLETED", "TERMINATED"}),
+        ],
+    )
+    def test_a_distributive_cue_negates_every_item_in_the_list(
+        self, query, excluded
+    ):
+        found, negated = _match_statuses(query)
+        assert set(negated) == excluded
+        assert found == []
+
+    @pytest.mark.parametrize(
+        "query,found,excluded",
+        [
+            # "not" is clausal, not prepositional: "not A and B" is genuinely
+            # ambiguous, so it keeps the narrow reading. Excluding less than
+            # asked shows up on the chart; excluding more does not.
+            ("not recruiting and completed", {"COMPLETED"}, {"RECRUITING"}),
+            ("not completed and recruiting", {"RECRUITING"}, {"COMPLETED"}),
+            # A stop verb governs only the recruitment it precedes.
+            ("stopped recruiting and completed", {"COMPLETED"}, {"RECRUITING"}),
+            # No cue at all: coordination alone must not negate anything.
+            ("show me completed and terminated trials",
+             {"COMPLETED", "TERMINATED"}, set()),
+        ],
+    )
+    def test_a_non_distributive_cue_still_binds_to_one_item(
+        self, query, found, excluded
+    ):
+        matched, negated = _match_statuses(query)
+        assert set(matched) == found
+        assert set(negated) == excluded
+
+
 class TestStopVerbsBeforeRecruiting:
     """A trial that paused, suspended, halted, or withdrew its recruitment is
     not recruiting. Read positively these produced the near-opposite of the

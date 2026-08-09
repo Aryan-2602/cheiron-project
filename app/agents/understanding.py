@@ -431,6 +431,23 @@ _NEGATION_CUES = (
     "paused",
     "suspended",
     "withdrawn",
+    # "neither X nor Y" is a single negation spanning a coordinated list. Read
+    # without them, it produced exactly the set the question ruled out.
+    "neither",
+    "nor",
+)
+
+#: Cues that carry across a coordinated list, so "excluding recruiting and
+#: completed" excludes both.
+#:
+#: Membership is a claim about English, not a preference. These are
+#: prepositional or correlative: their complement *is* the list, so binding
+#: only to its first item drops the rest of what was ruled out. "not" is
+#: clausal and genuinely ambiguous over "not A and B", so it stays out and
+#: keeps the narrow reading -- excluding less than asked is a visible,
+#: correctable answer, where excluding more is not.
+_DISTRIBUTIVE_CUES = frozenset(
+    {"except", "excluding", "other than", "without", "neither", "nor"}
 )
 
 #: How far back to look when masking a consumed cue. Comfortably covers the
@@ -441,31 +458,38 @@ _CUE_MASK_WINDOW = 40
 #: next: in "not completed and recruiting", the "and" protects "recruiting".
 _CLAUSE_BOUNDARIES = frozenset({"and", "or", "but", "plus", "also"})
 
-#: How many words back a cue may sit, which covers an intervening adverb
-#: ("not currently recruiting") without reaching across a whole clause.
+#: Coordinators a *distributive* cue may reach across. "but" is absent on
+#: purpose -- it contrasts rather than continues a list.
+_COORDINATORS = frozenset({"and", "or", "nor", ",", ";"})
+
+#: Words a distributive cue may also step over on its way back: the other
+#: items of the list it governs, and the nouns and adverbs that decorate them.
+#: Built from the status vocabulary so it cannot drift from the phrases the
+#: matcher actually recognises.
+_LIST_FILLER = frozenset(
+    {"trials", "trial", "studies", "study", "ones", "those", "yet", "currently",
+     "still", "the", "a", "an", "is", "are", "that", "which", "was", "were"}
+) | {
+    word
+    for phrases in STATUS_VOCABULARY.values()
+    for phrase in phrases
+    for word in phrase.replace(",", " ").replace("-", " ").split()
+}
+# A cue is never filler: stepping over one would let a distributive cue reach
+# past a negation that belongs to something else.
+_LIST_FILLER -= set(_NEGATION_CUES)
+
+#: How many words back an adjacent cue may sit, which covers an intervening
+#: adverb ("not currently recruiting") without reaching across a whole clause.
 _NEGATION_LOOKBACK = 3
 
+#: A distributive cue may govern a list a few items long, but not a whole
+#: sentence: past this many words back it is a different clause.
+_DISTRIBUTIVE_LOOKBACK = 12
 
-def _negation_cue(text_before: str) -> str | None:
-    """The cue negating a status match, or None.
 
-    Returns the cue itself rather than a bool so the caller can mask it. A verb
-    like "halted" or "suspended" is both a cue and a status phrase in its own
-    right, so leaving it in the haystack made "halted recruiting" mean
-    TERMINATED *and* not-RECRUITING at once -- while "stopped recruiting",
-    whose verb is not a status phrase, meant only the exclusion. Masking the
-    consumed cue makes every "<verb> recruiting" form behave the same way.
-
-    Walks back a few words rather than requiring the cue to be adjacent, so
-    "not currently recruiting" is caught, and stops at a clause boundary so
-    "not completed and recruiting" leaves the recruiting request intact.
-    """
-    words = text_before.replace(",", " , ").replace(";", " ; ").split()
-    tail: list[str] = []
-    for word in reversed(words[-_NEGATION_LOOKBACK:]):
-        if word in _CLAUSE_BOUNDARIES or word in {",", ";"}:
-            break
-        tail.insert(0, word)
+def _cue_in(tail: list[str]) -> str | None:
+    """The negation cue at the end of ``tail``, or in it, or None."""
     if not tail:
         return None
     # "non-recruiting" and "aren't recruiting" attach the cue to the match or
@@ -478,6 +502,52 @@ def _negation_cue(text_before: str) -> str | None:
     for word in tail:
         if word.rstrip("-") in _NEGATION_CUES:
             return word.rstrip("-")
+    return None
+
+
+def _negation_cue(text_before: str) -> str | None:
+    """The cue negating a status match, or None.
+
+    Returns the cue itself rather than a bool so the caller can mask it. A verb
+    like "halted" or "suspended" is both a cue and a status phrase in its own
+    right, so leaving it in the haystack made "halted recruiting" mean
+    TERMINATED *and* not-RECRUITING at once -- while "stopped recruiting",
+    whose verb is not a status phrase, meant only the exclusion. Masking the
+    consumed cue makes every "<verb> recruiting" form behave the same way.
+
+    Two passes, because two different things can be true of the text before a
+    match. The first walks back a few words for an adjacent cue, so "not
+    currently recruiting" is caught, and stops at a coordinator so "not
+    completed and recruiting" leaves the recruiting request intact. The second
+    runs only when the first found nothing and looks for a cue that governs the
+    whole coordinated list -- "excluding recruiting and completed" ruled out
+    both, and binding to the first item alone charted the second as requested.
+    """
+    words = text_before.replace(",", " , ").replace(";", " ; ").split()
+
+    tail: list[str] = []
+    for word in reversed(words[-_NEGATION_LOOKBACK:]):
+        if word in _CLAUSE_BOUNDARIES or word in {",", ";"}:
+            break
+        tail.insert(0, word)
+    if cue := _cue_in(tail):
+        return cue
+
+    # Coordinated scope. Step back over the rest of the list -- its
+    # coordinators, its other items, their filler -- and stop at the first word
+    # that is none of those. A cue found there governs this item too; anything
+    # else means the list ended before any cue did.
+    window = words[-_DISTRIBUTIVE_LOOKBACK:]
+    for position in range(len(window) - 1, -1, -1):
+        bare = window[position].rstrip("-")
+        if not bare or bare in _COORDINATORS or bare in _LIST_FILLER:
+            continue
+        # Joined rather than compared word by word, so the two-word cues
+        # ("other than") are recognised at the point the list ends.
+        joined = " ".join(window[: position + 1]).rstrip("-")
+        return next(
+            (cue for cue in _DISTRIBUTIVE_CUES if joined.endswith(cue)), None
+        )
     return None
 
 
@@ -524,10 +594,16 @@ def _match_statuses(query: str) -> tuple[list[str], list[str]]:
             # Masked with spaces rather than deleted, so indices stay stable
             # for the negation lookback on later phrases.
             haystack = haystack[:index] + " " * len(phrase) + haystack[index + len(phrase) :]
-            if cue:
+            if cue and cue not in _DISTRIBUTIVE_CUES:
                 # Consume the cue too. Otherwise a verb that is also a status
                 # phrase ("halted", "suspended") would be counted a second time
                 # as a positive status it never meant.
+                #
+                # A distributive cue is exempt: it governs every item in the
+                # list, so consuming it on the first item left the rest looking
+                # unnegated -- "excluding recruiting and completed" charted
+                # completed trials as requested. None of them is a status
+                # phrase, so there is nothing to double-count either.
                 cue_at = haystack.rfind(cue, max(0, index - _CUE_MASK_WINDOW), index)
                 if cue_at >= 0:
                     haystack = (
