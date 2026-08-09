@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClinicalTrials.gov Query-to-Visualization — demo</title>
+
+<!--
+  Minimal demo frontend. One file, two CDN scripts, no build step.
+
+  The point it exists to prove: this renderer contains no domain knowledge.
+  It never mentions "phase", "trial_count", "country" or any other field name --
+  it reads visualization.encoding to learn which key drives which visual
+  channel. Renaming a field in the backend would need no change here. A
+  renderer with per-chart-type branches would prove the opposite.
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+
+<style>
+  :root { --line: #d8dee6; --muted: #5a6472; --bg: #f7f8fa; --accent: #2563eb; }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+         margin: 0; padding: 24px; background: var(--bg); color: #1a1f28; }
+  main { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 8px;
+          padding: 16px; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; }
+  input, select, button { font: inherit; }
+  input, select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
+  #query { flex: 1; }
+  button { padding: 8px 14px; border: 1px solid var(--line); border-radius: 6px;
+           background: #fff; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:disabled { opacity: .55; cursor: default; }
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .examples button { font-size: 13px; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 8px; margin-top: 12px; }
+  .grid label { display: flex; flex-direction: column; gap: 4px;
+                font-size: 12px; color: var(--muted); }
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  #viz { min-height: 380px; }
+  #network { height: 460px; border: 1px solid var(--line); border-radius: 6px; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .04em;
+       color: var(--muted); margin: 0 0 10px; }
+  .warn { background: #fff8e6; border-left: 3px solid #e0a800; padding: 8px 12px;
+          margin: 6px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+  .err { background: #fdeaea; border-left: 3px solid #d33; padding: 12px;
+         border-radius: 0 4px 4px 0; }
+  .err code { font-size: 12px; color: #a11; }
+  .cite { border-top: 1px solid var(--line); padding: 10px 0; font-size: 13px; }
+  .cite a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .cite p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+  .hint { color: var(--muted); font-size: 13px; font-style: italic; }
+  .pill { display: inline-block; background: var(--bg); border: 1px solid var(--line);
+          border-radius: 10px; padding: 1px 7px; font-size: 11px; margin: 2px 2px 0 0; }
+  .hidden { display: none; }
+  #override-badge:not(:empty) { background: #e07a1f; color: #fff; border-radius: 10px;
+        padding: 1px 8px; font-size: 11px; margin-left: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ClinicalTrials.gov Query-to-Visualization</h1>
+  <p class="sub">
+    Demo client. Every chart below is drawn by reading <code>visualization.encoding</code> —
+    this page knows no field names of its own.
+  </p>
+
+  <div class="card">
+    <form id="form">
+      <div class="row">
+        <input id="query" placeholder="Ask about clinical trials…" autocomplete="off"
+               value="How are lung cancer trials distributed across phases?">
+        <button class="primary" id="submit" type="submit">Run</button>
+      </div>
+
+      <div class="examples" id="examples"></div>
+
+      <details>
+        <summary>Advanced options (structured overrides)<span id="override-badge"></span></summary>
+        <div class="grid" id="overrides">
+          <label>drug_name <input name="drug_name" autocomplete="off"></label>
+          <label>condition <input name="condition" autocomplete="off"></label>
+          <label>sponsor <input name="sponsor" autocomplete="off"></label>
+          <label>country <input name="country" autocomplete="off"></label>
+          <label>phase
+            <select name="phase">
+              <option value="">—</option><option>1</option><option>2</option>
+              <option>3</option><option>4</option>
+            </select>
+          </label>
+          <label>start_year <input name="start_year" type="number" autocomplete="off"></label>
+          <label>end_year <input name="end_year" type="number" autocomplete="off"></label>
+          <label>max_studies <input name="max_studies" type="number" value="600"></label>
+        </div>
+      </details>
+    </form>
+    <p class="hint" id="status" style="margin-bottom:0"></p>
+  </div>
+
+  <div id="error" class="card err hidden"></div>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2 id="viz-title">Visualization</h2>
+        <div id="viz">
+          <canvas id="chart" class="hidden"></canvas>
+          <div id="network" class="hidden"></div>
+        </div>
+      </div>
+      <div class="card hidden" id="meta-card">
+        <h2>How this was interpreted</h2>
+        <p id="interpretation" style="margin:0"></p>
+        <div id="warnings"></div>
+      </div>
+    </div>
+
+    <div class="card" id="cite-card">
+      <h2>Citations</h2>
+      <p class="hint" id="cite-hint">Click any bar, point, node, or edge to see the trials behind it.</p>
+      <div id="citations"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = "http://127.0.0.1:8000/api/v1/query";
+const PALETTE = ["#2563eb", "#e07a1f", "#12a594", "#a855f7", "#dc2626", "#65a30d"];
+
+const $ = (id) => document.getElementById(id);
+let chart = null;      // Chart.js instance
+let network = null;    // vis-network instance
+
+const EXAMPLES = [
+  ["Phase distribution", "How are lung cancer trials distributed across phases?"],
+  ["Trials per year", "How has the number of trials for Pembrolizumab changed per year since 2015?"],
+  ["Drug ↔ drug network", "Which drugs frequently co-occur in combination studies with pembrolizumab?"],
+  ["Sponsor ↔ drug network", "Show a network of sponsors and drugs for melanoma trials."],
+];
+
+// ---------------------------------------------------------------- rendering
+
+/**
+ * Build a Chart.js config from the response's own encoding.
+ *
+ * One builder serves bar_chart, grouped_bar_chart, geo_bar_chart, histogram and
+ * time_series, because they share a row contract and differ only in which key
+ * the x channel points at and whether a colour channel exists. The single
+ * type-conditional is line-vs-bar.
+ */
+function buildChartConfig(viz) {
+  const enc = viz.encoding;
+  const xField = enc.x.field;                       // read, never hardcoded
+  const yField = enc.y.field;
+  const colorField = enc.color ? enc.color.field : null;
+
+  // The backend has already sorted the rows and states its ordering in
+  // meta.sorting, so first-appearance order is the intended axis order.
+  // Re-sorting here would silently contradict the response.
+  const labels = [...new Set(viz.data.map((r) => r[xField]))];
+  const seriesNames = colorField
+    ? [...new Set(viz.data.map((r) => r[colorField]))]
+    : [null];
+
+  // (series, x) -> row. Aligning through a lookup means a missing combination
+  // becomes an explicit 0 rather than shifting later bars onto wrong labels.
+  const byKey = new Map(
+    viz.data.map((r) => [`${colorField ? r[colorField] : ""}\u001f${r[xField]}`, r])
+  );
+
+  const datasets = seriesNames.map((name, i) => {
+    const rows = labels.map((l) => byKey.get(`${name ?? ""}\u001f${l}`) ?? null);
+    return {
+      label: name ?? enc.y.label ?? yField,
+      data: rows.map((r) => (r ? r[yField] : 0)),
+      _rows: rows,                                  // click -> row -> citations
+      backgroundColor: PALETTE[i % PALETTE.length],
+      borderColor: PALETTE[i % PALETTE.length],
+      borderWidth: 2,
+      fill: false,
+      tension: 0.25,
+    };
+  });
+
+  return {
+    type: viz.type === "time_series" ? "line" : "bar",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { title: { display: true, text: enc.x.label || xField } },
+        y: { title: { display: true, text: enc.y.label || yField }, beginAtZero: true },
+      },
+      plugins: {
+        legend: { display: Boolean(colorField) },
+        tooltip: {
+          callbacks: {
+            afterLabel: (ctx) => {
+              const row = ctx.dataset._rows[ctx.dataIndex];
+              return row ? `${row.total_supporting_trials} supporting trials — click to cite` : "";
+            },
+          },
+        },
+      },
+      onClick: (_evt, els) => {
+        if (!els.length) return;
+        const el = els[0];
+        showCitations(datasets[el.datasetIndex]._rows[el.index], labels[el.index]);
+      },
+    },
+  };
+}
+
+/** Map the response's node/edge collections through encoding's key maps. */
+function buildNetworkData(viz) {
+  const nk = viz.encoding.nodes || {};
+  const ek = viz.encoding.edges || {};
+  const { nodes = [], edges = [] } = viz.data[0] || {};
+
+  const groups = [...new Set(nodes.map((n) => (nk.group ? n[nk.group] : "node")))];
+  const sizes = nodes.map((n) => n[nk.size] || 1);
+  const maxSize = Math.max(...sizes, 1);
+
+  return {
+    nodes: nodes.map((n) => ({
+      id: n[nk.id],
+      label: n[nk.label],
+      // Scale into a readable band; raw sizes span 3 orders of magnitude.
+      value: 10 + 40 * Math.sqrt((n[nk.size] || 1) / maxSize),
+      color: PALETTE[groups.indexOf(nk.group ? n[nk.group] : "node") % PALETTE.length],
+      _row: n,
+    })),
+    edges: edges.map((e) => ({
+      from: e[ek.source],
+      to: e[ek.target],
+      value: e[ek.weight],
+      title: `${e[ek.weight]} shared trials`,
+      _row: e,
+    })),
+  };
+}
+
+function renderChart(viz) {
+  $("chart").classList.remove("hidden");
+  chart = new Chart($("chart"), buildChartConfig(viz));
+}
+
+function renderNetwork(viz) {
+  $("network").classList.remove("hidden");
+
+  const data = buildNetworkData(viz);
+  const byId = new Map(data.nodes.map((n) => [n.id, n._row]));
+  const edgeByPair = new Map(data.edges.map((e) => [`${e.from}\u001f${e.to}`, e._row]));
+
+  network = new vis.Network($("network"), data, {
+    nodes: { shape: "dot", scaling: { min: 8, max: 46 }, font: { size: 14 } },
+    edges: { scaling: { min: 1, max: 10 }, color: { opacity: 0.45 }, smooth: false },
+    physics: { stabilization: { iterations: 220 }, barnesHut: { springLength: 160 } },
+    interaction: { hover: true, tooltipDelay: 120 },
+  });
+
+  network.on("click", (params) => {
+    if (params.nodes.length) {
+      showCitations(byId.get(params.nodes[0]), byId.get(params.nodes[0]).label, "size");
+    } else if (params.edges.length) {
+      const e = network.body.data.edges.get(params.edges[0]);
+      const row = edgeByPair.get(`${e.from}\u001f${e.to}`);
+      const label = `${byId.get(e.from)?.label ?? e.from} ↔ ${byId.get(e.to)?.label ?? e.to}`;
+      showCitations(row, label, "weight");
+    }
+  });
+}
+
+// ---------------------------------------------------------------- citations
+
+/**
+ * Deep citations for one datum. This is the project's standout feature, so it
+ * gets a permanent panel rather than a tooltip that vanishes.
+ */
+function showCitations(row, label, valueKey) {
+  const box = $("citations");
+  $("cite-hint").classList.add("hidden");
+  box.innerHTML = "";
+
+  if (!row) {
+    box.innerHTML = `<p class="hint">No data for “${escapeHtml(label ?? "")}”.</p>`;
+    return;
+  }
+
+  const value = row[valueKey ?? "trial_count"] ?? row.trial_count ?? row.size ?? row.weight;
+  const total = row.total_supporting_trials ?? 0;
+  const cites = row.citations ?? [];
+
+  const head = document.createElement("p");
+  head.innerHTML =
+    `<strong>${escapeHtml(String(label ?? ""))}</strong><br>` +
+    `<span class="hint">${value} — ${total} supporting trial(s)` +
+    (cites.length < total ? `, showing ${cites.length}` : "") + `</span>`;
+  box.appendChild(head);
+
+  // Merged RxNorm nodes list the surface forms folded into them.
+  if (row.merged_from && row.merged_from.length) {
+    const merged = document.createElement("p");
+    merged.innerHTML =
+      `<span class="hint">Merged via RxNorm${row.rxcui ? " (RxCUI " + escapeHtml(row.rxcui) + ")" : ""}:</span><br>` +
+      row.merged_from.map((m) => `<span class="pill">${escapeHtml(m)}</span>`).join("");
+    box.appendChild(merged);
+  }
+
+  if (!cites.length) {
+    // A zero-filled year genuinely has nothing to cite; say so.
+    const none = document.createElement("p");
+    none.className = "hint";
+    none.textContent = total === 0
+      ? "No trials in this bucket, so there is nothing to cite."
+      : "No citations attached to this datum.";
+    box.appendChild(none);
+    return;
+  }
+
+  for (const c of cites) {
+    const el = document.createElement("div");
+    el.className = "cite";
+    el.innerHTML =
+      `<a href="${escapeHtml(c.url)}" target="_blank" rel="noopener">${escapeHtml(c.nct_id)}</a>` +
+      `<p>${escapeHtml(c.excerpt)}</p>`;
+    box.appendChild(el);
+  }
+}
+
+// ---------------------------------------------------------------- meta/errors
+
+function renderMeta(meta) {
+  $("meta-card").classList.remove("hidden");
+  $("interpretation").textContent = meta.query_interpretation || "";
+  const box = $("warnings");
+  box.innerHTML = "";
+  // Warnings carry the honesty of the response -- fetch caps, multi-valued
+  // axes, client-side filtering, graph pruning. Hiding them would misrepresent
+  // what the numbers mean.
+  for (const w of meta.warnings || []) {
+    const el = document.createElement("div");
+    el.className = "warn";
+    el.textContent = w;
+    box.appendChild(el);
+  }
+  const src = document.createElement("p");
+  src.className = "hint";
+  src.textContent =
+    `${meta.total_studies_processed} trials processed · source ${meta.source}` +
+    (meta.data_as_of ? ` · data as of ${meta.data_as_of}` : "");
+  box.appendChild(src);
+}
+
+/** The API returns two different error shapes; handle both explicitly. */
+function describeError(status, body) {
+  const detail = body && body.detail;
+  if (Array.isArray(detail)) {
+    // FastAPI's own request-body validation error.
+    const first = detail[0] || {};
+    return { code: `HTTP ${status}`, message: `${(first.loc || []).join(".")}: ${first.msg || "invalid request"}` };
+  }
+  if (detail && detail.error) {
+    return { code: detail.error.code, message: detail.error.message };
+  }
+  return { code: `HTTP ${status}`, message: "Unexpected error from the API." };
+}
+
+function showError(code, message) {
+  const el = $("error");
+  el.classList.remove("hidden");
+  el.innerHTML = `<strong>${escapeHtml(message)}</strong><br><code>${escapeHtml(code)}</code>`;
+}
+
+function clearOutput() {
+  $("error").classList.add("hidden");
+  $("meta-card").classList.add("hidden");
+  $("citations").innerHTML = "";
+  $("cite-hint").classList.remove("hidden");
+
+  // Tear the previous visualization down too. Leaving it up would attribute a
+  // chart to whichever query is on screen now -- after an error especially,
+  // the stale graph reads as the answer to a question it never answered.
+  if (chart) { chart.destroy(); chart = null; }
+  if (network) { network.destroy(); network = null; }
+  $("chart").classList.add("hidden");
+  $("network").classList.add("hidden");
+  $("viz-title").textContent = "Visualization";
+}
+
+const escapeHtml = (s) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// ---------------------------------------------------------------- request
+
+function buildRequestBody() {
+  const body = { query: $("query").value.trim() };
+  // Only fields the user actually filled in, matching the backend's
+  // "structured overrides win over LLM extraction" semantics.
+  for (const input of $("overrides").querySelectorAll("input, select")) {
+    const raw = input.value.trim();
+    if (!raw) continue;
+    body[input.name] = input.type === "number" || input.name === "phase"
+      ? Number(raw)
+      : raw;
+  }
+  return body;
+}
+
+async function run() {
+  clearOutput();
+  const submit = $("submit");
+  submit.disabled = true;
+  const started = performance.now();
+  // Network queries take several seconds; silence would read as a hang.
+  $("status").textContent = "Querying ClinicalTrials.gov…";
+
+  let response;
+  try {
+    response = await fetch(API, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(buildRequestBody()),
+    });
+  } catch (err) {
+    $("status").textContent = "";
+    submit.disabled = false;
+    showError(
+      "NETWORK_ERROR",
+      `Could not reach the API at ${API}. Is the backend running (uvicorn app.main:app)?`
+    );
+    return;
+  }
+
+  const elapsed = ((performance.now() - started) / 1000).toFixed(1);
+  submit.disabled = false;
+
+  let body = null;
+  try { body = await response.json(); } catch { /* handled below */ }
+
+  if (!response.ok) {
+    $("status").textContent = "";
+    const { code, message } = describeError(response.status, body);
+    showError(code, message);
+    return;
+  }
+
+  const viz = body.visualization;
+  $("viz-title").textContent = viz.title;
+  $("status").textContent = `${viz.type} · ${elapsed}s`;
+
+  if (viz.type === "network_graph") renderNetwork(viz);
+  else renderChart(viz);
+
+  renderMeta(body.meta);
+
+  if (!viz.data.length) {
+    // A well-formed question that matched nothing is a 200 with empty data.
+    showError("NO_RESULTS", "No trials matched this query. Try broadening the filters.");
+  }
+}
+
+// ---------------------------------------------------------------- wiring
+
+const overrideInputs = () => $("overrides").querySelectorAll("input, select");
+
+/**
+ * Keep active overrides visible.
+ *
+ * They live in a collapsed panel but silently filter every request, so a value
+ * left over from an earlier query would keep applying with nothing on screen to
+ * explain why the answer changed -- the badge makes that state impossible to
+ * miss.
+ */
+function refreshOverrideBadge() {
+  const active = [...overrideInputs()].filter(
+    (i) => i.value.trim() && i.name !== "max_studies"
+  );
+  $("override-badge").textContent = active.length
+    ? `${active.length} active: ${active.map((i) => `${i.name}=${i.value}`).join(", ")}`
+    : "";
+}
+
+function clearOverrides() {
+  for (const input of overrideInputs()) {
+    if (input.name !== "max_studies") input.value = "";
+  }
+  refreshOverrideBadge();
+}
+
+for (const [label, query] of EXAMPLES) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = label;
+  // Examples are the known-good demo path, so they start from a clean slate
+  // rather than inheriting whatever was typed into the advanced panel earlier.
+  b.onclick = () => { clearOverrides(); $("query").value = query; run(); };
+  $("examples").appendChild(b);
+}
+
+$("overrides").addEventListener("input", refreshOverrideBadge);
+$("overrides").addEventListener("change", refreshOverrideBadge);
+$("form").addEventListener("submit", (e) => { e.preventDefault(); run(); });
+refreshOverrideBadge();
+</script>
+</body>
+</html>

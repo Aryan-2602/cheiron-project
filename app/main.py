@@ -4,9 +4,11 @@ import uuid
 from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.api.routes import router
+from app.core.config import settings
 from app.core.logging import request_id, setup_logging
 
 setup_logging()
@@ -27,6 +29,21 @@ app = FastAPI(
     ),
 )
 app.include_router(router)
+
+# Development-only CORS, so the demo page in frontend/ can call the API from a
+# different origin (a static server on another port, or file:// which sends
+# Origin: null). Wide-open is acceptable *only* because this is gated on ENV and
+# the API uses no cookies or auth -- allow_credentials stays False, which is
+# what makes a wildcard origin safe. A deployment with ENV=production gets no
+# CORS at all. This is not a production CORS policy.
+if settings.ENV == "development":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
 
 
 @app.middleware("http")

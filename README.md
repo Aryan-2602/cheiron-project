@@ -14,6 +14,7 @@ POST /api/v1/query   {"query": "How are lung cancer trials distributed across ph
 ## Contents
 
 - [Quick start](#quick-start)
+- [Demo frontend](#demo-frontend)
 - [How it works](#how-it-works)
 - [Why the LLM cannot fabricate a number](#why-the-llm-cannot-fabricate-a-number)
 - [Request schema](#request-schema)
@@ -63,6 +64,28 @@ Run the tests, or regenerate every example output against the live API:
 pytest -q                              # 275 tests, no network or API key needed
 python scripts/run_examples.py         # writes examples/*.json from live data
 ```
+
+---
+
+## Demo frontend
+
+A single-file demo client lives in [`frontend/`](frontend/). It exists to demonstrate the claim this project makes about its own output — that a frontend can render it **without guessing**.
+
+```bash
+uvicorn app.main:app --reload              # terminal 1
+cd frontend && python -m http.server 5500  # terminal 2
+open http://localhost:5500
+```
+
+Four buttons run the documented example queries, so a walkthrough needs no typing. An "Advanced options" panel exposes the structured overrides; whenever any are set, a badge shows which ones, because a stale override silently filtering later queries is otherwise invisible.
+
+**What it demonstrates.** The renderer contains no domain knowledge — it never names `phase`, `trial_count`, `country`, or any other field. One `buildChartConfig()` reads `encoding.x`, `encoding.y`, and `encoding.color` to place the axes and split series, and serves `bar_chart`, `grouped_bar_chart`, `geo_bar_chart`, `histogram`, and `time_series` with a single `type === "time_series" ? "line" : "bar"` branch. Network graphs go through `buildNetworkData()`, which maps nodes and edges through the `encoding.nodes` / `encoding.edges` key maps. Renaming a field in the backend would require no frontend change; a renderer with per-chart-type branches would have proved the opposite.
+
+Clicking any bar, point, node, or edge shows that datum's citations — NCT id, the exact supporting field value, and a link to the trial. On a merged network node it also lists the RxNorm surface forms folded into it, so a click on `pembrolizumab` shows both the Keytruda-named and Pembrolizumab-named trials behind one number. `meta.query_interpretation` and every `meta.warnings` entry render below the chart, since the disclosures are part of what makes a figure trustworthy.
+
+**It is a demo, not a product.** No build step, no framework, no router, and no styling beyond readability. `file://` also works, but serving over HTTP is the documented path because a `null` origin is a confusing thing to debug.
+
+**CORS is development-only.** The API has no CORS by default; `app/main.py` registers permissive middleware **only when `ENV == "development"`**, with `allow_credentials=False`. That is what makes a wildcard origin acceptable here, and it is not a production CORS policy — a deployment with `ENV=production` gets no CORS at all.
 
 ---
 
