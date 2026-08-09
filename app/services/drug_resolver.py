@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import re
 import time
 from collections import OrderedDict
@@ -162,6 +163,40 @@ DRUG_CACHE = DrugCache()
 
 
 # --------------------------------------------------------------------------
+# Payload access
+# --------------------------------------------------------------------------
+#
+# RxNorm answers 200 with a body it does not promise the shape of, and a
+# malformed one used to surface as an AttributeError from deep inside a
+# ``.get()`` chain -- an untyped crash rather than the soft degradation this
+# module is built around. These three keep every access total: an unexpected
+# shape reads as "no data here", which the callers already handle.
+
+
+def _sub(payload: Any, key: str) -> Any:
+    """``payload[key]`` when payload is a mapping, else ``None``."""
+    return payload.get(key) if isinstance(payload, Mapping) else None
+
+
+def _seq(value: Any) -> list[Any]:
+    """``value`` as a list of items, or empty when it is not a real sequence.
+
+    Strings are excluded deliberately: iterating one yields characters, which
+    would silently turn a malformed field into a long run of junk entries.
+    """
+    return value if isinstance(value, list) else []
+
+
+def _finite_float(value: Any) -> float | None:
+    """A usable float, or ``None`` for anything unparseable or non-finite."""
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if math.isfinite(parsed) else None
+
+
+# --------------------------------------------------------------------------
 # Client
 # --------------------------------------------------------------------------
 
@@ -261,17 +296,20 @@ class RxNormClient:
         payload = await self._get(
             "/approximateTerm.json", {"term": name, "maxEntries": "1"}
         )
-        candidates = (payload.get("approximateGroup") or {}).get("candidate") or []
-        if not candidates:
+        candidates = _sub(_sub(payload, "approximateGroup"), "candidate")
+        if not isinstance(candidates, list) or not candidates:
             return None
 
         best = candidates[0]
-        rxcui = best.get("rxcui")
-        try:
-            score = float(best.get("score"))
-        except (TypeError, ValueError):
+        if not isinstance(best, Mapping):
             return None
-        if not rxcui or score < self.min_score:
+        rxcui = best.get("rxcui")
+        score = _finite_float(best.get("score"))
+        # Stated positively on purpose. The gate used to be ``score <
+        # min_score``, and every comparison with NaN is False -- so a score of
+        # "NaN" sailed through the confidence check instead of tripping it and
+        # merged an arbitrary RxCUI. An unusable score must fail closed.
+        if not rxcui or score is None or not score >= self.min_score:
             return None
         return str(rxcui), score
 
@@ -285,12 +323,16 @@ class RxNormClient:
         products from being collapsed onto one arbitrary component.
         """
         payload = await self._get(f"/rxcui/{rxcui}/related.json", {"tty": "IN"})
-        groups = (payload.get("relatedGroup") or {}).get("conceptGroup") or []
+        groups = _sub(_sub(payload, "relatedGroup"), "conceptGroup")
+        if not isinstance(groups, list):
+            return None
         concepts = [
             concept
             for group in groups
-            for concept in (group.get("conceptProperties") or [])
-            if concept.get("rxcui") and concept.get("name")
+            for concept in _seq(_sub(group, "conceptProperties"))
+            if isinstance(concept, Mapping)
+            and concept.get("rxcui")
+            and concept.get("name")
         ]
         if len(concepts) != 1:
             return None
@@ -357,10 +399,17 @@ async def resolve_drug(
     cache: DrugCache,
     originals: set[str] | None = None,
 ) -> DrugResolution:
-    """Resolve one cleaned drug name. Never raises.
+    """Resolve one cleaned drug name.
 
     Cached either way, so an unknown name costs one request for the life of the
     process rather than one per trial that mentions it.
+
+    Raises :class:`RxNormError` when the lookup itself fails, and does not cache
+    that -- a transient outage must not poison the cache for the life of the
+    process. Degrading to string normalization is the *batch* layer's decision,
+    not this function's, because only the batch knows how many names failed.
+    A malformed-but-successful response is not a failure: it resolves to
+    unresolved, like any other name RxNorm has nothing useful to say about.
     """
     cached = cache.get(cleaned_name)
     if cached is not None:

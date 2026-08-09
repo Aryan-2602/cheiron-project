@@ -171,6 +171,71 @@ class TestConfidenceThreshold:
         assert route.call_count == 0
 
 
+class TestMalformedSuccessPayloads:
+    """RxNorm answers 200 without promising a shape.
+
+    Two properties are asserted together, because either alone is a bug: an
+    unusable body must not crash (it degrades to unresolved, like any name
+    RxNorm cannot help with), and it must not resolve either -- a merge is a
+    claim about identity that a malformed body cannot support.
+    """
+
+    @respx.mock
+    @pytest.mark.parametrize(
+        "score",
+        ["NaN", "nan", "Infinity", "+Infinity", "-Infinity", "1e309", "abc", None],
+    )
+    async def test_a_non_finite_score_never_clears_the_threshold(self, score):
+        """``score < min_score`` let "NaN" through: every comparison with NaN
+        is False, so the guard that was meant to reject it did nothing and an
+        arbitrary RxCUI was merged. The gate is stated positively now."""
+        mock_rxnorm(
+            approx={"approximateGroup": {"candidate": [{"rxcui": "1", "score": score}]}}
+        )
+        result = await resolve("some drug")
+        assert result.resolved is False
+        assert result.rxcui is None
+
+    @respx.mock
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            [1, 2],
+            {"approximateGroup": None},
+            {"approximateGroup": "x"},
+            {"approximateGroup": {"candidate": "x"}},
+            {"approximateGroup": {"candidate": [None]}},
+            {"approximateGroup": {"candidate": [5]}},
+            {"approximateGroup": {"candidate": [{"score": "50"}]}},
+        ],
+    )
+    async def test_a_malformed_approximate_body_degrades_instead_of_raising(
+        self, payload
+    ):
+        mock_rxnorm(approx=payload)
+        result = await resolve("some drug")
+        assert result.resolved is False
+
+    @respx.mock
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            [1, 2],
+            {"relatedGroup": None},
+            {"relatedGroup": {"conceptGroup": "x"}},
+            {"relatedGroup": {"conceptGroup": [None]}},
+            {"relatedGroup": {"conceptGroup": [{"conceptProperties": "x"}]}},
+            {"relatedGroup": {"conceptGroup": [{"conceptProperties": [7]}]}},
+        ],
+    )
+    async def test_a_malformed_ingredient_body_degrades_instead_of_raising(
+        self, payload
+    ):
+        mock_rxnorm(approx=approx_payload(KEYTRUDA_RXCUI, 14.25), ingredient=payload)
+        result = await resolve("keytruda")
+        assert result.resolved is False
+
+
 class TestPreFilter:
     """Names filtered before the network call. This is a correctness guard, not
     just an optimization -- RxNorm answers these confidently and wrongly."""
