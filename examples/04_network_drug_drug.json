@@ -6,7 +6,7 @@
   "response": {
     "visualization": {
       "type": "network_graph",
-      "title": "Drug co-occurrence network for Pembrolizumab trials",
+      "title": "Drug co-occurrence network for pembrolizumab trials",
       "encoding": {
         "x": null,
         "y": null,
@@ -3428,16 +3428,17 @@
       ],
       "query_interpretation": "Interpreted as a relationship question, rendered as a network graph.",
       "assumptions": [
-        "Interpreted 'frequently co-occur in combination studies' as a drug-drug relationship network centered on pembrolizumab."
+        "Interpreted 'co-occur in combination studies' as a drug-drug relationship centered on pembrolizumab."
       ],
       "warnings": [
         "Fetched 600 of 2,922 matching trials (capped at max_studies=600); figures below describe that sample, not the full result set.",
         "Merged brand and generic names into 16 shared compound node(s) using RxNorm; each merged node lists its source names.",
-        "Graph truncated to the 30 highest-degree nodes for readability.",
+        "Graph truncated to 30 nodes for readability, by keeping the nodes appearing in the most trials.",
         "Edges require at least 2 shared trials; single-trial co-occurrences are omitted as incidental."
       ],
       "sorting": "node size descending",
-      "time_granularity": null
+      "time_granularity": null,
+      "empty_reason": null
     }
   }
 }

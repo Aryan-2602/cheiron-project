@@ -367,7 +367,27 @@ class TestNoSecretsOrPayloads:
             assert "protocolSection" not in blob
             assert "briefTitle" not in blob
 
-    def test_long_queries_are_truncated_in_the_received_line(self, caplog, monkeypatch):
+    def test_the_received_line_carries_no_raw_question_text(self, caplog, monkeypatch):
+        """A trials question is user-supplied free text that may carry personal
+        or clinical detail, and it is not needed to follow a request: the
+        request id correlates the lines and the plan summary says how the
+        question was read."""
+        from app.pipeline import UnsupportedQueryError
+
+        async def fake(*args, **kwargs):
+            raise UnsupportedQueryError("nope")
+
+        monkeypatch.setattr("app.api.routes.run_pipeline", fake)
+        secret = "does my brother have glioblastoma"
+        with caplog.at_level(logging.INFO):
+            TestClient(app).post("/api/v1/query", json={"query": secret})
+        received = next(r for r in caplog.records if r.getMessage() == "query received")
+        assert not hasattr(received, "query")
+        assert received.query_chars == len(secret)
+
+    def test_the_error_line_still_echoes_the_query_truncated(self, caplog, monkeypatch):
+        """The one place it is kept: a failure that cannot be reproduced cannot
+        be fixed."""
         from app.pipeline import UnsupportedQueryError
 
         async def fake(*args, **kwargs):
@@ -376,8 +396,8 @@ class TestNoSecretsOrPayloads:
         monkeypatch.setattr("app.api.routes.run_pipeline", fake)
         with caplog.at_level(logging.INFO):
             TestClient(app).post("/api/v1/query", json={"query": "why " * 400})
-        received = next(r for r in caplog.records if r.getMessage() == "query received")
-        assert received.query.endswith(TRUNCATION_MARKER)
+        failed = next(r for r in caplog.records if r.getMessage() == "request failed")
+        assert failed.query.endswith(TRUNCATION_MARKER)
 
 
 @pytest.mark.parametrize(

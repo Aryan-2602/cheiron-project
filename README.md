@@ -61,7 +61,7 @@ curl -s -X POST http://127.0.0.1:8000/api/v1/query \
 Run the tests, or regenerate every example output against the live API:
 
 ```bash
-pytest -q                              # 365 tests, no network or API key needed
+pytest -q                              # 603 tests, no network or API key needed
 python scripts/run_examples.py         # writes examples/*.json from live data
 ```
 
@@ -285,14 +285,14 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
 
 | Status | Code | When |
 |---|---|---|
-| 200 | — | Success. **Also returned for a well-formed question that matched no trials**, as an empty `data` array plus a `meta.warnings` explanation — "no trials match" is a correct answer, and the caller gets the same metadata they would for a populated chart. |
-| 422 | `UNSUPPORTED_QUERY` | Not answerable from trial registry data (e.g. "what is the capital of France?"). |
-| 422 | — | Request body failed schema validation. |
+| 200 | — | Success, **including two kinds of legitimate emptiness**, distinguished by `meta.empty_reason`. `NO_MATCHING_TRIALS`: the search found nothing. `NO_CHARTABLE_DATA`: trials matched but the requested analysis produced no rows — every trial missing a start date, or no drug pair meeting the co-occurrence threshold. Both return an empty `data` array with the same metadata a populated chart carries, and a warning naming the cause and the matched count. Neither is a fault. |
+| 400 | `UNSUPPORTED_QUERY` | A well-formed request asking something trial-registry data cannot answer (e.g. "what is the capital of France?"). |
+| 422 | — | Request body failed schema validation. FastAPI's own shape, `{"detail": [...]}`. |
 | 502 | `LLM_ERROR` | The model call failed or was declined. |
 | 502 | `UPSTREAM_ERROR` | ClinicalTrials.gov unreachable or erroring after retries. |
 | 500 | `VALIDATION_ERROR` | The response failed its grounding checks and was withheld. |
 
-Error bodies are `{"detail": {"error": {"code", "message", "details"}}}`.
+Domain error bodies **are** an `ErrorResponse`: `{"error": {"code", "message", "details"}}`. The domain "unanswerable question" sits on **400** rather than 422 so it does not share a status code with FastAPI's request-validation errors, which have a different body shape — one status code carrying two shapes forces a caller to sniff.
 
 ---
 
@@ -522,7 +522,7 @@ INFO  dad3a22c  request completed           {"status":200,"duration_ms":5183.6}
 
 ### What is deliberately not logged
 
-Prompts, completions, raw API responses, and trial records never reach the log — only counts, ids, durations, and query text truncated to 200 characters. Every structured payload is an explicit allowlist of fields rather than a serialized object, so config can never be dumped and a credential cannot leak by accident. Tests assert both: that no emitted line contains a configured API key, and that none contains a raw record.
+Prompts, completions, raw API responses, and trial records never reach the log. **Question text is not logged at INFO** — a clinical-trials question is user-supplied free text that can carry personal or clinical detail, and it is not needed to follow a request: the request id correlates the lines and the plan summary records how the question was read. The one exception is the ERROR line, which echoes the question truncated to 200 characters, because a failure that cannot be reproduced cannot be fixed. A production deployment handling real user traffic should decide its own redaction policy for that line. Every structured payload is an explicit allowlist of fields rather than a serialized object, so config can never be dumped and a credential cannot leak by accident. Tests assert both: that no emitted line contains a configured API key, and that none contains a raw record.
 
 ### Three judgment calls
 
@@ -569,7 +569,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 **Plain OpenAI SDK rather than LangChain/LangGraph.** The scaffold started with LangChain. There is exactly one LLM call in this service, with a fixed schema and no tool use, chaining, or agent loop — a framework would add a dependency layer without removing any code. `client.chat.completions.parse(response_format=QueryUnderstanding)` gives a schema-guaranteed Pydantic object directly, so there is no JSON repair or retry-on-parse-failure logic anywhere.
 
-**`gpt-5.4-mini` by default.** Intent classification and entity extraction is an easy task for a modern model; all seven query classes classified correctly on the first attempt in testing. Configurable via `LLM_MODEL` (`gpt-4.1-mini` is roughly twice as fast for a small quality tradeoff).
+**`gpt-5.4-mini` by default.** Intent classification and entity extraction is an easy task for a modern model; every supported query class, plus the unsupported case, classified correctly on the first attempt in testing. Configurable via `LLM_MODEL` (`gpt-4.1-mini` is roughly twice as fast for a small quality tradeoff).
 
 **Multi-phase trials are counted in every phase they belong to.** A Phase 1/2 trial appears in both buckets, so bucket totals can exceed the trial count. The alternative — a combined "Phase 1/2" bucket — makes phases non-comparable. The behaviour is disclosed in `meta.warnings`, and the validator checks a set-union invariant rather than a naive sum.
 
@@ -579,7 +579,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 **A trial in both comparison series is counted in both.** It genuinely is evidence for both, and series membership comes from the upstream searches themselves rather than client-side guessing.
 
-**Year ranges, most status filters, and multi-phase requests are applied client-side.** There is no live-verified date-range parameter, and only `status:rec` was confirmed among the status codes. `aggFilters` also carries only *one* phase and repeating the key does not OR them, so a single phase is filtered upstream while two or more are fetched unfiltered and OR-ed locally — matching by intersection, since a combined Phase 1/2 trial genuinely satisfies a request for either. Sending an unverified filter risks a silently-empty result; filtering locally is exact, keeps citations intact, and is disclosed in `meta.warnings`.
+**Phase and status filtering happen upstream; year ranges and status exclusions do not.** Values inside one `aggFilters` key are space-separated and union — verified live: `status:rec` 64,847 + `status:com` 326,301 = `status:rec com` **391,148** exactly, and `phase:2` 89,652 + `phase:3` 49,614 = `phase:2 3` **131,704**, fewer than the sum because a combined Phase 2/3 trial is counted once. Nine status codes are verified this way, so a multi-phase or multi-status request is expressed in one clause instead of being fetched broad and narrowed afterwards, which used to spend the fetch budget on trials that were about to be discarded. Two codes are *not* verified — `status:avail` and `status:no_lon` return HTTP 200 with zero results, the same silent trap as `phase:PHASE3` — so AVAILABLE and NO_LONGER_AVAILABLE are matched client-side, as are year ranges (no verified date parameter) and status exclusions (no such parameter exists). A partial upstream filter is never emitted: if any requested status lacks a verified code, the whole set falls back to the local union. Everything filtered locally is disclosed in `meta.warnings`.
 
 **Several requested statuses are a union, and the upstream shortcut applies only when one status is requested.** `status:rec` is emitted **only** when `RECRUITING` is the sole request. Applying it whenever *any* requested status was recruiting composed two filters into an intersection — the fetch returned recruiting trials, then the client-side pass kept only the other status, so "recruiting or completed melanoma trials" charted a confident zero. Multiple statuses now skip the upstream filter entirely and are OR-ed client-side, exactly as multiple phases already were. Live: sole `recruiting` gives 478 melanoma trials via `status:rec`; `recruiting or completed` gives 1,774 via the union.
 
@@ -610,15 +610,14 @@ That both catches a silent-filter regression and gives the user a useful answer 
 - **Response caching.** Identical queries re-fetch from scratch. A short-lived cache keyed on the normalized search parameters would cut both latency and upstream load; the `data_as_of` timestamp is already tracked and would make invalidation straightforward.
 - **Streaming progress.** A 3,000-trial fetch takes several seconds. Server-sent events reporting "fetched 1,000 / 2,922" would make the wait legible.
 - **More visualization types.** Scatter plots (enrollment vs duration) and Sankey diagrams (phase progression) both fit the existing dimension registry; neither was reachable in the time box.
-- **Verify the remaining `aggFilters` codes.** Status codes beyond `rec`, and whether `filter.overallStatus` still exists, are open questions in `docs/api-notes.md`. Confirming them would let more filtering move upstream and reduce the number of records fetched.
-- **A minimal frontend.** The response format is designed to be rendered without guessing; a small React + d3 demo would prove that end to end rather than asserting it.
+- **Verify `filter.overallStatus`.** The nine `aggFilters` status codes are now live-verified (see `docs/api-notes.md`), so status and phase filtering both happen upstream. Whether the separate `filter.overallStatus` parameter still exists is still open, though nothing depends on it.
 
 ---
 
 ## Testing
 
 ```bash
-pytest -q      # 365 tests, ~9s, no network access or API key required
+pytest -q      # 603 tests, ~9s, no network access or API key required
 ```
 
 | File | Covers |

@@ -243,5 +243,10 @@ done
 
 - [ ] `filter.overallStatus` as a standalone param — still valid, or folded into `aggFilters`?
 - [ ] Full list of valid `aggFilters` keys beyond `phase` and `status` (e.g. `studyType`, `ages`)
-- [ ] Exact abbreviated status codes accepted by `aggFilters=status:*` beyond `rec`
-- [ ] Whether `armsInterventionsModule` reliably contains enough text to build citation excerpts without a separate per-study `/studies/{nctId}` call
+- [x] Exact abbreviated status codes accepted by `aggFilters=status:*` beyond `rec` —
+      **answered 2026-08-09**: nine verified (`rec com act not enr ter sus wit unk`),
+      two are silent-failure traps (`avail`, `no_lon`). See the table above.
+- [x] Whether `armsInterventionsModule` reliably contains enough text to build citation
+      excerpts without a separate per-study `/studies/{nctId}` call — **yes**, in use
+      throughout. Sponsor-drug edges pair it with `leadSponsor.name` so one citation
+      evidences both endpoints.

@@ -1,3 +1,11 @@
+> **Historical document — not authoritative.**
+>
+> This is the pre-implementation planning note, kept for the reasoning it
+> records. Where it differs from the shipped system, `README.md` and the
+> current source and schema definitions are correct. Several decisions here
+> were revised once the live API was measured — see `docs/api-notes.md` for
+> what was actually verified.
+
 # PLAN.md — ClinicalTrials.gov Query-to-Visualization Agent (Cheiron take-home)
 
 ## Context

@@ -6,7 +6,7 @@
   "response": {
     "visualization": {
       "type": "time_series",
-      "title": "Pembrolizumab trials by start year",
+      "title": "Pembrolizumab trials (from 2015) by start year",
       "encoding": {
         "x": {
           "field": "start_year",
@@ -301,14 +301,15 @@
       ],
       "query_interpretation": "Interpreted as a time trend question, grouped by start year, rendered as a time series.",
       "assumptions": [
-        "Interpreted \"per year since 2015\" as a time trend grouped by start year."
+        "I interpreted \"per year since 2015\" as a year-by-year trend starting in 2015."
       ],
       "warnings": [
         "Fetched 1,000 of 2,922 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",
         "Restricted to trials starting from 2015 client-side (975 of 1,000 fetched trials, 1 excluded for having no start date); ClinicalTrials.gov has no live-verified date-range parameter."
       ],
       "sorting": "year ascending",
-      "time_granularity": "year"
+      "time_granularity": "year",
+      "empty_reason": null
     }
   }
 }

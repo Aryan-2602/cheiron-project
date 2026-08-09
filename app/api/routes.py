@@ -60,6 +60,8 @@ def _log_failure(
         extra={
             "code": code,
             "stage": stage,
+            # The one place the question text is kept: a failure that cannot be
+            # reproduced cannot be fixed. Truncated, and only on the error path.
             "query": truncate(request.query),
             "filters": _overrides(request),
             "detail": truncate(str(exc), 300),
@@ -129,7 +131,13 @@ async def query(request: QueryRequest) -> QueryResponse:
     logger.info(
         "query received",
         extra={
-            "query": truncate(request.query),
+            # Length, not text. A clinical-trials question is user-supplied
+            # free text that could carry personal or clinical detail, and it is
+            # not needed to follow a request through the logs -- the request id
+            # correlates the lines, and the plan summary logged by the
+            # understanding stage says how the question was read. See the
+            # logging section of the README for the production posture.
+            "query_chars": len(request.query),
             # Only the overrides actually supplied, so the line stays short and
             # a reader can see exactly what was pinned by the caller.
             "overrides": _overrides(request),
@@ -141,7 +149,10 @@ async def query(request: QueryRequest) -> QueryResponse:
         return await run_pipeline(request)
     except EmptyResultError as exc:
         # A 200: an empty result is a correct answer, not a fault.
-        logger.info("no results for query", extra={"query": truncate(request.query)})
+        logger.info(
+            "no results for query",
+            extra={"query_chars": len(request.query), "reason": exc.reason},
+        )
         return _empty_response(exc)
     except UnsupportedQueryError as exc:
         _log_failure(request, code="UNSUPPORTED_QUERY", stage="understanding", exc=exc)

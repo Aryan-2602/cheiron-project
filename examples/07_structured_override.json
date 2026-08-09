@@ -8,7 +8,7 @@
   "response": {
     "visualization": {
       "type": "bar_chart",
-      "title": "Nivolumab (phase 3) trials by lead sponsor",
+      "title": "Nivolumab trials (phase 3) by lead sponsor",
       "encoding": {
         "x": {
           "field": "sponsor",
@@ -335,11 +335,14 @@
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by lead sponsor, rendered as a bar chart.",
       "assumptions": [
-        "The specific drug is not named in the question, so no entity could be extracted from the text."
+        "The drug name was not provided in the question, so no specific drug entity was extracted."
       ],
-      "warnings": [],
+      "warnings": [
+        "Showing the top 15 of 75 lead sponsor values by trial count; 60 lower-frequency values are omitted."
+      ],
       "sorting": "trial count descending",
-      "time_granularity": null
+      "time_granularity": null,
+      "empty_reason": null
     }
   }
 }

@@ -6,7 +6,7 @@
   "response": {
     "visualization": {
       "type": "network_graph",
-      "title": "Sponsor-drug network for Melanoma trials",
+      "title": "Sponsor-drug network for melanoma trials",
       "encoding": {
         "x": null,
         "y": null,
@@ -1113,17 +1113,17 @@
               "citations": [
                 {
                   "nct_id": "NCT01866319",
-                  "excerpt": "\"Study to Evaluate the Safety and Efficacy of Two Different Dosing Schedules of Pembrolizumab (MK-3475) Compared to Ipilimumab in Participants With Advanced Mela...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Ipilimumab]",
+                  "excerpt": "\"Study to Evaluate the Safety and Efficacy of Two Different Dosing Schedules of Pembrolizumab (MK-3475) Compared to Ipilimumab in Participants With Advanced Mela...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT01866319"
                 },
                 {
                   "nct_id": "NCT03820986",
-                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advance Melanoma (MK-790...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
+                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advance Melanoma (MK-790...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
                   "url": "https://clinicaltrials.gov/study/NCT03820986"
                 },
                 {
                   "nct_id": "NCT05665595",
-                  "excerpt": "\"A Study of Adjuvant Pembrolizumab/Vibostolimab (MK-7684A) Versus Pembrolizumab for Resected High-Risk Melanoma in Participants With High-Risk Stage II-IV Melano...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab/Vibostolimab, Pembrolizumab]",
+                  "excerpt": "\"A Study of Adjuvant Pembrolizumab/Vibostolimab (MK-7684A) Versus Pembrolizumab for Resected High-Risk Melanoma in Participants With High-Risk Stage II-IV Melano...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab/Vibostolimab, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT05665595"
                 }
               ],
@@ -1136,17 +1136,17 @@
               "citations": [
                 {
                   "nct_id": "NCT00084656",
-                  "excerpt": "\"Monoclonal Antibody Therapy and Vaccine Therapy in Treating Patients With Resected Stage III or Stage IV Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [ipilimumab, Tyrosinase/gp100/MART-1 Peptides]",
+                  "excerpt": "\"Monoclonal Antibody Therapy and Vaccine Therapy in Treating Patients With Resected Stage III or Stage IV Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"; armsInterventionsModule.interventions[].name: [ipilimumab, Tyrosinase/gp100/MART-1 Peptides]",
                   "url": "https://clinicaltrials.gov/study/NCT00084656"
                 },
                 {
                   "nct_id": "NCT00803374",
-                  "excerpt": "\"Combination of Anti-CD137 & Ipilimumab in Patients With Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [AntiCD137, AntiCD137, AntiCD137, AntiCD137, AntiCD137, Ipilimumab]",
+                  "excerpt": "\"Combination of Anti-CD137 & Ipilimumab in Patients With Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"; armsInterventionsModule.interventions[].name: [AntiCD137, AntiCD137, AntiCD137, AntiCD137, AntiCD137, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT00803374"
                 },
                 {
                   "nct_id": "NCT03165409",
-                  "excerpt": "\"Cost of Adverse Events Related to How Often Follow-Up Occurs Among Patients With Cancer That Has Spread\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab]",
+                  "excerpt": "\"Cost of Adverse Events Related to How Often Follow-Up Occurs Among Patients With Cancer That Has Spread\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03165409"
                 }
               ],
@@ -1159,17 +1159,17 @@
               "citations": [
                 {
                   "nct_id": "NCT01271907",
-                  "excerpt": "\"Drosophila-generated CTL\" \u2014 armsInterventionsModule.interventions[].name: [fludarabine, cyclophosphamide, Drosophila-peptide pulsed Melanoma-reactive autologous CD8+ PBL, Aldesleukin]",
+                  "excerpt": "\"Drosophila-generated CTL\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [fludarabine, cyclophosphamide, Drosophila-peptide pulsed Melanoma-reactive autologous CD8+ PBL, Aldesleukin]",
                   "url": "https://clinicaltrials.gov/study/NCT01271907"
                 },
                 {
                   "nct_id": "NCT01468818",
-                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Cyclophosphamide, Fludarabine, Young Tumor Infiltrating Lymphocytes (TIL)]",
+                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Cyclophosphamide, Fludarabine, Young Tumor Infiltrating Lymphocytes (TIL)]",
                   "url": "https://clinicaltrials.gov/study/NCT01468818"
                 },
                 {
                   "nct_id": "NCT01993719",
-                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
+                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 }
               ],
@@ -1182,17 +1182,17 @@
               "citations": [
                 {
                   "nct_id": "NCT01271907",
-                  "excerpt": "\"Drosophila-generated CTL\" \u2014 armsInterventionsModule.interventions[].name: [fludarabine, cyclophosphamide, Drosophila-peptide pulsed Melanoma-reactive autologous CD8+ PBL, Aldesleukin]",
+                  "excerpt": "\"Drosophila-generated CTL\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [fludarabine, cyclophosphamide, Drosophila-peptide pulsed Melanoma-reactive autologous CD8+ PBL, Aldesleukin]",
                   "url": "https://clinicaltrials.gov/study/NCT01271907"
                 },
                 {
                   "nct_id": "NCT01468818",
-                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Cyclophosphamide, Fludarabine, Young Tumor Infiltrating Lymphocytes (TIL)]",
+                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Cyclophosphamide, Fludarabine, Young Tumor Infiltrating Lymphocytes (TIL)]",
                   "url": "https://clinicaltrials.gov/study/NCT01468818"
                 },
                 {
                   "nct_id": "NCT01993719",
-                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
+                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 }
               ],
@@ -1205,17 +1205,17 @@
               "citations": [
                 {
                   "nct_id": "NCT00072085",
-                  "excerpt": "\"Immunization With gp100 Protein Vaccine in Treating Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [aldesleukin, gp100 antigen, incomplete Freund's adjuvant]",
+                  "excerpt": "\"Immunization With gp100 Protein Vaccine in Treating Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [aldesleukin, gp100 antigen, incomplete Freund's adjuvant]",
                   "url": "https://clinicaltrials.gov/study/NCT00072085"
                 },
                 {
                   "nct_id": "NCT01271907",
-                  "excerpt": "\"Drosophila-generated CTL\" \u2014 armsInterventionsModule.interventions[].name: [fludarabine, cyclophosphamide, Drosophila-peptide pulsed Melanoma-reactive autologous CD8+ PBL, Aldesleukin]",
+                  "excerpt": "\"Drosophila-generated CTL\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [fludarabine, cyclophosphamide, Drosophila-peptide pulsed Melanoma-reactive autologous CD8+ PBL, Aldesleukin]",
                   "url": "https://clinicaltrials.gov/study/NCT01271907"
                 },
                 {
                   "nct_id": "NCT01993719",
-                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
+                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 }
               ],
@@ -1228,17 +1228,17 @@
               "citations": [
                 {
                   "nct_id": "NCT00003665",
-                  "excerpt": "\"Vaccine Therapy in Treating Patients With Stage IV Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [dendritic cell-MART-1 peptide vaccine, gp100 antigen, therapeutic tumor infiltrating lymphocytes, tyrosinase peptide]",
+                  "excerpt": "\"Vaccine Therapy in Treating Patients With Stage IV Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [dendritic cell-MART-1 peptide vaccine, gp100 antigen, therapeutic tumor infiltrating lymphocytes, tyrosinase peptide]",
                   "url": "https://clinicaltrials.gov/study/NCT00003665"
                 },
                 {
                   "nct_id": "NCT00019396",
-                  "excerpt": "\"flt3L With or Without Vaccine Therapy in Treating Patients With Metastatic Melanoma or Renal Cell Cancer\" \u2014 armsInterventionsModule.interventions[].name: [flt3 ligand, gp100 antigen, MART-1 antigen, Montanide ISA-51, tyrosinase peptide]",
+                  "excerpt": "\"flt3L With or Without Vaccine Therapy in Treating Patients With Metastatic Melanoma or Renal Cell Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [flt3 ligand, gp100 antigen, MART-1 antigen, Montanide ISA-51, tyrosinase peptide]",
                   "url": "https://clinicaltrials.gov/study/NCT00019396"
                 },
                 {
                   "nct_id": "NCT00072085",
-                  "excerpt": "\"Immunization With gp100 Protein Vaccine in Treating Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [aldesleukin, gp100 antigen, incomplete Freund's adjuvant]",
+                  "excerpt": "\"Immunization With gp100 Protein Vaccine in Treating Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [aldesleukin, gp100 antigen, incomplete Freund's adjuvant]",
                   "url": "https://clinicaltrials.gov/study/NCT00072085"
                 }
               ],
@@ -1251,17 +1251,17 @@
               "citations": [
                 {
                   "nct_id": "NCT02224781",
-                  "excerpt": "\"Dabrafenib and Trametinib Followed by Ipilimumab and Nivolumab or Ipilimumab and Nivolumab Followed by Dabrafenib and Trametinib in Treating Patients With Stage...\" \u2014 armsInterventionsModule.interventions[].name: [Biospecimen Collection, Computed Tomography, Dabrafenib Mesylate, Echocardiography Test, Ipilimumab, Multigated Acquisition Scan, Nivolumab, Quality-of-Life Assessment, Trametinib Dimethyl Sulfoxide]",
+                  "excerpt": "\"Dabrafenib and Trametinib Followed by Ipilimumab and Nivolumab or Ipilimumab and Nivolumab Followed by Dabrafenib and Trametinib in Treating Patients With Stage...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Biospecimen Collection, Computed Tomography, Dabrafenib Mesylate, Echocardiography Test, Ipilimumab, Multigated Acquisition Scan, Nivolumab, Quality-of-Life Assessment, Trametinib Dimethyl Sulfoxide]",
                   "url": "https://clinicaltrials.gov/study/NCT02224781"
                 },
                 {
                   "nct_id": "NCT03816332",
-                  "excerpt": "\"Tacrolimus, Nivolumab, and Ipilimumab in Treating Kidney Transplant Recipients With Selected Unresectable or Metastatic Cancers\" \u2014 armsInterventionsModule.interventions[].name: [Ipilimumab, Nivolumab, Prednisone, Tacrolimus]",
+                  "excerpt": "\"Tacrolimus, Nivolumab, and Ipilimumab in Treating Kidney Transplant Recipients With Selected Unresectable or Metastatic Cancers\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Ipilimumab, Nivolumab, Prednisone, Tacrolimus]",
                   "url": "https://clinicaltrials.gov/study/NCT03816332"
                 },
                 {
                   "nct_id": "NCT05111574",
-                  "excerpt": "\"Using Nivolumab Alone or With Cabozantinib to Prevent Mucosal Melanoma Return After Surgery\" \u2014 armsInterventionsModule.interventions[].name: [Biospecimen Collection, Bone Scan, Cabozantinib S-malate, Computed Tomography, Echocardiography Test, Magnetic Resonance Imaging, Nivolumab, Placebo Administration, Positron Emission Tomography]",
+                  "excerpt": "\"Using Nivolumab Alone or With Cabozantinib to Prevent Mucosal Melanoma Return After Surgery\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Biospecimen Collection, Bone Scan, Cabozantinib S-malate, Computed Tomography, Echocardiography Test, Magnetic Resonance Imaging, Nivolumab, Placebo Administration, Positron Emission Tomography]",
                   "url": "https://clinicaltrials.gov/study/NCT05111574"
                 }
               ],
@@ -1274,17 +1274,17 @@
               "citations": [
                 {
                   "nct_id": "NCT00003665",
-                  "excerpt": "\"Vaccine Therapy in Treating Patients With Stage IV Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [dendritic cell-MART-1 peptide vaccine, gp100 antigen, therapeutic tumor infiltrating lymphocytes, tyrosinase peptide]",
+                  "excerpt": "\"Vaccine Therapy in Treating Patients With Stage IV Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [dendritic cell-MART-1 peptide vaccine, gp100 antigen, therapeutic tumor infiltrating lymphocytes, tyrosinase peptide]",
                   "url": "https://clinicaltrials.gov/study/NCT00003665"
                 },
                 {
                   "nct_id": "NCT00019396",
-                  "excerpt": "\"flt3L With or Without Vaccine Therapy in Treating Patients With Metastatic Melanoma or Renal Cell Cancer\" \u2014 armsInterventionsModule.interventions[].name: [flt3 ligand, gp100 antigen, MART-1 antigen, Montanide ISA-51, tyrosinase peptide]",
+                  "excerpt": "\"flt3L With or Without Vaccine Therapy in Treating Patients With Metastatic Melanoma or Renal Cell Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [flt3 ligand, gp100 antigen, MART-1 antigen, Montanide ISA-51, tyrosinase peptide]",
                   "url": "https://clinicaltrials.gov/study/NCT00019396"
                 },
                 {
                   "nct_id": "NCT01989572",
-                  "excerpt": "\"Sargramostim, Vaccine Therapy, or Sargramostim and Vaccine Therapy in Preventing Disease Recurrence in Patients With Melanoma That Has Been Removed By Surgery\" \u2014 armsInterventionsModule.interventions[].name: [Laboratory Biomarker Analysis, Placebo, Placebo, Sargramostim, Tyrosinase Peptide]",
+                  "excerpt": "\"Sargramostim, Vaccine Therapy, or Sargramostim and Vaccine Therapy in Preventing Disease Recurrence in Patients With Melanoma That Has Been Removed By Surgery\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Laboratory Biomarker Analysis, Placebo, Placebo, Sargramostim, Tyrosinase Peptide]",
                   "url": "https://clinicaltrials.gov/study/NCT01989572"
                 }
               ],
@@ -1297,17 +1297,17 @@
               "citations": [
                 {
                   "nct_id": "NCT03068455",
-                  "excerpt": "\"An Investigational Immuno-therapy Study of Nivolumab Combined With Ipilimumab Compared to Nivolumab by Itself After Complete Surgical Removal of Stage IIIb/c/d...\" \u2014 armsInterventionsModule.interventions[].name: [nivolumab, ipilimumab]",
+                  "excerpt": "\"An Investigational Immuno-therapy Study of Nivolumab Combined With Ipilimumab Compared to Nivolumab by Itself After Complete Surgical Removal of Stage IIIb/c/d...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"; armsInterventionsModule.interventions[].name: [nivolumab, ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03068455"
                 },
                 {
                   "nct_id": "NCT03165409",
-                  "excerpt": "\"Cost of Adverse Events Related to How Often Follow-Up Occurs Among Patients With Cancer That Has Spread\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab]",
+                  "excerpt": "\"Cost of Adverse Events Related to How Often Follow-Up Occurs Among Patients With Cancer That Has Spread\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03165409"
                 },
                 {
                   "nct_id": "NCT03980314",
-                  "excerpt": "\"A Study to Compare Nivolumab Drug Product Process D to Nivolumab Drug Product Process C in Participants With Stage IIIa/b/c/d or Stage IV Melanoma After Complet...\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab]",
+                  "excerpt": "\"A Study to Compare Nivolumab Drug Product Process D to Nivolumab Drug Product Process C in Participants With Stage IIIa/b/c/d or Stage IV Melanoma After Complet...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"; armsInterventionsModule.interventions[].name: [Nivolumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03980314"
                 }
               ],
@@ -1320,17 +1320,17 @@
               "citations": [
                 {
                   "nct_id": "NCT01037127",
-                  "excerpt": "\"Study to Determine the Effectiveness of GSK1120212 in BRAF Mutation-positive Melanoma Previously Treated With or Without a BRAF Inhibitor\" \u2014 armsInterventionsModule.interventions[].name: [GSK1120212]",
+                  "excerpt": "\"Study to Determine the Effectiveness of GSK1120212 in BRAF Mutation-positive Melanoma Previously Treated With or Without a BRAF Inhibitor\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"GlaxoSmithKline\"; armsInterventionsModule.interventions[].name: [GSK1120212]",
                   "url": "https://clinicaltrials.gov/study/NCT01037127"
                 },
                 {
                   "nct_id": "NCT01138085",
-                  "excerpt": "\"Safety, Pharmacokinetics (PK) of AKT and MEK Combination\" \u2014 armsInterventionsModule.interventions[].name: [GSK1120212, GSK2141795]",
+                  "excerpt": "\"Safety, Pharmacokinetics (PK) of AKT and MEK Combination\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"GlaxoSmithKline\"; armsInterventionsModule.interventions[].name: [GSK1120212, GSK2141795]",
                   "url": "https://clinicaltrials.gov/study/NCT01138085"
                 },
                 {
                   "nct_id": "NCT01328106",
-                  "excerpt": "\"Efficacy and Safety Study of GSK1120212, a MEK Inhibitor, in Subjects With Uveal Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [GSK1120212]",
+                  "excerpt": "\"Efficacy and Safety Study of GSK1120212, a MEK Inhibitor, in Subjects With Uveal Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"GlaxoSmithKline\"; armsInterventionsModule.interventions[].name: [GSK1120212]",
                   "url": "https://clinicaltrials.gov/study/NCT01328106"
                 }
               ],
@@ -1343,17 +1343,17 @@
               "citations": [
                 {
                   "nct_id": "NCT03820986",
-                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advance Melanoma (MK-790...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
+                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advance Melanoma (MK-790...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
                   "url": "https://clinicaltrials.gov/study/NCT03820986"
                 },
                 {
                   "nct_id": "NCT04305041",
-                  "excerpt": "\"Substudy 02A: Safety and Efficacy of Pembrolizumab in Combination With Investigational Agents in Participants With Programmed Cell-death 1 (PD-1) Refractory Mel...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Quavonlimab, Vibostolimab, Lenvatinib, ATRA]",
+                  "excerpt": "\"Substudy 02A: Safety and Efficacy of Pembrolizumab in Combination With Investigational Agents in Participants With Programmed Cell-death 1 (PD-1) Refractory Mel...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Quavonlimab, Vibostolimab, Lenvatinib, ATRA]",
                   "url": "https://clinicaltrials.gov/study/NCT04305041"
                 },
                 {
                   "nct_id": "NCT04889118",
-                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advanced Melanoma (MK-79...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
+                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advanced Melanoma (MK-79...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
                   "url": "https://clinicaltrials.gov/study/NCT04889118"
                 }
               ],
@@ -1366,17 +1366,17 @@
               "citations": [
                 {
                   "nct_id": "NCT02224781",
-                  "excerpt": "\"Dabrafenib and Trametinib Followed by Ipilimumab and Nivolumab or Ipilimumab and Nivolumab Followed by Dabrafenib and Trametinib in Treating Patients With Stage...\" \u2014 armsInterventionsModule.interventions[].name: [Biospecimen Collection, Computed Tomography, Dabrafenib Mesylate, Echocardiography Test, Ipilimumab, Multigated Acquisition Scan, Nivolumab, Quality-of-Life Assessment, Trametinib Dimethyl Sulfoxide]",
+                  "excerpt": "\"Dabrafenib and Trametinib Followed by Ipilimumab and Nivolumab or Ipilimumab and Nivolumab Followed by Dabrafenib and Trametinib in Treating Patients With Stage...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Biospecimen Collection, Computed Tomography, Dabrafenib Mesylate, Echocardiography Test, Ipilimumab, Multigated Acquisition Scan, Nivolumab, Quality-of-Life Assessment, Trametinib Dimethyl Sulfoxide]",
                   "url": "https://clinicaltrials.gov/study/NCT02224781"
                 },
                 {
                   "nct_id": "NCT03033576",
-                  "excerpt": "\"Testing Treatment With Ipilimumab and Nivolumab Compared to Treatment With Ipilimumab Alone in Advanced Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Ipilimumab, Nivolumab]",
+                  "excerpt": "\"Testing Treatment With Ipilimumab and Nivolumab Compared to Treatment With Ipilimumab Alone in Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Ipilimumab, Nivolumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03033576"
                 },
                 {
                   "nct_id": "NCT03816332",
-                  "excerpt": "\"Tacrolimus, Nivolumab, and Ipilimumab in Treating Kidney Transplant Recipients With Selected Unresectable or Metastatic Cancers\" \u2014 armsInterventionsModule.interventions[].name: [Ipilimumab, Nivolumab, Prednisone, Tacrolimus]",
+                  "excerpt": "\"Tacrolimus, Nivolumab, and Ipilimumab in Treating Kidney Transplant Recipients With Selected Unresectable or Metastatic Cancers\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Ipilimumab, Nivolumab, Prednisone, Tacrolimus]",
                   "url": "https://clinicaltrials.gov/study/NCT03816332"
                 }
               ],
@@ -1389,12 +1389,12 @@
               "citations": [
                 {
                   "nct_id": "NCT01978236",
-                  "excerpt": "\"Dabrafenib/Trametinib, BRAF or BRAF AND MEK Pre-op With BRAF and MEK Post-op, Phase IIB, Melanoma With Brain Mets,Biomarkers and Metabolites\" \u2014 armsInterventionsModule.interventions[].name: [Dabrafenib 150 mg, Trametinib 2.0 mg]",
+                  "excerpt": "\"Dabrafenib/Trametinib, BRAF or BRAF AND MEK Pre-op With BRAF and MEK Post-op, Phase IIB, Melanoma With Brain Mets,Biomarkers and Metabolites\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"GlaxoSmithKline\"; armsInterventionsModule.interventions[].name: [Dabrafenib 150 mg, Trametinib 2.0 mg]",
                   "url": "https://clinicaltrials.gov/study/NCT01978236"
                 },
                 {
                   "nct_id": "NCT02082665",
-                  "excerpt": "\"Effects of Dabrafenib on the Single Dose Pharmacokinetics (PK) of Rosuvastatin and Midazolam\" \u2014 armsInterventionsModule.interventions[].name: [Rosuvastatin10 mg tablet, Midazolam 3 mg syrup, Dabrafenib 75 mg capsule]",
+                  "excerpt": "\"Effects of Dabrafenib on the Single Dose Pharmacokinetics (PK) of Rosuvastatin and Midazolam\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"GlaxoSmithKline\"; armsInterventionsModule.interventions[].name: [Rosuvastatin10 mg tablet, Midazolam 3 mg syrup, Dabrafenib 75 mg capsule]",
                   "url": "https://clinicaltrials.gov/study/NCT02082665"
                 }
               ],
@@ -1407,12 +1407,12 @@
               "citations": [
                 {
                   "nct_id": "NCT05704933",
-                  "excerpt": "\"Pilot Study of Nivolumab w/Ipilimumab or Relatlimab in Surgically Resectable Melanoma Brain Metastases\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Nivolumab + Relatlimab, Standard of Care Craniotomy]",
+                  "excerpt": "\"Pilot Study of Nivolumab w/Ipilimumab or Relatlimab in Surgically Resectable Melanoma Brain Metastases\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Nivolumab + Relatlimab, Standard of Care Craniotomy]",
                   "url": "https://clinicaltrials.gov/study/NCT05704933"
                 },
                 {
                   "nct_id": "NCT06295159",
-                  "excerpt": "\"Neoadjuvant and Adjuvant Anti-PD1 or Combinations for Locoregionally Advanced Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Nivolumab + Relatlimab, Ipilimumab]",
+                  "excerpt": "\"Neoadjuvant and Adjuvant Anti-PD1 or Combinations for Locoregionally Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [Nivolumab, Nivolumab + Relatlimab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06295159"
                 }
               ],
@@ -1425,12 +1425,12 @@
               "citations": [
                 {
                   "nct_id": "NCT05704933",
-                  "excerpt": "\"Pilot Study of Nivolumab w/Ipilimumab or Relatlimab in Surgically Resectable Melanoma Brain Metastases\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Nivolumab + Relatlimab, Standard of Care Craniotomy]",
+                  "excerpt": "\"Pilot Study of Nivolumab w/Ipilimumab or Relatlimab in Surgically Resectable Melanoma Brain Metastases\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Nivolumab + Relatlimab, Standard of Care Craniotomy]",
                   "url": "https://clinicaltrials.gov/study/NCT05704933"
                 },
                 {
                   "nct_id": "NCT06295159",
-                  "excerpt": "\"Neoadjuvant and Adjuvant Anti-PD1 or Combinations for Locoregionally Advanced Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Nivolumab + Relatlimab, Ipilimumab]",
+                  "excerpt": "\"Neoadjuvant and Adjuvant Anti-PD1 or Combinations for Locoregionally Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [Nivolumab, Nivolumab + Relatlimab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06295159"
                 }
               ],
@@ -1443,12 +1443,12 @@
               "citations": [
                 {
                   "nct_id": "NCT05704933",
-                  "excerpt": "\"Pilot Study of Nivolumab w/Ipilimumab or Relatlimab in Surgically Resectable Melanoma Brain Metastases\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Nivolumab + Relatlimab, Standard of Care Craniotomy]",
+                  "excerpt": "\"Pilot Study of Nivolumab w/Ipilimumab or Relatlimab in Surgically Resectable Melanoma Brain Metastases\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Nivolumab + Relatlimab, Standard of Care Craniotomy]",
                   "url": "https://clinicaltrials.gov/study/NCT05704933"
                 },
                 {
                   "nct_id": "NCT06295159",
-                  "excerpt": "\"Neoadjuvant and Adjuvant Anti-PD1 or Combinations for Locoregionally Advanced Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Nivolumab + Relatlimab, Ipilimumab]",
+                  "excerpt": "\"Neoadjuvant and Adjuvant Anti-PD1 or Combinations for Locoregionally Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [Nivolumab, Nivolumab + Relatlimab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06295159"
                 }
               ],
@@ -1461,12 +1461,12 @@
               "citations": [
                 {
                   "nct_id": "NCT06250335",
-                  "excerpt": "\"Impact of a Prebiotic Food-enriched Diet (PreFED) in Combination With Ipilimumab/Nivolumab Combination Immune Checkpoint Blockade (ICB) in ICB-refractory Melano...\" \u2014 armsInterventionsModule.interventions[].name: [Prebiotic Food-Enriched Diet, Ipilimumab, Nivolumab]",
+                  "excerpt": "\"Impact of a Prebiotic Food-enriched Diet (PreFED) in Combination With Ipilimumab/Nivolumab Combination Immune Checkpoint Blockade (ICB) in ICB-refractory Melano...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Prebiotic Food-Enriched Diet, Ipilimumab, Nivolumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06250335"
                 },
                 {
                   "nct_id": "NCT06683755",
-                  "excerpt": "\"Phase I/IIa Dose Finding Study of Triplet Regimen of Relatlimab Ipilimumab and NIvolumab in First Line Therapy of Metastatic Melanoma (TRINITY)\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Relatlimab, Ipilimumab]",
+                  "excerpt": "\"Phase I/IIa Dose Finding Study of Triplet Regimen of Relatlimab Ipilimumab and NIvolumab in First Line Therapy of Metastatic Melanoma (TRINITY)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Nivolumab, Relatlimab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06683755"
                 }
               ],
@@ -1479,12 +1479,12 @@
               "citations": [
                 {
                   "nct_id": "NCT06250335",
-                  "excerpt": "\"Impact of a Prebiotic Food-enriched Diet (PreFED) in Combination With Ipilimumab/Nivolumab Combination Immune Checkpoint Blockade (ICB) in ICB-refractory Melano...\" \u2014 armsInterventionsModule.interventions[].name: [Prebiotic Food-Enriched Diet, Ipilimumab, Nivolumab]",
+                  "excerpt": "\"Impact of a Prebiotic Food-enriched Diet (PreFED) in Combination With Ipilimumab/Nivolumab Combination Immune Checkpoint Blockade (ICB) in ICB-refractory Melano...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Prebiotic Food-Enriched Diet, Ipilimumab, Nivolumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06250335"
                 },
                 {
                   "nct_id": "NCT06683755",
-                  "excerpt": "\"Phase I/IIa Dose Finding Study of Triplet Regimen of Relatlimab Ipilimumab and NIvolumab in First Line Therapy of Metastatic Melanoma (TRINITY)\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Relatlimab, Ipilimumab]",
+                  "excerpt": "\"Phase I/IIa Dose Finding Study of Triplet Regimen of Relatlimab Ipilimumab and NIvolumab in First Line Therapy of Metastatic Melanoma (TRINITY)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Nivolumab, Relatlimab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06683755"
                 }
               ],
@@ -1497,12 +1497,12 @@
               "citations": [
                 {
                   "nct_id": "NCT03820986",
-                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advance Melanoma (MK-790...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
+                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advance Melanoma (MK-790...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
                   "url": "https://clinicaltrials.gov/study/NCT03820986"
                 },
                 {
                   "nct_id": "NCT04889118",
-                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advanced Melanoma (MK-79...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
+                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advanced Melanoma (MK-79...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
                   "url": "https://clinicaltrials.gov/study/NCT04889118"
                 }
               ],
@@ -1515,12 +1515,12 @@
               "citations": [
                 {
                   "nct_id": "NCT04303169",
-                  "excerpt": "\"Substudy 02C: Safety and Efficacy of Pembrolizumab in Combination With Investigational Agents or Pembrolizumab Alone in Participants With Stage III Melanoma Who...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Vibostolimab, Gebasaxturev, MK-4830, Favezelimab + Pembrolizumab, ATRA]",
+                  "excerpt": "\"Substudy 02C: Safety and Efficacy of Pembrolizumab in Combination With Investigational Agents or Pembrolizumab Alone in Participants With Stage III Melanoma Who...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Vibostolimab, Gebasaxturev, MK-4830, Favezelimab + Pembrolizumab, ATRA]",
                   "url": "https://clinicaltrials.gov/study/NCT04303169"
                 },
                 {
                   "nct_id": "NCT04305041",
-                  "excerpt": "\"Substudy 02A: Safety and Efficacy of Pembrolizumab in Combination With Investigational Agents in Participants With Programmed Cell-death 1 (PD-1) Refractory Mel...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Quavonlimab, Vibostolimab, Lenvatinib, ATRA]",
+                  "excerpt": "\"Substudy 02A: Safety and Efficacy of Pembrolizumab in Combination With Investigational Agents in Participants With Programmed Cell-death 1 (PD-1) Refractory Mel...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Quavonlimab, Vibostolimab, Lenvatinib, ATRA]",
                   "url": "https://clinicaltrials.gov/study/NCT04305041"
                 }
               ],
@@ -1533,12 +1533,12 @@
               "citations": [
                 {
                   "nct_id": "NCT01866319",
-                  "excerpt": "\"Study to Evaluate the Safety and Efficacy of Two Different Dosing Schedules of Pembrolizumab (MK-3475) Compared to Ipilimumab in Participants With Advanced Mela...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Ipilimumab]",
+                  "excerpt": "\"Study to Evaluate the Safety and Efficacy of Two Different Dosing Schedules of Pembrolizumab (MK-3475) Compared to Ipilimumab in Participants With Advanced Mela...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT01866319"
                 },
                 {
                   "nct_id": "NCT02089685",
-                  "excerpt": "\"Safety and Tolerability of Pembrolizumab (MK-3475) + Pegylated Interferon Alfa-2b and Pembrolizumab+ Ipilimumab in Participants With Advanced Melanoma or Renal...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, PegIFN-2b, Ipilimumab]",
+                  "excerpt": "\"Safety and Tolerability of Pembrolizumab (MK-3475) + Pegylated Interferon Alfa-2b and Pembrolizumab+ Ipilimumab in Participants With Advanced Melanoma or Renal...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Merck Sharp & Dohme LLC\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, PegIFN-2b, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT02089685"
                 }
               ],
@@ -1551,12 +1551,12 @@
               "citations": [
                 {
                   "nct_id": "NCT00006243",
-                  "excerpt": "\"Vaccine Therapy and Sargramostim in Treating Patients With Stage IV Malignant Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [tyrosinase peptide, MART-1:27-35 peptide vaccine, gp100 antigen, incomplete Freund's adjuvant, sargramostim, laboratory biomarker analysis]",
+                  "excerpt": "\"Vaccine Therapy and Sargramostim in Treating Patients With Stage IV Malignant Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [tyrosinase peptide, MART-1:27-35 peptide vaccine, gp100 antigen, incomplete Freund's adjuvant, sargramostim, laboratory biomarker analysis]",
                   "url": "https://clinicaltrials.gov/study/NCT00006243"
                 },
                 {
                   "nct_id": "NCT00072085",
-                  "excerpt": "\"Immunization With gp100 Protein Vaccine in Treating Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [aldesleukin, gp100 antigen, incomplete Freund's adjuvant]",
+                  "excerpt": "\"Immunization With gp100 Protein Vaccine in Treating Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [aldesleukin, gp100 antigen, incomplete Freund's adjuvant]",
                   "url": "https://clinicaltrials.gov/study/NCT00072085"
                 }
               ],
@@ -1569,12 +1569,12 @@
               "citations": [
                 {
                   "nct_id": "NCT01993719",
-                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
+                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 },
                 {
                   "nct_id": "NCT04708418",
-                  "excerpt": "\"A Study Evaluating Whether Pembrolizumab Alone or in Combination With CMP-001 Improves Efficacy of Treatment in Patients With Operable Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Biopsy Procedure, Biospecimen Collection, Computed Tomography, Pembrolizumab, Positron Emission Tomography, Surgical Procedure, VLP-encapsulated TLR9 Agonist CMP-001]",
+                  "excerpt": "\"A Study Evaluating Whether Pembrolizumab Alone or in Combination With CMP-001 Improves Efficacy of Treatment in Patients With Operable Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Biopsy Procedure, Biospecimen Collection, Computed Tomography, Pembrolizumab, Positron Emission Tomography, Surgical Procedure, VLP-encapsulated TLR9 Agonist CMP-001]",
                   "url": "https://clinicaltrials.gov/study/NCT04708418"
                 }
               ],
@@ -1587,12 +1587,12 @@
               "citations": [
                 {
                   "nct_id": "NCT00026221",
-                  "excerpt": "\"Bevacizumab With or Without Interferon Alfa in Treating Patients With Metastatic Malignant Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Recombinant Interferon Alfa, Bevacizumab]",
+                  "excerpt": "\"Bevacizumab With or Without Interferon Alfa in Treating Patients With Metastatic Malignant Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Recombinant Interferon Alfa, Bevacizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT00026221"
                 },
                 {
                   "nct_id": "NCT00387751",
-                  "excerpt": "\"Bevacizumab and Sorafenib in Treating Patients With Unresectable Stage III or Stage IV Malignant Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Bevacizumab, Laboratory Biomarker Analysis, Pharmacological Study, Sorafenib Tosylate]",
+                  "excerpt": "\"Bevacizumab and Sorafenib in Treating Patients With Unresectable Stage III or Stage IV Malignant Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Bevacizumab, Laboratory Biomarker Analysis, Pharmacological Study, Sorafenib Tosylate]",
                   "url": "https://clinicaltrials.gov/study/NCT00387751"
                 }
               ],
@@ -1605,12 +1605,12 @@
               "citations": [
                 {
                   "nct_id": "NCT00387751",
-                  "excerpt": "\"Bevacizumab and Sorafenib in Treating Patients With Unresectable Stage III or Stage IV Malignant Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Bevacizumab, Laboratory Biomarker Analysis, Pharmacological Study, Sorafenib Tosylate]",
+                  "excerpt": "\"Bevacizumab and Sorafenib in Treating Patients With Unresectable Stage III or Stage IV Malignant Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Bevacizumab, Laboratory Biomarker Analysis, Pharmacological Study, Sorafenib Tosylate]",
                   "url": "https://clinicaltrials.gov/study/NCT00387751"
                 },
                 {
                   "nct_id": "NCT01303341",
-                  "excerpt": "\"Riluzole and Sorafenib Tosylate in Treating Patients With Advanced Solid Tumors or Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Laboratory Biomarker Analysis, Pharmacological Study, Riluzole, Sorafenib Tosylate]",
+                  "excerpt": "\"Riluzole and Sorafenib Tosylate in Treating Patients With Advanced Solid Tumors or Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Laboratory Biomarker Analysis, Pharmacological Study, Riluzole, Sorafenib Tosylate]",
                   "url": "https://clinicaltrials.gov/study/NCT01303341"
                 }
               ],
@@ -1623,12 +1623,12 @@
               "citations": [
                 {
                   "nct_id": "NCT03484923",
-                  "excerpt": "\"Study of Efficacy and Safety of Novel Spartalizumab Combinations in Patients With Previously Treated Unresectable or Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [PDR001, LAG525, INC280, ACZ885, LEE011]",
+                  "excerpt": "\"Study of Efficacy and Safety of Novel Spartalizumab Combinations in Patients With Previously Treated Unresectable or Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [PDR001, LAG525, INC280, ACZ885, LEE011]",
                   "url": "https://clinicaltrials.gov/study/NCT03484923"
                 },
                 {
                   "nct_id": "NCT03891953",
-                  "excerpt": "\"Study of Safety and Efficacy of DKY709 Alone or in Combination With PDR001 in Patients With Advanced Solid Tumors.\" \u2014 armsInterventionsModule.interventions[].name: [DKY709, PDR001]",
+                  "excerpt": "\"Study of Safety and Efficacy of DKY709 Alone or in Combination With PDR001 in Patients With Advanced Solid Tumors.\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [DKY709, PDR001]",
                   "url": "https://clinicaltrials.gov/study/NCT03891953"
                 }
               ],
@@ -1641,12 +1641,12 @@
               "citations": [
                 {
                   "nct_id": "NCT01597908",
-                  "excerpt": "\"Dabrafenib Plus Trametinib vs Vemurafenib Alone in Unresectable or Metastatic BRAF V600E/K Cutaneous Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Dabrafenib, Vemurafenib, Trametinib]",
+                  "excerpt": "\"Dabrafenib Plus Trametinib vs Vemurafenib Alone in Unresectable or Metastatic BRAF V600E/K Cutaneous Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [Dabrafenib, Vemurafenib, Trametinib]",
                   "url": "https://clinicaltrials.gov/study/NCT01597908"
                 },
                 {
                   "nct_id": "NCT04961619",
-                  "excerpt": "\"Adjuvant Dabrafenib and Trametinib Treatment in Patients With Completely Resected High-risk Stage III Melanoma.\" \u2014 armsInterventionsModule.interventions[].name: [dabrafenib, trametinib]",
+                  "excerpt": "\"Adjuvant Dabrafenib and Trametinib Treatment in Patients With Completely Resected High-risk Stage III Melanoma.\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [dabrafenib, trametinib]",
                   "url": "https://clinicaltrials.gov/study/NCT04961619"
                 }
               ],
@@ -1659,12 +1659,12 @@
               "citations": [
                 {
                   "nct_id": "NCT01597908",
-                  "excerpt": "\"Dabrafenib Plus Trametinib vs Vemurafenib Alone in Unresectable or Metastatic BRAF V600E/K Cutaneous Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Dabrafenib, Vemurafenib, Trametinib]",
+                  "excerpt": "\"Dabrafenib Plus Trametinib vs Vemurafenib Alone in Unresectable or Metastatic BRAF V600E/K Cutaneous Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [Dabrafenib, Vemurafenib, Trametinib]",
                   "url": "https://clinicaltrials.gov/study/NCT01597908"
                 },
                 {
                   "nct_id": "NCT04961619",
-                  "excerpt": "\"Adjuvant Dabrafenib and Trametinib Treatment in Patients With Completely Resected High-risk Stage III Melanoma.\" \u2014 armsInterventionsModule.interventions[].name: [dabrafenib, trametinib]",
+                  "excerpt": "\"Adjuvant Dabrafenib and Trametinib Treatment in Patients With Completely Resected High-risk Stage III Melanoma.\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [dabrafenib, trametinib]",
                   "url": "https://clinicaltrials.gov/study/NCT04961619"
                 }
               ],
@@ -1677,12 +1677,12 @@
               "citations": [
                 {
                   "nct_id": "NCT05611229",
-                  "excerpt": "\"Treatment Patterns and Outcomes of Targeted Therapy and Immunotherapy Among BRAF-Positive Melanoma Patients Treated in the Adjuvant Setting and Among BRAF-Posit...\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Pembrolizumab, Dabrafenib+Trametinib, Ipilimumab+Nivolumab, Vemurafenib+Cobimetinib, Encorafenib+Binimetinib]",
+                  "excerpt": "\"Treatment Patterns and Outcomes of Targeted Therapy and Immunotherapy Among BRAF-Positive Melanoma Patients Treated in the Adjuvant Setting and Among BRAF-Posit...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [Nivolumab, Pembrolizumab, Dabrafenib+Trametinib, Ipilimumab+Nivolumab, Vemurafenib+Cobimetinib, Encorafenib+Binimetinib]",
                   "url": "https://clinicaltrials.gov/study/NCT05611229"
                 },
                 {
                   "nct_id": "NCT05714371",
-                  "excerpt": "\"Retrospective Assessment of Adverse Events-related Healthcare Resource Utilization and Costs of Immune Checkpoint Inhibitor and Targeted Therapy for Adjuvant Tr...\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab + nivolumab, Pembrolizumab, Dabrafenib + trametinib]",
+                  "excerpt": "\"Retrospective Assessment of Adverse Events-related Healthcare Resource Utilization and Costs of Immune Checkpoint Inhibitor and Targeted Therapy for Adjuvant Tr...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab + nivolumab, Pembrolizumab, Dabrafenib + trametinib]",
                   "url": "https://clinicaltrials.gov/study/NCT05714371"
                 }
               ],
@@ -1695,12 +1695,12 @@
               "citations": [
                 {
                   "nct_id": "NCT05611229",
-                  "excerpt": "\"Treatment Patterns and Outcomes of Targeted Therapy and Immunotherapy Among BRAF-Positive Melanoma Patients Treated in the Adjuvant Setting and Among BRAF-Posit...\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Pembrolizumab, Dabrafenib+Trametinib, Ipilimumab+Nivolumab, Vemurafenib+Cobimetinib, Encorafenib+Binimetinib]",
+                  "excerpt": "\"Treatment Patterns and Outcomes of Targeted Therapy and Immunotherapy Among BRAF-Positive Melanoma Patients Treated in the Adjuvant Setting and Among BRAF-Posit...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [Nivolumab, Pembrolizumab, Dabrafenib+Trametinib, Ipilimumab+Nivolumab, Vemurafenib+Cobimetinib, Encorafenib+Binimetinib]",
                   "url": "https://clinicaltrials.gov/study/NCT05611229"
                 },
                 {
                   "nct_id": "NCT05714371",
-                  "excerpt": "\"Retrospective Assessment of Adverse Events-related Healthcare Resource Utilization and Costs of Immune Checkpoint Inhibitor and Targeted Therapy for Adjuvant Tr...\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab + nivolumab, Pembrolizumab, Dabrafenib + trametinib]",
+                  "excerpt": "\"Retrospective Assessment of Adverse Events-related Healthcare Resource Utilization and Costs of Immune Checkpoint Inhibitor and Targeted Therapy for Adjuvant Tr...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab + nivolumab, Pembrolizumab, Dabrafenib + trametinib]",
                   "url": "https://clinicaltrials.gov/study/NCT05714371"
                 }
               ],
@@ -1713,7 +1713,7 @@
               "citations": [
                 {
                   "nct_id": "NCT01721772",
-                  "excerpt": "\"Study of Nivolumab (BMS-936558) Compared With Dacarbazine in Untreated, Unresectable, or Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [BMS-936558 (Nivolumab), Placebo matching BMS-936558 (Nivolumab), Dacarbazine, Placebo matching Dacarbazine]",
+                  "excerpt": "\"Study of Nivolumab (BMS-936558) Compared With Dacarbazine in Untreated, Unresectable, or Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"; armsInterventionsModule.interventions[].name: [BMS-936558 (Nivolumab), Placebo matching BMS-936558 (Nivolumab), Dacarbazine, Placebo matching Dacarbazine]",
                   "url": "https://clinicaltrials.gov/study/NCT01721772"
                 }
               ],
@@ -1726,7 +1726,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00498979",
-                  "excerpt": "\"Sodium Stibogluconate and IFNa-2b Followed By CDDP, VLB and DTIC Treating Pts.With Advanced Melanoma or Other Cancers\" \u2014 armsInterventionsModule.interventions[].name: [recombinant interferon alfa-2b, cisplatin, sodium stibogluconate, dacarbazine, vinblastine]",
+                  "excerpt": "\"Sodium Stibogluconate and IFNa-2b Followed By CDDP, VLB and DTIC Treating Pts.With Advanced Melanoma or Other Cancers\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Case Comprehensive Cancer Center\"; armsInterventionsModule.interventions[].name: [recombinant interferon alfa-2b, cisplatin, sodium stibogluconate, dacarbazine, vinblastine]",
                   "url": "https://clinicaltrials.gov/study/NCT00498979"
                 }
               ],
@@ -1739,7 +1739,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00498979",
-                  "excerpt": "\"Sodium Stibogluconate and IFNa-2b Followed By CDDP, VLB and DTIC Treating Pts.With Advanced Melanoma or Other Cancers\" \u2014 armsInterventionsModule.interventions[].name: [recombinant interferon alfa-2b, cisplatin, sodium stibogluconate, dacarbazine, vinblastine]",
+                  "excerpt": "\"Sodium Stibogluconate and IFNa-2b Followed By CDDP, VLB and DTIC Treating Pts.With Advanced Melanoma or Other Cancers\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Case Comprehensive Cancer Center\"; armsInterventionsModule.interventions[].name: [recombinant interferon alfa-2b, cisplatin, sodium stibogluconate, dacarbazine, vinblastine]",
                   "url": "https://clinicaltrials.gov/study/NCT00498979"
                 }
               ],
@@ -1752,7 +1752,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00498979",
-                  "excerpt": "\"Sodium Stibogluconate and IFNa-2b Followed By CDDP, VLB and DTIC Treating Pts.With Advanced Melanoma or Other Cancers\" \u2014 armsInterventionsModule.interventions[].name: [recombinant interferon alfa-2b, cisplatin, sodium stibogluconate, dacarbazine, vinblastine]",
+                  "excerpt": "\"Sodium Stibogluconate and IFNa-2b Followed By CDDP, VLB and DTIC Treating Pts.With Advanced Melanoma or Other Cancers\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Case Comprehensive Cancer Center\"; armsInterventionsModule.interventions[].name: [recombinant interferon alfa-2b, cisplatin, sodium stibogluconate, dacarbazine, vinblastine]",
                   "url": "https://clinicaltrials.gov/study/NCT00498979"
                 }
               ],
@@ -1765,7 +1765,7 @@
               "citations": [
                 {
                   "nct_id": "NCT02799901",
-                  "excerpt": "\"Nivolumab Plus Radiotherapy in Advanced Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, hypofractionned radiotherapy]",
+                  "excerpt": "\"Nivolumab Plus Radiotherapy in Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Centre Hospitalier Universitaire de Nice\"; armsInterventionsModule.interventions[].name: [Nivolumab, hypofractionned radiotherapy]",
                   "url": "https://clinicaltrials.gov/study/NCT02799901"
                 }
               ],
@@ -1778,7 +1778,7 @@
               "citations": [
                 {
                   "nct_id": "NCT02115243",
-                  "excerpt": "\"Trial of Neoadjuvant Ipilimumab Followed by Melphalan Via Isolated Limb Infusion for Patients With Unresectable In-transit Extremity Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Ipilimumab]",
+                  "excerpt": "\"Trial of Neoadjuvant Ipilimumab Followed by Melphalan Via Isolated Limb Infusion for Patients With Unresectable In-transit Extremity Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Duke University\"; armsInterventionsModule.interventions[].name: [Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT02115243"
                 }
               ],
@@ -1791,7 +1791,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00565968",
-                  "excerpt": "\"Sorafenib and Isolated Limb Infusion of Melphalan in Treating Patients With Stage III Melanoma of the Arm or Leg\" \u2014 armsInterventionsModule.interventions[].name: [melphalan, sorafenib tosylate, gene expression analysis, protein expression analysis, western blotting, pharmacological study]",
+                  "excerpt": "\"Sorafenib and Isolated Limb Infusion of Melphalan in Treating Patients With Stage III Melanoma of the Arm or Leg\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Duke University\"; armsInterventionsModule.interventions[].name: [melphalan, sorafenib tosylate, gene expression analysis, protein expression analysis, western blotting, pharmacological study]",
                   "url": "https://clinicaltrials.gov/study/NCT00565968"
                 }
               ],
@@ -1804,7 +1804,7 @@
               "citations": [
                 {
                   "nct_id": "NCT01978236",
-                  "excerpt": "\"Dabrafenib/Trametinib, BRAF or BRAF AND MEK Pre-op With BRAF and MEK Post-op, Phase IIB, Melanoma With Brain Mets,Biomarkers and Metabolites\" \u2014 armsInterventionsModule.interventions[].name: [Dabrafenib 150 mg, Trametinib 2.0 mg]",
+                  "excerpt": "\"Dabrafenib/Trametinib, BRAF or BRAF AND MEK Pre-op With BRAF and MEK Post-op, Phase IIB, Melanoma With Brain Mets,Biomarkers and Metabolites\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"GlaxoSmithKline\"; armsInterventionsModule.interventions[].name: [Dabrafenib 150 mg, Trametinib 2.0 mg]",
                   "url": "https://clinicaltrials.gov/study/NCT01978236"
                 }
               ],
@@ -1817,7 +1817,7 @@
               "citations": [
                 {
                   "nct_id": "NCT05628883",
-                  "excerpt": "\"Proof of Concept of TBio-4101, Lymphodepleting Chemo, IL-2 for Relapsed/Refractory Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [TBio-4101, Cyclophosphamide, Fludarabine, Interleukin-2]",
+                  "excerpt": "\"Proof of Concept of TBio-4101, Lymphodepleting Chemo, IL-2 for Relapsed/Refractory Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [TBio-4101, Cyclophosphamide, Fludarabine, Interleukin-2]",
                   "url": "https://clinicaltrials.gov/study/NCT05628883"
                 }
               ],
@@ -1830,7 +1830,7 @@
               "citations": [
                 {
                   "nct_id": "NCT05524935",
-                  "excerpt": "\"Olaparib in Combination With Pembrolizumab for Advanced Uveal Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib]",
+                  "excerpt": "\"Olaparib in Combination With Pembrolizumab for Advanced Uveal Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib]",
                   "url": "https://clinicaltrials.gov/study/NCT05524935"
                 }
               ],
@@ -1843,7 +1843,7 @@
               "citations": [
                 {
                   "nct_id": "NCT05628883",
-                  "excerpt": "\"Proof of Concept of TBio-4101, Lymphodepleting Chemo, IL-2 for Relapsed/Refractory Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [TBio-4101, Cyclophosphamide, Fludarabine, Interleukin-2]",
+                  "excerpt": "\"Proof of Concept of TBio-4101, Lymphodepleting Chemo, IL-2 for Relapsed/Refractory Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [TBio-4101, Cyclophosphamide, Fludarabine, Interleukin-2]",
                   "url": "https://clinicaltrials.gov/study/NCT05628883"
                 }
               ],
@@ -1856,7 +1856,7 @@
               "citations": [
                 {
                   "nct_id": "NCT05628883",
-                  "excerpt": "\"Proof of Concept of TBio-4101, Lymphodepleting Chemo, IL-2 for Relapsed/Refractory Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [TBio-4101, Cyclophosphamide, Fludarabine, Interleukin-2]",
+                  "excerpt": "\"Proof of Concept of TBio-4101, Lymphodepleting Chemo, IL-2 for Relapsed/Refractory Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"H. Lee Moffitt Cancer Center and Research Institute\"; armsInterventionsModule.interventions[].name: [TBio-4101, Cyclophosphamide, Fludarabine, Interleukin-2]",
                   "url": "https://clinicaltrials.gov/study/NCT05628883"
                 }
               ],
@@ -1869,7 +1869,7 @@
               "citations": [
                 {
                   "nct_id": "NCT01164007",
-                  "excerpt": "\"A Study of Bevacizumab (Avastin) in Combination With Dacarbazine in Participants With Unresectable/Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Bevacizumab, Dacarbazine]",
+                  "excerpt": "\"A Study of Bevacizumab (Avastin) in Combination With Dacarbazine in Participants With Unresectable/Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Hoffmann-La Roche\"; armsInterventionsModule.interventions[].name: [Bevacizumab, Dacarbazine]",
                   "url": "https://clinicaltrials.gov/study/NCT01164007"
                 }
               ],
@@ -1882,7 +1882,7 @@
               "citations": [
                 {
                   "nct_id": "NCT01164007",
-                  "excerpt": "\"A Study of Bevacizumab (Avastin) in Combination With Dacarbazine in Participants With Unresectable/Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Bevacizumab, Dacarbazine]",
+                  "excerpt": "\"A Study of Bevacizumab (Avastin) in Combination With Dacarbazine in Participants With Unresectable/Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Hoffmann-La Roche\"; armsInterventionsModule.interventions[].name: [Bevacizumab, Dacarbazine]",
                   "url": "https://clinicaltrials.gov/study/NCT01164007"
                 }
               ],
@@ -1895,7 +1895,7 @@
               "citations": [
                 {
                   "nct_id": "NCT07436390",
-                  "excerpt": "\"IFN-Gamma Expression as a Predictor of Response to Immune Checkpoint Inhibitors in First-Line Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Nivolumab, Ipilimumab/Nivolumab]",
+                  "excerpt": "\"IFN-Gamma Expression as a Predictor of Response to Immune Checkpoint Inhibitors in First-Line Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Institute of Oncology Ljubljana\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Nivolumab, Ipilimumab/Nivolumab]",
                   "url": "https://clinicaltrials.gov/study/NCT07436390"
                 }
               ],
@@ -1908,7 +1908,7 @@
               "citations": [
                 {
                   "nct_id": "NCT07436390",
-                  "excerpt": "\"IFN-Gamma Expression as a Predictor of Response to Immune Checkpoint Inhibitors in First-Line Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Nivolumab, Ipilimumab/Nivolumab]",
+                  "excerpt": "\"IFN-Gamma Expression as a Predictor of Response to Immune Checkpoint Inhibitors in First-Line Metastatic Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Institute of Oncology Ljubljana\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Nivolumab, Ipilimumab/Nivolumab]",
                   "url": "https://clinicaltrials.gov/study/NCT07436390"
                 }
               ],
@@ -1921,7 +1921,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00002882",
-                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
+                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
                   "url": "https://clinicaltrials.gov/study/NCT00002882"
                 }
               ],
@@ -1934,7 +1934,7 @@
               "citations": [
                 {
                   "nct_id": "NCT02719015",
-                  "excerpt": "\"Dose Escalation and Cohort Expansion of Safety and Tolerability Study of Intratumoral rAd.CD40L (ISF35) in Combination of Systemic Pembrolizumab in Patients Wit...\" \u2014 armsInterventionsModule.interventions[].name: [rAd.CD40L, Pembrolizumab]",
+                  "excerpt": "\"Dose Escalation and Cohort Expansion of Safety and Tolerability Study of Intratumoral rAd.CD40L (ISF35) in Combination of Systemic Pembrolizumab in Patients Wit...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [rAd.CD40L, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT02719015"
                 }
               ],
@@ -1947,7 +1947,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00002882",
-                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
+                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
                   "url": "https://clinicaltrials.gov/study/NCT00002882"
                 }
               ],
@@ -1960,7 +1960,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00002882",
-                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
+                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
                   "url": "https://clinicaltrials.gov/study/NCT00002882"
                 }
               ],
@@ -1973,7 +1973,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00002882",
-                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
+                  "excerpt": "\"Interferon Alfa With or Without Combination Chemotherapy Plus Interleukin-2 in Treating Patients With Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"M.D. Anderson Cancer Center\"; armsInterventionsModule.interventions[].name: [Aldesleukin (IL-2), Recombinant Interferon Alfa (IFN-A), Cisplatin, Dacarbazine, Vinblastine, Adjuvant Therapy]",
                   "url": "https://clinicaltrials.gov/study/NCT00002882"
                 }
               ],
@@ -1986,7 +1986,7 @@
               "citations": [
                 {
                   "nct_id": "NCT02320305",
-                  "excerpt": "\"MART-1 Antigen With or Without TLR4 Agonist GLA-SE in Treating Patients With Stage II-IV Melanoma That Has Been Removed by Surgery\" \u2014 armsInterventionsModule.interventions[].name: [MART-1 Antigen, TLR4 Agonist GLA-SE, Laboratory Biomarker Analysis]",
+                  "excerpt": "\"MART-1 Antigen With or Without TLR4 Agonist GLA-SE in Treating Patients With Stage II-IV Melanoma That Has Been Removed by Surgery\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Mayo Clinic\"; armsInterventionsModule.interventions[].name: [MART-1 Antigen, TLR4 Agonist GLA-SE, Laboratory Biomarker Analysis]",
                   "url": "https://clinicaltrials.gov/study/NCT02320305"
                 }
               ],
@@ -1999,7 +1999,7 @@
               "citations": [
                 {
                   "nct_id": "NCT03021460",
-                  "excerpt": "\"Pembrolizumab and Ibrutinib in Treating Patients With Stage III-IV Melanoma That Cannot Be Removed by Surgery\" \u2014 armsInterventionsModule.interventions[].name: [Ibrutinib, Laboratory Biomarker Analysis, Pembrolizumab]",
+                  "excerpt": "\"Pembrolizumab and Ibrutinib in Treating Patients With Stage III-IV Melanoma That Cannot Be Removed by Surgery\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Mayo Clinic\"; armsInterventionsModule.interventions[].name: [Ibrutinib, Laboratory Biomarker Analysis, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03021460"
                 }
               ],
@@ -2012,7 +2012,7 @@
               "citations": [
                 {
                   "nct_id": "NCT02020707",
-                  "excerpt": "\"Nab-Paclitaxel and Bevacizumab in Treating Patients With Unresectable Stage IV Melanoma or Gynecological Cancers\" \u2014 armsInterventionsModule.interventions[].name: [Bevacizumab, Laboratory Biomarker Analysis, Nab-paclitaxel, Pharmacological Study]",
+                  "excerpt": "\"Nab-Paclitaxel and Bevacizumab in Treating Patients With Unresectable Stage IV Melanoma or Gynecological Cancers\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Mayo Clinic\"; armsInterventionsModule.interventions[].name: [Bevacizumab, Laboratory Biomarker Analysis, Nab-paclitaxel, Pharmacological Study]",
                   "url": "https://clinicaltrials.gov/study/NCT02020707"
                 }
               ],
@@ -2025,7 +2025,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00003690",
-                  "excerpt": "\"Flavopiridol Plus Cisplatin or Carboplatin in Treating Patients With Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [alvocidib, carboplatin, cisplatin]",
+                  "excerpt": "\"Flavopiridol Plus Cisplatin or Carboplatin in Treating Patients With Advanced Solid Tumors\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Mayo Clinic\"; armsInterventionsModule.interventions[].name: [alvocidib, carboplatin, cisplatin]",
                   "url": "https://clinicaltrials.gov/study/NCT00003690"
                 }
               ],
@@ -2038,7 +2038,7 @@
               "citations": [
                 {
                   "nct_id": "NCT06594991",
-                  "excerpt": "\"A Study of Fianlimab, Cemiplimab, and Ipilimumab in People With Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Fianlimab, Cemiplimab, Ipilimumab]",
+                  "excerpt": "\"A Study of Fianlimab, Cemiplimab, and Ipilimumab in People With Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Memorial Sloan Kettering Cancer Center\"; armsInterventionsModule.interventions[].name: [Fianlimab, Cemiplimab, Ipilimumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06594991"
                 }
               ],
@@ -2051,7 +2051,7 @@
               "citations": [
                 {
                   "nct_id": "NCT01474551",
-                  "excerpt": "\"Vemurafenib (R05185426) in Poor Performance Status Patients With Unresectable Locally Advanced or Metastatic Melanoma Harboring a V600E/K Mutation\" \u2014 armsInterventionsModule.interventions[].name: [vemurafenib]",
+                  "excerpt": "\"Vemurafenib (R05185426) in Poor Performance Status Patients With Unresectable Locally Advanced or Metastatic Melanoma Harboring a V600E/K Mutation\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Memorial Sloan Kettering Cancer Center\"; armsInterventionsModule.interventions[].name: [vemurafenib]",
                   "url": "https://clinicaltrials.gov/study/NCT01474551"
                 }
               ],
@@ -2064,7 +2064,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00059475",
-                  "excerpt": "\"Peptide Vaccination for Patients at High Risk for Recurrent Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Glycoprotein 100 (GP100): 209-217 (210M), Interleukin-2 (IL-2), Montanide ISA 51, Melanoma antigen recognized by T-cells (MART)-1: 27-35, 27-35 (27L): melanoma antigen recognized by T-cells (MART)-1, melanoma antigen recognized by T-cells (MART)-1: 26-35(27L)]",
+                  "excerpt": "\"Peptide Vaccination for Patients at High Risk for Recurrent Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Glycoprotein 100 (GP100): 209-217 (210M), Interleukin-2 (IL-2), Montanide ISA 51, Melanoma antigen recognized by T-cells (MART)-1: 27-35, 27-35 (27L): melanoma antigen recognized by T-cells (MART)-1, melanoma antigen recognized by T-cells (MART)-1: 26-35(27L)]",
                   "url": "https://clinicaltrials.gov/study/NCT00059475"
                 }
               ],
@@ -2077,7 +2077,7 @@
               "citations": [
                 {
                   "nct_id": "NCT00019396",
-                  "excerpt": "\"flt3L With or Without Vaccine Therapy in Treating Patients With Metastatic Melanoma or Renal Cell Cancer\" \u2014 armsInterventionsModule.interventions[].name: [flt3 ligand, gp100 antigen, MART-1 antigen, Montanide ISA-51, tyrosinase peptide]",
+                  "excerpt": "\"flt3L With or Without Vaccine Therapy in Treating Patients With Metastatic Melanoma or Renal Cell Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [flt3 ligand, gp100 antigen, MART-1 antigen, Montanide ISA-51, tyrosinase peptide]",
                   "url": "https://clinicaltrials.gov/study/NCT00019396"
                 }
               ],
@@ -2090,7 +2090,7 @@
               "citations": [
                 {
                   "nct_id": "NCT01585415",
-                  "excerpt": "\"Vemurafenib and White Blood Cell Therapy for Advanced Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Vemurafenib, Young TIL, Cyclophosphamide, Fludarabine, Aldesleukin]",
+                  "excerpt": "\"Vemurafenib and White Blood Cell Therapy for Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"; armsInterventionsModule.interventions[].name: [Vemurafenib, Young TIL, Cyclophosphamide, Fludarabine, Aldesleukin]",
                   "url": "https://clinicaltrials.gov/study/NCT01585415"
                 }
               ],
@@ -2103,7 +2103,7 @@
               "citations": [
                 {
                   "nct_id": "NCT01597908",
-                  "excerpt": "\"Dabrafenib Plus Trametinib vs Vemurafenib Alone in Unresectable or Metastatic BRAF V600E/K Cutaneous Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Dabrafenib, Vemurafenib, Trametinib]",
+                  "excerpt": "\"Dabrafenib Plus Trametinib vs Vemurafenib Alone in Unresectable or Metastatic BRAF V600E/K Cutaneous Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Novartis Pharmaceuticals\"; armsInterventionsModule.interventions[].name: [Dabrafenib, Vemurafenib, Trametinib]",
                   "url": "https://clinicaltrials.gov/study/NCT01597908"
                 }
               ],
@@ -2116,7 +2116,7 @@
               "citations": [
                 {
                   "nct_id": "NCT04495257",
-                  "excerpt": "\"A Study of APX005M in Combination With Nivolumab and Ipilimumab in Treatment Na\u00efve Patients With Advanced Melanoma or Renal Cell Carcinoma (RCC)\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, APX005M]",
+                  "excerpt": "\"A Study of APX005M in Combination With Nivolumab and Ipilimumab in Treatment Na\u00efve Patients With Advanced Melanoma or Renal Cell Carcinoma (RCC)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Yale University\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, APX005M]",
                   "url": "https://clinicaltrials.gov/study/NCT04495257"
                 }
               ],
@@ -2129,7 +2129,7 @@
               "citations": [
                 {
                   "nct_id": "NCT04955743",
-                  "excerpt": "\"Pembrolizumab and Lenvatinib in Patients With Brain Metastases From Melanoma or Renal Cell Carcinoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib]",
+                  "excerpt": "\"Pembrolizumab and Lenvatinib in Patients With Brain Metastases From Melanoma or Renal Cell Carcinoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Yale University\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib]",
                   "url": "https://clinicaltrials.gov/study/NCT04955743"
                 }
               ],
@@ -2142,7 +2142,7 @@
               "citations": [
                 {
                   "nct_id": "NCT04495257",
-                  "excerpt": "\"A Study of APX005M in Combination With Nivolumab and Ipilimumab in Treatment Na\u00efve Patients With Advanced Melanoma or Renal Cell Carcinoma (RCC)\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, APX005M]",
+                  "excerpt": "\"A Study of APX005M in Combination With Nivolumab and Ipilimumab in Treatment Na\u00efve Patients With Advanced Melanoma or Renal Cell Carcinoma (RCC)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Yale University\"; armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, APX005M]",
                   "url": "https://clinicaltrials.gov/study/NCT04495257"
                 }
               ],
@@ -2155,7 +2155,7 @@
               "citations": [
                 {
                   "nct_id": "NCT04955743",
-                  "excerpt": "\"Pembrolizumab and Lenvatinib in Patients With Brain Metastases From Melanoma or Renal Cell Carcinoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib]",
+                  "excerpt": "\"Pembrolizumab and Lenvatinib in Patients With Brain Metastases From Melanoma or Renal Cell Carcinoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Yale University\"; armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib]",
                   "url": "https://clinicaltrials.gov/study/NCT04955743"
                 }
               ],
@@ -2177,16 +2177,16 @@
       ],
       "query_interpretation": "Interpreted as a relationship question, rendered as a network graph.",
       "assumptions": [
-        "Interpreted \"network of sponsors and drugs\" as a sponsor-drug relationship graph.",
-        "Interpreted \"melanoma trials\" as trials with the condition melanoma."
+        "Read 'network of sponsors and drugs' as a sponsor-drug relationship query."
       ],
       "warnings": [
         "Fetched 600 of 3,743 matching trials (capped at max_studies=600); figures below describe that sample, not the full result set.",
         "Merged brand and generic names into 14 shared compound node(s) using RxNorm; each merged node lists its source names.",
-        "Graph truncated to the 40 highest-degree nodes for readability."
+        "Graph truncated to 40 nodes for readability, by retaining the busiest sponsors first, then the drugs those sponsors study."
       ],
       "sorting": "node size descending",
-      "time_granularity": null
+      "time_granularity": null,
+      "empty_reason": null
     }
   }
 }

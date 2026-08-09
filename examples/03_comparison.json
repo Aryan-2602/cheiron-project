@@ -369,7 +369,7 @@
       ],
       "query_interpretation": "Interpreted as a comparison question, grouped by phase, rendered as a grouped bar chart.",
       "assumptions": [
-        "Interpreted \"phases\" as the phase axis for comparing the two drugs."
+        "Interpreted 'compare phases' as comparing the phase breakdown for trials involving the two listed drugs."
       ],
       "warnings": [
         "Fetched 500 of 2,922 matching trials (capped at max_studies=500); figures below describe that sample, not the full result set.",
@@ -378,7 +378,8 @@
         "72 of 944 trials had no value for this axis and are shown as a separate bucket."
       ],
       "sorting": "phase order (Early Phase 1 -> Phase 4)",
-      "time_granularity": null
+      "time_granularity": null,
+      "empty_reason": null
     }
   }
 }

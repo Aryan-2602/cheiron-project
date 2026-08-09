@@ -6,7 +6,7 @@
   "response": {
     "visualization": {
       "type": "geo_bar_chart",
-      "title": "Melanoma (recruiting) trials by country",
+      "title": "Melanoma trials (recruiting) by country",
       "encoding": {
         "x": {
           "field": "country",
@@ -478,13 +478,15 @@
       ],
       "query_interpretation": "Interpreted as a geographic question, grouped by country, rendered as a geo bar chart.",
       "assumptions": [
-        "Interpreted \"most recruiting trials\" as grouping recruiting trials by country and comparing the resulting counts."
+        "Interpreted 'most recruiting trials' as grouping recruiting trials by country to compare countries."
       ],
       "warnings": [
-        "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials."
+        "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials.",
+        "Showing the top 20 of 49 country values by trial count; 29 lower-frequency values are omitted."
       ],
       "sorting": "trial count descending",
-      "time_granularity": null
+      "time_granularity": null,
+      "empty_reason": null
     }
   }
 }
