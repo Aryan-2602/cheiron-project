@@ -363,13 +363,25 @@ function renderMeta(meta) {
 }
 
 /** The API returns two different error shapes; handle both explicitly. */
+function isEmpty(viz) {
+  // A network's rows are one container holding nodes and edges, so a non-empty
+  // data array can still be an empty graph.
+  if (viz.type === "network_graph") return !((viz.data[0] || {}).nodes || []).length;
+  return !viz.data.length;
+}
+
 function describeError(status, body) {
   const detail = body && body.detail;
   if (Array.isArray(detail)) {
-    // FastAPI's own request-body validation error.
+    // FastAPI's own request-body validation error (422).
     const first = detail[0] || {};
     return { code: `HTTP ${status}`, message: `${(first.loc || []).join(".")}: ${first.msg || "invalid request"}` };
   }
+  // Domain errors: the body *is* an ErrorResponse.
+  if (body && body.error) {
+    return { code: body.error.code, message: body.error.message };
+  }
+  // Older wrapped shape, in case a deployment predates the OpenAPI alignment.
   if (detail && detail.error) {
     return { code: detail.error.code, message: detail.error.message };
   }
@@ -465,9 +477,19 @@ async function run() {
 
   renderMeta(body.meta);
 
-  if (!viz.data.length) {
-    // A well-formed question that matched nothing is a 200 with empty data.
-    showError("NO_RESULTS", "No trials matched this query. Try broadening the filters.");
+  if (isEmpty(viz)) {
+    // A 200 with no rows is a correct answer, and meta.empty_reason says which
+    // kind. NO_CHARTABLE_DATA means trials *were* found, so "try broadening the
+    // filters" would be the wrong advice; the pipeline's own warning explains
+    // what was missing.
+    const reason = (body.meta && body.meta.empty_reason) || "NO_MATCHING_TRIALS";
+    const explanation = (body.meta && body.meta.warnings || []).find(w => /matched the filters/.test(w));
+    showError(
+      reason,
+      reason === "NO_CHARTABLE_DATA"
+        ? explanation || "Trials matched, but none had a value this chart can plot."
+        : "No trials matched this query. Try broadening the filters."
+    );
   }
 }
 

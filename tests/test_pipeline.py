@@ -12,7 +12,7 @@ import respx
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.models.schemas import ExtractedEntities, QueryPlan, QueryRequest
+from app.models.schemas import ExtractedEntities, Meta, QueryPlan, QueryRequest
 from app.pipeline import (
     EmptyResultError,
     UnsupportedQueryError,
@@ -1022,3 +1022,131 @@ class TestUnscopedSampleDisclosure:
         mock_studies(self.studies(5), total=5)
         response = await run(drugs=[], phases=[3])
         assert not any("capped slice of the whole registry" in w for w in response.meta.warnings)
+
+
+class TestEmptyPlaceholderMatchesTheRequestedShape:
+    """A frontend routes on visualization.type, so a bar-chart placeholder for a
+    failed network query sends an empty graph to the wrong renderer."""
+
+    def placeholder(self, viz_type):
+        from app.api.routes import _empty_response
+
+        error = EmptyResultError(
+            "nothing to chart", Meta(), reason="NO_CHARTABLE_DATA", viz_type=viz_type
+        )
+        return _empty_response(error).visualization
+
+    def test_a_failed_network_query_returns_an_empty_network(self):
+        viz = self.placeholder("network_graph")
+        assert viz.type == "network_graph"
+        assert viz.data == [{"nodes": [], "edges": []}]
+        # The key maps a renderer needs are present, so it can parse the shape.
+        assert viz.encoding.nodes and viz.encoding.edges
+
+    def test_a_failed_chart_query_still_returns_a_bar_placeholder(self):
+        viz = self.placeholder("bar_chart")
+        assert viz.type == "bar_chart"
+        assert viz.data == []
+        assert viz.encoding.x and viz.encoding.y
+
+    def test_the_time_series_case_keeps_the_chart_placeholder(self):
+        assert self.placeholder("time_series").type == "bar_chart"
+
+    @respx.mock
+    async def test_the_requested_type_is_carried_from_the_plan(self):
+        mock_rxnorm_unmatched()
+        mock_studies(
+            [make_record(f"NCT0000000{i}", interventions=[("DRUG", f"Drug{i}")])
+             for i in range(1, 4)]
+        )
+        with pytest.raises(EmptyResultError) as exc:
+            await run(
+                query_type="relationship", viz_type="network_graph",
+                group_by=None, network_kind="drug_drug",
+            )
+        assert exc.value.viz_type == "network_graph"
+
+
+class TestClientSideStatusWarningIsAccurate:
+    def test_it_no_longer_claims_only_one_status_can_go_upstream(self):
+        """Verified statuses are unioned in one aggFilters clause; what reaches
+        the client-side path does so because its code fails silently."""
+        store = StudyStore()
+        store.add_records(
+            [make_record(f"NCT_{s}", status=s) for s in ("AVAILABLE", "COMPLETED")]
+        )
+        warnings = apply_client_side_filters(store, plan(statuses=["AVAILABLE"]))
+        text = " ".join(warnings)
+        assert "only one status can be filtered upstream" not in text
+        assert "returns zero results rather than an error" in text
+
+
+class TestPrunedNetworkDisclosure:
+    @respx.mock
+    async def test_truncation_discloses_that_node_sizes_are_global(self):
+        """A hub keeps its true trial count while its edges are subgraph-only,
+        so it can look larger than the drawing explains."""
+        mock_rxnorm_unmatched()
+        # Each pair appears twice, so it clears the default min_edge_weight,
+        # and there are more partners than the node cap.
+        mock_studies(
+            [
+                make_record(
+                    f"NCT{i * 2 + rep:08d}",
+                    interventions=[("DRUG", "HubDrug"), ("DRUG", f"Partner{i}")],
+                )
+                for i in range(40)
+                for rep in (0, 1)
+            ]
+        )
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            group_by=None, network_kind="drug_drug",
+        )
+        assert any("Node sizes count every fetched trial" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_an_untruncated_graph_does_not_carry_the_note(self):
+        mock_rxnorm_unmatched()
+        mock_studies(SAMPLE)
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            group_by=None, network_kind="drug_drug",
+        )
+        assert not any("Node sizes count every fetched trial" in w for w in response.meta.warnings)
+
+
+class TestEmptyComparisonSeries:
+    """A series whose search returned nothing produced no rows, so it vanished
+    from a chart whose title still named it."""
+
+    def result(self, membership):
+        records = {
+            "NCT00000001": make_record("NCT00000001", phases=["PHASE3"]),
+            "NCT00000002": make_record("NCT00000002", phases=["PHASE1"]),
+        }
+        from app.services.aggregate import aggregate
+        from app.services.dimensions import get_dimension
+
+        return aggregate(records, get_dimension("phase"), series_membership=membership)
+
+    def test_an_empty_series_is_zero_filled_across_the_existing_keys(self):
+        result = self.result(
+            {"Pembrolizumab": {"NCT00000001", "NCT00000002"}, "Nivolumab": set()}
+        )
+        assert {d.series for d in result.data} == {"Pembrolizumab", "Nivolumab"}
+        empty = [d for d in result.data if d.series == "Nivolumab"]
+        assert {d.key for d in empty} == {"Phase 1", "Phase 3"}
+        assert all(d.value == 0 and d.nct_ids == [] for d in empty)
+
+    def test_a_populated_comparison_is_unchanged(self):
+        result = self.result(
+            {"Pembrolizumab": {"NCT00000001"}, "Nivolumab": {"NCT00000002"}}
+        )
+        assert len(result.data) == 2
+        assert all(d.value == 1 for d in result.data)
+
+    def test_nothing_is_fabricated_when_every_series_is_empty(self):
+        """No keys exist, so there is nothing to zero-fill; this becomes
+        NO_CHARTABLE_DATA instead."""
+        assert self.result({"A": set(), "B": set()}).data == []

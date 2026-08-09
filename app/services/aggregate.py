@@ -121,6 +121,22 @@ def aggregate(
         for _order, neg_count, label, _series_sort, ids, series in rows
     ]
 
+    # A series whose search returned nothing produced no rows at all, so it
+    # vanished from a chart whose title still named it. Zero-fill it across the
+    # keys the other series produced: "this series exists and is empty" is the
+    # answer, and it keeps the encoding honest for a frontend that splits on
+    # the series channel.
+    if None not in series_membership:
+        charted = {d.series for d in data}
+        missing = [s for s in series_membership if s not in charted]
+        if missing and data:
+            keys = list(dict.fromkeys(d.key for d in data))
+            data += [
+                AggregatedDatum(key=key, series=series, value=0, nct_ids=[])
+                for series in missing
+                for key in keys
+            ]
+
     return AggregationResult(
         dimension=dimension.name,
         series_dimension="series" if None not in series_membership else None,

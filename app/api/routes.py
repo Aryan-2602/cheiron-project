@@ -34,6 +34,7 @@ from app.pipeline import (
     ValidationFailure,
     run_pipeline,
 )
+from app.services.viz import EDGE_KEY_MAP, NODE_KEY_MAP
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +88,18 @@ def _empty_response(error: EmptyResultError) -> QueryResponse:
             ),
         ]
         title = "No matching trials"
-    return QueryResponse(
-        visualization=VisualizationSpec(
+    # The placeholder has to be the shape that was asked for: a frontend routes
+    # on `type`, so a bar-chart placeholder for a failed network query sends an
+    # empty graph to the wrong renderer.
+    if error.viz_type == "network_graph":
+        visualization = VisualizationSpec(
+            type="network_graph",
+            title=title,
+            encoding=Encoding(nodes=NODE_KEY_MAP, edges=EDGE_KEY_MAP),
+            data=[{"nodes": [], "edges": []}],
+        )
+    else:
+        visualization = VisualizationSpec(
             type="bar_chart",
             title=title,
             encoding=Encoding(
@@ -96,7 +107,9 @@ def _empty_response(error: EmptyResultError) -> QueryResponse:
                 y=FieldRef(field="trial_count", label="Number of trials", type="quantitative"),
             ),
             data=[],
-        ),
+        )
+    return QueryResponse(
+        visualization=visualization,
         meta=meta,
     )
 

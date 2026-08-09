@@ -70,11 +70,15 @@ class EmptyResultError(RuntimeError):
         message: str,
         meta: Meta,
         reason: Literal["NO_MATCHING_TRIALS", "NO_CHARTABLE_DATA"] = "NO_MATCHING_TRIALS",
+        viz_type: str = "bar_chart",
     ) -> None:
         super().__init__(message)
         meta.empty_reason = reason
         self.meta = meta
         self.reason = reason
+        #: What the question asked to be drawn. The placeholder response has to
+        #: match it, because a frontend routes on the spec's type.
+        self.viz_type = viz_type
 
 
 class UnsupportedQueryError(RuntimeError):
@@ -185,15 +189,15 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
         # sorted() so the disclosure text is stable rather than inheriting set
         # iteration order.
         listed = ", ".join(sorted(wanted_status))
-        reason = (
-            "only one status can be filtered upstream, so a multi-status "
-            "request is narrowed after fetching"
-            if len(wanted_status) > 1
-            else "the upstream filter code for this status is not live-verified"
-        )
+        # Verified statuses are unioned upstream in one aggFilters clause, so
+        # anything reaching here does so because its code fails silently
+        # upstream -- not because the API can only express one status.
+        plural = "these statuses" if len(wanted_status) > 1 else "this status"
         warnings.append(
             f"Kept trials whose status is any of {listed}, filtered client-side "
-            f"({len(store.records):,} of {before:,} fetched trials); {reason}."
+            f"({len(store.records):,} of {before:,} fetched trials); the upstream "
+            f"filter code for {plural} returns zero results rather than an error, "
+            f"so it is not safe to send."
         )
 
     excluded = normalize_statuses(plan.excluded_statuses)
@@ -319,6 +323,15 @@ def build_meta(
         warnings.append(
             f"Graph truncated to {network.truncated_to_top_n} nodes for "
             f"readability, by {how}."
+        )
+        # A node's size counts every fetched trial it appears in, which is the
+        # question a reader asks of a node and what its citations show. Edges,
+        # though, only exist between surviving nodes -- so a hub can look
+        # larger than its drawn connections explain.
+        warnings.append(
+            "Node sizes count every fetched trial the node appears in, including "
+            "trials whose other drugs were pruned from the drawing, so a node can "
+            "be larger than its visible edges alone would suggest."
         )
     if network is not None and network.min_edge_weight > 1:
         warnings.append(
@@ -496,6 +509,7 @@ async def run_pipeline(
                 network=None,
                 extra_warnings=extra_warnings,
             ),
+            viz_type=plan.viz_type,
         )
 
     spec, aggregation, network, analysis_warnings = await analyze(plan, fetched)
@@ -513,7 +527,9 @@ async def run_pipeline(
     # validator and surfaced as an HTTP 500.
     unchartable = _describe_unchartable(spec, plan, fetched, aggregation, network)
     if unchartable:
-        raise EmptyResultError(unchartable, meta, reason="NO_CHARTABLE_DATA")
+        raise EmptyResultError(
+            unchartable, meta, reason="NO_CHARTABLE_DATA", viz_type=plan.viz_type
+        )
 
     response = QueryResponse(visualization=spec, meta=meta)
     return validate_response(
