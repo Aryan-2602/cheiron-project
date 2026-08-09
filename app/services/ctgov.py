@@ -433,7 +433,17 @@ MAX_JOINED_VALUES = 5
 
 #: Operators that mean a value is already an expression; nesting one inside
 #: another OR would change its meaning.
-_EXPRESSION_MARKERS = (" or ", " and ", ",")
+#:
+#: Case-sensitive, and commas are absent, because the previous
+#: case-insensitive form treated ordinary names as expressions and dropped
+#: every other value: "Head and Neck Cancer" and "Merck Sharp & Dohme, LLC"
+#: each suppressed the join. Verified live that neither needs the guard --
+#: query.cond="melanoma OR Head and Neck Cancer" returns 11,953, exactly
+#: 3,743 + 8,637 - 427, and query.spons="Merck Sharp & Dohme, LLC OR Pfizer"
+#: returns 10,260 = 4,276 + 6,061 - 77. A lowercase connector is a stopword
+#: inside a phrase and a comma is part of the name; only the uppercase
+#: operators change what the expression means.
+_EXPRESSION_MARKERS = (" OR ", " AND ", " NOT ", "(", ")")
 
 
 def join_values(values: Iterable[str]) -> tuple[str | None, list[str]]:
@@ -469,7 +479,7 @@ def join_values(values: Iterable[str]) -> tuple[str | None, list[str]]:
 
     # A value that is already an expression is passed through untouched rather
     # than nested inside another OR, which would change what it means.
-    if any(m in v.lower() for v in cleaned for m in _EXPRESSION_MARKERS):
+    if any(m in v for v in cleaned for m in _EXPRESSION_MARKERS):
         note = (
             f"Used {cleaned[0]!r} only: another extracted value already contains "
             f"a search operator, so combining them could change its meaning."

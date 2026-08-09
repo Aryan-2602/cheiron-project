@@ -418,6 +418,32 @@ class TestMultipleExtractedValues:
         assert searches[0].intr == "Pembrolizumab OR Nivolumab"
         assert any("search operator" in n for n in notes)
 
+    @pytest.mark.parametrize(
+        "field,attr,values,expected",
+        [
+            ("conditions", "cond", ["Head and Neck Cancer", "melanoma"],
+             "Head and Neck Cancer OR melanoma"),
+            ("sponsors", "spons", ["Merck Sharp & Dohme, LLC", "Pfizer"],
+             "Merck Sharp & Dohme, LLC OR Pfizer"),
+            ("conditions", "cond", ["Ear, Nose and Throat Diseases", "melanoma"],
+             "Ear, Nose and Throat Diseases OR melanoma"),
+        ],
+    )
+    def test_a_connector_inside_a_name_does_not_suppress_the_join(
+        self, field, attr, values, expected
+    ):
+        """The marker check was case-insensitive and counted commas, so an
+        ordinary name read as an expression and every other value was dropped.
+
+        Verified live that the join is exact in both directions:
+        query.cond="melanoma OR Head and Neck Cancer" returns 11,953 =
+        3,743 + 8,637 - 427, and query.spons="Merck Sharp & Dohme, LLC OR
+        Pfizer" returns 10,260 = 4,276 + 6,061 - 77.
+        """
+        searches, notes = build_searches(self.plan(**{field: values}))
+        assert getattr(searches[0], attr) == expected
+        assert not any("search operator" in n for n in notes)
+
 
 class TestStatusAggFilter:
     """Verified statuses are unioned in one aggFilters clause. An earlier
