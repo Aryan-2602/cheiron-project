@@ -9,6 +9,8 @@ POST /api/v1/query   {"query": "How are lung cancer trials distributed across ph
 
 **The central design rule: the language model never produces a data value.** It reads the question, classifies it, and extracts the entities the user named. Every number in every response is computed by aggregation code over real trial records, and every datum carries citations to the specific trials that produced it.
 
+**[▶ Demo video](https://youtu.be/7l3uMrV71uY)** — a walkthrough of the running system, if you would rather watch it than set it up.
+
 ---
 
 ## Contents
@@ -69,7 +71,7 @@ python scripts/run_examples.py         # writes examples/*.json from live data
 
 ## Demo frontend
 
-A single-file demo client lives in [`frontend/`](frontend/). It exists to demonstrate the claim this project makes about its own output — that a frontend can render it **without guessing**.
+A single-file demo client lives in [`frontend/`](frontend/). It exists to demonstrate the claim this project makes about its own output — that a frontend can render it **without guessing**. There is a [demo video](https://youtu.be/7l3uMrV71uY) if you would rather not run it locally.
 
 ```bash
 uvicorn app.main:app --reload              # terminal 1  (port 8000)
