@@ -85,19 +85,27 @@ class QueryRequest(BaseModel):
     )
 
     # Optional structured overrides.
+    # Bounds sized for real registry values -- the longest sponsor names run to
+    # a few hundred characters -- so an extreme string is rejected here rather
+    # than becoming an oversized upstream URL.
     drug_name: str | None = Field(
-        default=None, description="Intervention name; overrides LLM extraction."
+        default=None, max_length=300,
+        description="Intervention name; overrides LLM extraction.",
     )
     condition: str | None = Field(
-        default=None, description="Condition/disease; overrides LLM extraction."
+        default=None, max_length=500,
+        description="Condition/disease; overrides LLM extraction.",
     )
     sponsor: str | None = Field(
-        default=None, description="Lead sponsor name; overrides LLM extraction."
+        default=None, max_length=500,
+        description="Lead sponsor name; overrides LLM extraction.",
     )
     phase: Literal[1, 2, 3, 4] | None = Field(
         default=None, description="Trial phase as a bare number, matching the API."
     )
-    country: str | None = Field(default=None, description="Location country.")
+    country: str | None = Field(
+        default=None, max_length=200, description="Location country."
+    )
     start_year: int | None = Field(default=None, ge=1990, le=2035)
     end_year: int | None = Field(default=None, ge=1990, le=2035)
 

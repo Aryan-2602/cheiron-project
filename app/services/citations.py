@@ -121,6 +121,25 @@ COMPOSITE_EVIDENCE: dict[str, tuple[str, ...]] = {
 }
 
 
+def evidence_dimension_for_node(node_kind: str) -> str:
+    """Which evidence backs a network node of this kind.
+
+    Shared with the validator so it re-derives the same excerpt the formatter
+    built. Two copies of this mapping would let the check silently stop
+    checking the thing it was written for.
+    """
+    return "drug" if node_kind == "drug" else "sponsor"
+
+
+def evidence_dimension_for_edge(network_kind: str) -> str:
+    """Which evidence backs an edge in this kind of graph.
+
+    A sponsor-drug edge needs both endpoints; a drug-drug edge gets both from
+    the intervention list alone.
+    """
+    return "sponsor_drug" if network_kind == "sponsor_drug" else "drug"
+
+
 def build_excerpt(record: dict[str, Any], dimension: str) -> str:
     """Render the supporting excerpt for one trial on one dimension.
 

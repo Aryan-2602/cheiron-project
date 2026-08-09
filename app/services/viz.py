@@ -22,7 +22,11 @@ from app.models.schemas import (
     QueryPlan,
     VisualizationSpec,
 )
-from app.services.citations import build_citations
+from app.services.citations import (
+    build_citations,
+    evidence_dimension_for_edge,
+    evidence_dimension_for_node,
+)
 from app.services.dimensions import Dimension
 from app.services.store import StudyStore
 
@@ -191,7 +195,7 @@ def build_network_spec(
     nodes: list[dict[str, Any]] = []
     for node in result.nodes:
         citations, total = build_citations(
-            node.nct_ids, store, "drug" if node.kind == "drug" else "sponsor", limit=limit
+            node.nct_ids, store, evidence_dimension_for_node(node.kind), limit=limit
         )
         nodes.append(
             {
@@ -214,9 +218,8 @@ def build_network_spec(
         # so the excerpt has to show both. For a drug-drug edge the
         # intervention list covers them; for a sponsor-drug edge it proves only
         # the drug end, so the lead sponsor is quoted alongside it.
-        edge_evidence = "sponsor_drug" if result.kind == "sponsor_drug" else "drug"
         citations, total = build_citations(
-            edge.nct_ids, store, edge_evidence, limit=limit
+            edge.nct_ids, store, evidence_dimension_for_edge(result.kind), limit=limit
         )
         edges.append(
             {

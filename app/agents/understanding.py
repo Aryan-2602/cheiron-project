@@ -769,6 +769,45 @@ def reconcile_viz_type(understanding: QueryUnderstanding) -> tuple[str, list[str
     ]
 
 
+#: Words that name an analytical axis outright. Used to tell "the question
+#: asked for this axis" from "the model happened to fill the field" -- those
+#: need opposite treatment when the model also guesses "histogram".
+AXIS_EVIDENCE: dict[str, tuple[str, ...]] = {
+    "phase": ("phase", "phases"),
+    "sponsor": ("sponsor", "sponsors"),
+    "country": ("country", "countries", "geography", "geographic"),
+    "status": ("status", "statuses"),
+    "intervention_type": ("intervention type", "intervention types"),
+    "start_year": ("year", "yearly", "annually", "over time", "trend"),
+    "enrollment_bucket": (
+        "enrollment",
+        "enrolment",
+        "enrollment size",
+        "sample size",
+        "participants",
+    ),
+}
+
+_AXIS_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple(
+    (re.compile(rf"\b{re.escape(phrase)}\b"), axis)
+    for axis, phrases in AXIS_EVIDENCE.items()
+    for phrase in phrases
+)
+
+
+def axis_named_in_query(query: str) -> str | None:
+    """The analytical axis the question names, or None if it names none or several.
+
+    Deliberately narrow: exact words on word boundaries, no inference. It exists
+    only to answer "did the user actually say 'by phase'", which is a different
+    question from "did the model populate group_by" -- and the two need opposite
+    handling when the model also proposes a histogram.
+    """
+    haystack = query.lower()
+    axes = {axis for pattern, axis in _AXIS_PATTERNS if pattern.search(haystack)}
+    return axes.pop() if len(axes) == 1 else None
+
+
 #: Combinations that are incoherent no matter what the model proposed, and the
 #: axis each one must resolve to. A geographic chart of sponsors is not a
 #: geographic chart; a histogram of phases is not a histogram. Deliberately a
@@ -883,6 +922,7 @@ def reconcile_plan_semantics(
     *,
     query_type: str,
     group_by: str | None,
+    axis_named: str | None = None,
     axis_was_specified: bool = True,
     viz_type: str,
     network_kind: str | None,
@@ -917,7 +957,27 @@ def reconcile_plan_semantics(
     # incompatible pair is resolved by trusting whichever side the question
     # actually supports: an explicit non-enrollment axis wins over the chart.
     if viz_type == "histogram" and group_by != HISTOGRAM_GROUP_BY:
-        if not axis_was_specified and query_type == "distribution":
+        if axis_named == HISTOGRAM_GROUP_BY:
+            # The question asked for enrolment and the model put something else
+            # on the axis. What the user said wins.
+            group_by = HISTOGRAM_GROUP_BY
+            assumptions.append(
+                "Grouped by enrollment size, which is the axis the question "
+                "names and what a histogram measures."
+            )
+        elif axis_named and axis_named != HISTOGRAM_GROUP_BY:
+            # The question named a categorical axis outright, so it wins over a
+            # chart type the model guessed -- even when the model left group_by
+            # empty. Testing only "did the model fill the field" turned
+            # "distribution ... by phase" into an enrolment histogram.
+            group_by = axis_named
+            viz_type = "bar_chart"
+            assumptions.append(
+                f"Grouped by {axis_named.replace('_', ' ')} and rendered as a bar "
+                f"chart: the question names that axis, and a histogram measures a "
+                f"continuous quantity."
+            )
+        elif not axis_was_specified and query_type == "distribution":
             # No axis was named, so the chart type is the only signal there is.
             group_by = HISTOGRAM_GROUP_BY
             assumptions.append(
@@ -1004,6 +1064,9 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
     # axis" from "the question named phase" -- they need opposite histogram
     # treatment, and the default erases the difference.
     axis_was_specified = understanding.group_by is not None
+    # What the *question* names, which is not the same as what the model filled
+    # in -- the histogram rule needs to tell those apart.
+    axis_named = axis_named_in_query(request.query)
     group_by = understanding.group_by
     if understanding.query_type != "relationship":
         group_by = group_by or DEFAULT_GROUP_BY.get(understanding.query_type, "phase")
@@ -1075,6 +1138,7 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
         reconcile_plan_semantics(
             query_type=understanding.query_type,
             group_by=group_by,
+            axis_named=axis_named,
             axis_was_specified=axis_was_specified,
             viz_type=viz_type,
             network_kind=network_kind,
@@ -1104,7 +1168,14 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
 
     return QueryPlan(
         query=request.query,
-        query_type=understanding.query_type,
+        # What actually shipped. A demoted comparison that still called itself
+        # one made meta.query_interpretation describe a chart with series the
+        # response does not contain.
+        query_type=(
+            "distribution"
+            if understanding.query_type == "comparison" and not compare_entities
+            else understanding.query_type
+        ),
         entities=entities,
         excluded_statuses=extract_excluded_statuses_from_query(request.query),
         group_by=group_by,

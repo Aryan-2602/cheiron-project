@@ -20,6 +20,11 @@ from app.models.schemas import (
     QueryResponse,
     VisualizationSpec,
 )
+from app.services.citations import (
+    build_excerpt,
+    evidence_dimension_for_edge,
+    evidence_dimension_for_node,
+)
 from app.services.store import StudyStore
 from app.services.viz import VALUE_FIELD
 
@@ -232,8 +237,9 @@ def _citation_targets(
     spec: VisualizationSpec,
     aggregation: AggregationResult | None,
     network: NetworkResult | None,
-) -> list[tuple[dict, set[str] | None]]:
-    """Pair each published datum with the contributor set it may cite from.
+) -> list[tuple[dict, set[str] | None, str | None]]:
+    """Pair each published datum with the contributor set it may cite from, and
+    with the evidence dimension its excerpts were built from.
 
     Without this, a citation only has to name a trial that appears *somewhere*
     in the fetched store -- so a real, verifiable NCT id belonging to a
@@ -245,24 +251,28 @@ def _citation_targets(
     """
     if spec.type == "network_graph":
         if network is None:
-            return [(item, None) for item in _iter_citation_blocks(spec)]
+            return [(item, None, None) for item in _iter_citation_blocks(spec)]
         row = spec.data[0] if spec.data else {}
-        nodes = {n.id: set(n.nct_ids) for n in network.nodes}
+        nodes = {n.id: (set(n.nct_ids), n.kind) for n in network.nodes}
         edges = {(e.source, e.target): set(e.nct_ids) for e in network.edges}
-        pairs: list[tuple[dict, set[str] | None]] = []
+        pairs: list[tuple[dict, set[str] | None, str | None]] = []
         for published in row.get("nodes", []):
-            pairs.append((published, nodes.get(published.get("id"))))
+            ids, kind = nodes.get(published.get("id"), (None, None))
+            pairs.append(
+                (published, ids, evidence_dimension_for_node(kind) if kind else None)
+            )
+        edge_evidence = evidence_dimension_for_edge(network.kind)
         for published in row.get("edges", []):
             key = (published.get("source"), published.get("target"))
-            pairs.append((published, edges.get(key)))
+            pairs.append((published, edges.get(key), edge_evidence))
         return pairs
 
     if aggregation is None:
-        return [(row, None) for row in spec.data]
+        return [(row, None, None) for row in spec.data]
     # Rows are index-aligned with the aggregation -- _check_counts has already
     # asserted that, and runs first.
     return [
-        (row, set(datum.nct_ids))
+        (row, set(datum.nct_ids), aggregation.dimension)
         for row, datum in zip(spec.data, aggregation.data, strict=False)
     ]
 
@@ -290,7 +300,7 @@ def _check_citations(
     """
     citations_suppressed = max_citations_per_datum == 0
 
-    for item, contributors in _citation_targets(spec, aggregation, network):
+    for item, contributors, dimension in _citation_targets(spec, aggregation, network):
         citations = item.get("citations", [])
         total = item.get("total_supporting_trials")
 
@@ -336,6 +346,24 @@ def _check_citations(
                 )
             if not (citation.get("excerpt") or "").strip():
                 raise ValidationFailure(f"citation for {nct_id} has an empty excerpt")
+
+            # Re-derive the evidence rather than trusting the string that
+            # shipped. Without this a citation could name a real contributor
+            # and still quote text no record contains -- the one corruption
+            # every other check here would pass.
+            record = store.get(nct_id)
+            if dimension is not None and record is not None:
+                expected = build_excerpt(record, dimension)
+                if citation.get("excerpt") != expected:
+                    raise ValidationFailure(
+                        f"citation for {nct_id} quotes {citation.get('excerpt')!r}, "
+                        f"but its record yields {expected!r}"
+                    )
+            if record is not None and citation.get("url") != store.study_url(nct_id):
+                raise ValidationFailure(
+                    f"citation for {nct_id} links to {citation.get('url')!r} rather "
+                    f"than {store.study_url(nct_id)!r}"
+                )
 
 
 def _check_non_empty(response: QueryResponse) -> None:

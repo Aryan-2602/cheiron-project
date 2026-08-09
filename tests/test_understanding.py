@@ -14,6 +14,7 @@ from app.agents.understanding import (
     UnderstandingError,
     _appears_in,
     _match_statuses,
+    axis_named_in_query,
     build_plan,
     call_llm,
     extract_excluded_statuses_from_query,
@@ -858,7 +859,9 @@ class TestPlanSemanticReconciliation:
             query_type="distribution", viz_type="histogram", group_by="phase",
         )
         assert (plan.viz_type, plan.group_by) == ("bar_chart", "phase")
-        assert any("categorical" in a for a in plan.assumptions)
+        # The query names the axis, so the message says so rather than only
+        # calling the axis categorical.
+        assert any("Grouped by phase" in a for a in plan.assumptions)
 
     def test_histogram_with_no_named_axis_becomes_an_enrollment_distribution(self):
         """With no axis in the question the chart type is the only signal."""
@@ -884,7 +887,7 @@ class TestPlanSemanticReconciliation:
             query_type="distribution", viz_type="histogram", group_by="sponsor",
         )
         assert (plan.viz_type, plan.group_by) == ("bar_chart", "sponsor")
-        assert any("categorical" in a for a in plan.assumptions)
+        assert any("Grouped by sponsor" in a for a in plan.assumptions)
 
     def test_a_drug_comparison_mislabelled_as_conditions_is_corrected(self):
         """Trusting the label would search query.cond for drug names, which
@@ -1665,3 +1668,100 @@ class TestUnderstandingIsAwaited:
             pytest.raises(UnderstandingError, match="LLM request failed"),
         ):
             await understand(QueryRequest(query="melanoma trials by phase"))
+
+
+class TestHistogramFollowsUserEvidence:
+    """Reconciliation asked "did the model fill group_by", which is a different
+    question from "did the user name an axis". A question saying "by phase"
+    became an enrolment histogram whenever the model left the field empty."""
+
+    def plan_for(self, query, model_group_by, viz_type="histogram"):
+        understanding = QueryUnderstanding(
+            query_type="distribution", viz_type=viz_type, group_by=model_group_by,
+            compare_entities=[], compare_entity_kind=None, network_kind=None,
+            assumptions=[],
+            entities=ExtractedEntities(
+                drugs=[], conditions=["melanoma"], sponsors=[], phases=[],
+                statuses=[], countries=[], year_range=None,
+            ),
+        )
+        return build_plan(QueryRequest(query=query), understanding)
+
+    @pytest.mark.parametrize(
+        "query,axis",
+        [
+            ("Show the distribution of melanoma trials by phase.", "phase"),
+            ("Show the distribution of melanoma trials by sponsor.", "sponsor"),
+            ("How are melanoma trials distributed across countries?", "country"),
+        ],
+    )
+    def test_a_named_categorical_axis_beats_a_guessed_histogram(self, query, axis):
+        plan = self.plan_for(query, None)
+        assert (plan.viz_type, plan.group_by) == ("bar_chart", axis)
+
+    def test_named_enrollment_beats_a_wrong_model_axis(self):
+        """The reverse direction: the user asked for enrolment, the model said
+        phase."""
+        plan = self.plan_for(
+            "Show the enrollment size distribution for melanoma trials", "phase"
+        )
+        assert (plan.viz_type, plan.group_by) == ("histogram", "enrollment_bucket")
+
+    def test_enrollment_wording_produces_a_histogram(self):
+        plan = self.plan_for(
+            "Show the enrollment-size distribution for melanoma trials.", None
+        )
+        assert (plan.viz_type, plan.group_by) == ("histogram", "enrollment_bucket")
+
+    def test_a_vague_distribution_keeps_the_documented_default(self):
+        plan = self.plan_for("Show the distribution of melanoma trials.", None)
+        assert (plan.viz_type, plan.group_by) == ("histogram", "enrollment_bucket")
+
+    def test_a_valid_histogram_is_untouched(self):
+        plan = self.plan_for("Show the enrollment distribution", "enrollment_bucket")
+        assert (plan.viz_type, plan.group_by) == ("histogram", "enrollment_bucket")
+
+    def test_two_named_axes_are_treated_as_no_evidence(self):
+        """Narrow on purpose: it answers "did the user say one axis", not "what
+        did they probably mean"."""
+        assert axis_named_in_query("melanoma trials by phase and sponsor") is None
+
+    def test_axis_words_match_on_boundaries(self):
+        assert axis_named_in_query("melanoma trials by phase") == "phase"
+        assert axis_named_in_query("trials with phased dosing") is None
+
+
+class TestDemotedComparisonReportsWhatShipped:
+    """A demoted comparison still called itself one, so
+    meta.query_interpretation described a chart with series the response does
+    not contain."""
+
+    def plan_for(self, compare_entities, kind, query=None, **entity_lists):
+        understanding = QueryUnderstanding(
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=compare_entities, compare_entity_kind=kind,
+            network_kind=None, assumptions=[],
+            entities=ExtractedEntities(
+                drugs=entity_lists.get("drugs", []),
+                conditions=entity_lists.get("conditions", []),
+                sponsors=entity_lists.get("sponsors", []),
+                phases=[], statuses=[], countries=[], year_range=None,
+            ),
+        )
+        # The names must appear in the query or grounding drops them, which is
+        # a different demotion path than the one under test.
+        text = query or f"compare {' and '.join(compare_entities)} by phase"
+        return build_plan(QueryRequest(query=text), understanding)
+
+    def test_a_demoted_comparison_is_reported_as_a_distribution(self):
+        plan = self.plan_for(["Alpha", "Beta"], None)
+        assert plan.viz_type == "bar_chart"
+        assert plan.query_type == "distribution"
+
+    def test_a_real_comparison_keeps_its_type(self):
+        plan = self.plan_for(
+            ["Pembrolizumab", "Nivolumab"], "drug",
+            drugs=["Pembrolizumab", "Nivolumab"],
+        )
+        assert plan.viz_type == "grouped_bar_chart"
+        assert plan.query_type == "comparison"

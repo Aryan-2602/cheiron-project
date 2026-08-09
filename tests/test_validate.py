@@ -615,3 +615,139 @@ class TestNodeMembershipIsEnforced:
         node.size = len(node.nct_ids)
         with pytest.raises(ValidationFailure, match="surviving edges account for"):
             validate_response(response, store, network=tampered)
+
+
+class TestCitationEvidenceIsReDerived:
+    """A citation naming a real contributor could still quote text no record
+    contains -- the one corruption every other check passed. The excerpt is now
+    re-rendered from the record and compared exactly."""
+
+    def chart(self, records):
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        result = aggregate(records, DIMENSIONS["phase"])
+        spec = build_chart_spec(result, plan(), DIMENSIONS["phase"], store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        return response, store, result
+
+    def test_a_faithful_citation_passes(self, records):
+        response, store, result = self.chart(records)
+        validate_response(response, store, aggregation=result)
+
+    def test_rejects_a_fabricated_excerpt(self, records):
+        response, store, result = self.chart(records)
+        response = response.model_copy(deep=True)
+        response.visualization.data[0]["citations"][0]["excerpt"] = (
+            '"A study of something" — designModule.phases: [PHASE9]'
+        )
+        with pytest.raises(ValidationFailure, match="but its record yields"):
+            validate_response(response, store, aggregation=result)
+
+    def test_rejects_a_plausible_but_wrong_excerpt(self, records):
+        """Not just gibberish: a well-formed excerpt for the wrong field."""
+        response, store, result = self.chart(records)
+        response = response.model_copy(deep=True)
+        response.visualization.data[0]["citations"][0]["excerpt"] = (
+            '"A study of something" — statusModule.overallStatus: "RECRUITING"'
+        )
+        with pytest.raises(ValidationFailure, match="but its record yields"):
+            validate_response(response, store, aggregation=result)
+
+    def test_rejects_a_wrong_url(self, records):
+        response, store, result = self.chart(records)
+        response = response.model_copy(deep=True)
+        response.visualization.data[0]["citations"][0]["url"] = (
+            "https://example.com/not-the-trial"
+        )
+        with pytest.raises(ValidationFailure, match="links to"):
+            validate_response(response, store, aggregation=result)
+
+    def test_zero_citation_limit_is_unaffected(self, records):
+        response, store, result = self.chart(records)
+        response = response.model_copy(deep=True)
+        for row in response.visualization.data:
+            row["citations"] = []
+        validate_response(
+            response, store, aggregation=result, max_citations_per_datum=0
+        )
+
+
+class TestNetworkCitationEvidence:
+    """Node and edge excerpts are re-derived from the same helpers the
+    formatter used, so the two cannot drift."""
+
+    def bipartite(self):
+        records = {
+            f"NCT{i:08d}": make_record(
+                f"NCT{i:08d}", sponsor="Merck",
+                interventions=[("DRUG", "Pembrolizumab"), ("DRUG", "Carboplatin")],
+            )
+            for i in range(3)
+        }
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        from app.services.network import build_bipartite_network
+
+        network = build_bipartite_network(store.records)
+        spec = build_network_spec(network, plan(query_type="relationship"), store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        return response, store, network
+
+    def test_a_faithful_bipartite_graph_passes(self):
+        response, store, network = self.bipartite()
+        validate_response(response, store, network=network)
+
+    def test_rejects_a_sponsor_drug_edge_citation_missing_sponsor_evidence(self):
+        """Dropping the sponsor half leaves the edge's sponsor end unevidenced."""
+        response, store, network = self.bipartite()
+        response = response.model_copy(deep=True)
+        citation = response.visualization.data[0]["edges"][0]["citations"][0]
+        citation["excerpt"] = citation["excerpt"].split(";")[-1].strip()
+        with pytest.raises(ValidationFailure, match="but its record yields"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_an_altered_sponsor_name(self):
+        response, store, network = self.bipartite()
+        response = response.model_copy(deep=True)
+        citation = response.visualization.data[0]["edges"][0]["citations"][0]
+        citation["excerpt"] = citation["excerpt"].replace("Merck", "Pfizer")
+        with pytest.raises(ValidationFailure, match="but its record yields"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_an_altered_intervention_name(self):
+        response, store, network = self.bipartite()
+        response = response.model_copy(deep=True)
+        node = next(
+            n for n in response.visualization.data[0]["nodes"] if n["kind"] == "drug"
+        )
+        node["citations"][0]["excerpt"] = node["citations"][0]["excerpt"].replace(
+            "Pembrolizumab", "Nivolumab"
+        )
+        with pytest.raises(ValidationFailure, match="but its record yields"):
+            validate_response(response, store, network=network)
+
+    def test_a_drug_drug_graph_still_validates(self):
+        records = {
+            f"NCT{i:08d}": make_record(
+                f"NCT{i:08d}", interventions=[("DRUG", "A"), ("DRUG", "B")]
+            )
+            for i in range(3)
+        }
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        network = build_cooccurrence_network(store.records, min_edge_weight=1)
+        spec = build_network_spec(network, plan(query_type="relationship"), store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        validate_response(response, store, network=network)

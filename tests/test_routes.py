@@ -1,3 +1,4 @@
+from typing import ClassVar
 from unittest.mock import patch
 
 import pytest
@@ -79,3 +80,45 @@ class TestRequestNormalization:
     def test_a_too_short_query_is_still_rejected(self):
         with pytest.raises(ValidationError):
             QueryRequest(query="ab")
+
+
+class TestStructuredFieldBounds:
+    """Sized for real registry values, so an extreme string is rejected before
+    it becomes an oversized upstream URL."""
+
+    LIMITS: ClassVar[dict[str, int]] = {
+        "drug_name": 300, "condition": 500, "sponsor": 500, "country": 200,
+    }
+
+    @pytest.mark.parametrize("field,limit", LIMITS.items())
+    def test_a_value_at_the_limit_is_accepted(self, field, limit):
+        request = QueryRequest(query="melanoma trials", **{field: "x" * limit})
+        assert len(getattr(request, field)) == limit
+
+    @pytest.mark.parametrize("field,limit", LIMITS.items())
+    def test_one_character_over_is_rejected(self, field, limit):
+        with pytest.raises(ValidationError):
+            QueryRequest(query="melanoma trials", **{field: "x" * (limit + 1)})
+
+    def test_normal_values_are_unaffected(self):
+        request = QueryRequest(
+            query="melanoma trials", drug_name="Pembrolizumab",
+            condition="melanoma", sponsor="Merck Sharp & Dohme LLC",
+            country="United States",
+        )
+        assert request.drug_name == "Pembrolizumab"
+        assert request.sponsor == "Merck Sharp & Dohme LLC"
+
+    def test_whitespace_normalisation_still_applies(self):
+        request = QueryRequest(query="melanoma trials", condition="  lung   cancer ")
+        assert request.condition == "lung cancer"
+
+    def test_a_blank_override_still_becomes_none(self):
+        assert QueryRequest(query="melanoma trials", sponsor="   ").sponsor is None
+
+    def test_an_oversized_override_is_a_422_at_the_route(self):
+        response = client.post(
+            "/api/v1/query",
+            json={"query": "melanoma trials", "drug_name": "x" * 5000},
+        )
+        assert response.status_code == 422
