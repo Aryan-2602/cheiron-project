@@ -372,7 +372,11 @@ async def run_pipeline(
     )
     response = QueryResponse(visualization=spec, meta=meta)
     return validate_response(
-        response, fetched.store, aggregation=aggregation, network=network
+        response,
+        fetched.store,
+        aggregation=aggregation,
+        network=network,
+        max_citations_per_datum=plan.max_citations_per_datum,
     )
 
 

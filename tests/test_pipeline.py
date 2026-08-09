@@ -397,3 +397,41 @@ class TestHttpApi:
         response = self.client().post("/api/v1/query", json={"query": "a question"})
         assert response.status_code == 500
         assert response.json()["detail"]["error"]["code"] == "VALIDATION_ERROR"
+
+
+class TestCitationLimits:
+    """max_citations_per_datum is documented as 0-20, and 0 is legitimate --
+    a caller wanting counts without the citation payload."""
+
+    @respx.mock
+    async def test_zero_citations_is_a_valid_request(self):
+        mock_studies(SAMPLE)
+        response = await run(max_citations_per_datum=0)
+        rows = response.visualization.data
+        assert rows, "should still return data"
+        for row in rows:
+            assert row["citations"] == []
+            # The evidence count is still reported -- only the payload is omitted.
+            assert row["total_supporting_trials"] == row["trial_count"]
+
+    @respx.mock
+    async def test_zero_citations_on_a_network_query(self):
+        mock_studies(SAMPLE)
+        mock_rxnorm_unmatched()
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            network_kind="drug_drug", group_by=None,
+            max_citations_per_datum=0,
+        )
+        row = response.visualization.data[0]
+        assert row["nodes"]
+        for item in row["nodes"] + row["edges"]:
+            assert item["citations"] == []
+            assert item["total_supporting_trials"] > 0
+
+    @respx.mock
+    async def test_a_nonzero_limit_still_requires_citations(self):
+        """Suppressing citations must be opt-in, not a hole in the validator."""
+        mock_studies(SAMPLE)
+        response = await run(max_citations_per_datum=2)
+        assert all(r["citations"] for r in response.visualization.data)

@@ -144,13 +144,27 @@ def _iter_citation_blocks(spec: VisualizationSpec):
         yield from spec.data
 
 
-def _check_citations(spec: VisualizationSpec, store: StudyStore) -> None:
+def _check_citations(
+    spec: VisualizationSpec,
+    store: StudyStore,
+    *,
+    max_citations_per_datum: int | None = None,
+) -> None:
     """Every citation must point at a record we actually fetched.
 
     This is the check that makes "the LLM never invents data" verifiable rather
     than merely asserted: an id that is not in the store cannot have come from
     the aggregation, so it must have come from somewhere it shouldn't.
+
+    ``max_citations_per_datum`` is the caller's requested limit. Zero is a
+    documented, legitimate request -- counts without the citation payload -- so
+    the "a value must be backed by citations" rule is suspended in that case.
+    Nothing else is: totals, store membership, and excerpt checks all still
+    apply, so asking for zero citations is not a way to smuggle a datum past
+    the validator.
     """
+    citations_suppressed = max_citations_per_datum == 0
+
     for item in _iter_citation_blocks(spec):
         citations = item.get("citations", [])
         total = item.get("total_supporting_trials")
@@ -162,9 +176,14 @@ def _check_citations(spec: VisualizationSpec, store: StudyStore) -> None:
                 f"datum carries {len(citations)} citations but claims only "
                 f"{total} supporting trials"
             )
+        if citations_suppressed and citations:
+            raise ValidationFailure(
+                f"datum carries {len(citations)} citations although the request "
+                f"asked for none"
+            )
 
         measured = item.get(VALUE_FIELD, item.get("size", item.get("weight")))
-        if measured and not citations:
+        if measured and not citations and not citations_suppressed:
             raise ValidationFailure(
                 f"datum with value {measured} has no citations backing it"
             )
@@ -206,13 +225,16 @@ def validate_response(
     *,
     aggregation: AggregationResult | None = None,
     network: NetworkResult | None = None,
+    max_citations_per_datum: int | None = None,
 ) -> QueryResponse:
     """Run every grounding check. Raises :class:`ValidationFailure` on any breach."""
     _check_schema(response)
     _check_non_empty(response.visualization)
     _check_encoding_matches_data(response.visualization)
     _check_counts(response.visualization, aggregation, network)
-    _check_citations(response.visualization, store)
+    _check_citations(
+        response.visualization, store, max_citations_per_datum=max_citations_per_datum
+    )
     _check_meta(response, store)
 
     # Only the pass is logged here. A failure raises, and the route handler

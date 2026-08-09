@@ -291,3 +291,49 @@ class TestMergeInvariant:
 
         response, store, network = self.network_response(records, mutate)
         assert validate_response(response, store, network=network) is response
+
+
+class TestZeroCitationRequests:
+    """0 is a documented value for max_citations_per_datum, so an empty
+    citation list is legitimate -- but only when it was actually asked for."""
+
+    def test_empty_citations_pass_when_none_were_requested(self, good):
+        response, store, result = good
+        response = response.model_copy(deep=True)
+        for row in response.visualization.data:
+            row["citations"] = []
+        assert (
+            validate_response(
+                response, store, aggregation=result, max_citations_per_datum=0
+            )
+            is response
+        )
+
+    def test_empty_citations_still_fail_when_citations_were_requested(self, good):
+        response, store, result = good
+        response = response.model_copy(deep=True)
+        response.visualization.data[0]["citations"] = []
+        with pytest.raises(ValidationFailure, match="no citations backing it"):
+            validate_response(
+                response, store, aggregation=result, max_citations_per_datum=3
+            )
+
+    def test_citations_present_despite_a_zero_request_is_rejected(self, good):
+        """Suppression must be honest in both directions."""
+        response, store, result = good
+        with pytest.raises(ValidationFailure, match="asked for none"):
+            validate_response(
+                response, store, aggregation=result, max_citations_per_datum=0
+            )
+
+    def test_other_citation_rules_still_apply_at_zero(self, good):
+        """Zero citations is not a way past the rest of the validator."""
+        response, store, result = good
+        response = response.model_copy(deep=True)
+        for row in response.visualization.data:
+            row["citations"] = []
+        response.meta.api_urls = []
+        with pytest.raises(ValidationFailure, match="upstream API URLs"):
+            validate_response(
+                response, store, aggregation=result, max_citations_per_datum=0
+            )
