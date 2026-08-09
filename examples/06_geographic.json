@@ -478,7 +478,7 @@
       ],
       "query_interpretation": "Interpreted as a geographic question, grouped by country, rendered as a geo bar chart.",
       "assumptions": [
-        "I treated \"most\" as a geographic breakdown by country, not as requesting a ranked list in the response text."
+        "Interpreted 'most' as a geographic breakdown of recruiting trials by country."
       ],
       "warnings": [
         "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials."

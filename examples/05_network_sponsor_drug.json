@@ -2177,7 +2177,7 @@
       ],
       "query_interpretation": "Interpreted as a relationship question, rendered as a network graph.",
       "assumptions": [
-        "I interpreted \"network of sponsors and drugs\" as a sponsor-drug relationship network for melanoma trials."
+        "Interpreted 'network of sponsors and drugs' as sponsor-drug relationships in melanoma trials."
       ],
       "warnings": [
         "Fetched 600 of 3,743 matching trials (capped at max_studies=600); figures below describe that sample, not the full result set.",

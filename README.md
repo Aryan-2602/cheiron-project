@@ -61,7 +61,7 @@ curl -s -X POST http://127.0.0.1:8000/api/v1/query \
 Run the tests, or regenerate every example output against the live API:
 
 ```bash
-pytest -q                              # 325 tests, no network or API key needed
+pytest -q                              # 365 tests, no network or API key needed
 python scripts/run_examples.py         # writes examples/*.json from live data
 ```
 
@@ -600,7 +600,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 ## Testing
 
 ```bash
-pytest -q      # 325 tests, ~9s, no network access or API key required
+pytest -q      # 365 tests, ~9s, no network access or API key required
 ```
 
 | File | Covers |
