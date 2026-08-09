@@ -3,7 +3,7 @@
 import pytest
 
 from app.services.aggregate import aggregate, zero_fill_years
-from app.services.dimensions import DIMENSIONS
+from app.services.dimensions import DIMENSIONS, get_dimension
 from tests.conftest import make_record
 
 
@@ -190,3 +190,51 @@ def test_aggregate_runs_over_real_api_data(live_page):
     assert sum(d.value for d in result.data) >= 25
     for datum in result.data:
         assert datum.value == len(set(datum.nct_ids))
+
+
+class TestCategoryTruncationBookkeeping:
+    """A top-N cap that is not disclosed presents a slice as the whole picture:
+    20 of 47 countries reads as every country."""
+
+    def records(self, n_sponsors, per=4):
+        return {
+            f"NCT{i:08d}": make_record(f"NCT{i:08d}", sponsor=f"Sponsor {i % n_sponsors}")
+            for i in range(n_sponsors * per)
+        }
+
+    def test_no_cap_reports_no_omissions(self):
+        result = aggregate(self.records(10), get_dimension("sponsor"), top_n=None)
+        assert result.total_categories == 10
+        assert result.displayed_categories == 10
+        assert result.omitted_categories == 0
+        assert result.category_limit is None
+
+    def test_cap_exactly_at_the_category_count_omits_nothing(self):
+        result = aggregate(self.records(10), get_dimension("sponsor"), top_n=10)
+        assert (result.total_categories, result.displayed_categories) == (10, 10)
+        assert result.omitted_categories == 0
+
+    def test_cap_above_the_category_count_omits_nothing(self):
+        result = aggregate(self.records(10), get_dimension("sponsor"), top_n=25)
+        assert result.omitted_categories == 0
+
+    def test_cap_below_the_category_count_reports_the_omitted_total(self):
+        result = aggregate(self.records(30), get_dimension("sponsor"), top_n=15)
+        assert result.total_categories == 30
+        assert result.displayed_categories == 15
+        assert result.omitted_categories == 15
+        assert result.category_limit == 15
+
+    def test_only_the_top_categories_survive(self):
+        """The cap keeps the busiest categories, and the counts still describe
+        exactly the rows that shipped."""
+        records = {}
+        for rank, sponsor in enumerate(["Big", "Mid", "Small"]):
+            for i in range((3 - rank) * 5):
+                nct = f"NCT{rank}{i:07d}"
+                records[nct] = make_record(nct, sponsor=sponsor)
+        result = aggregate(records, get_dimension("sponsor"), top_n=2)
+        shown = {d.key for d in result.data}
+        assert shown == {"Big", "Mid"}
+        assert result.displayed_categories == len(shown)
+        assert result.omitted_categories == 1

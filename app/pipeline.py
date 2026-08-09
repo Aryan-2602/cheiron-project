@@ -239,6 +239,16 @@ def build_meta(
                     else "excluded from the chart."
                 )
             )
+        if aggregation.omitted_categories:
+            # Without this, a 20-of-47 country chart reads as every country.
+            axis = get_dimension(aggregation.dimension).axis_label.lower()
+            warnings.append(
+                f"Showing the top {aggregation.displayed_categories:,} of "
+                f"{aggregation.total_categories:,} {axis} values by trial count; "
+                f"{aggregation.omitted_categories:,} lower-frequency "
+                f"{'value is' if aggregation.omitted_categories == 1 else 'values are'} "
+                f"omitted."
+            )
     if network is not None and network.truncated_to_top_n:
         warnings.append(
             f"Graph truncated to the {network.truncated_to_top_n} highest-degree "

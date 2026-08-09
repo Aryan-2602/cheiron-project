@@ -866,3 +866,53 @@ class TestMixedStatusSemantics:
         )
         assert built.compare_entities == []
         assert built.viz_type == "bar_chart"
+
+
+class TestCategoryTruncationDisclosure:
+    """TOP_N_DIMENSIONS caps high-cardinality axes. The cap was applied but
+    never disclosed, so a 20-of-47 country chart shipped as if complete."""
+
+    def sponsors(self, n):
+        return [
+            make_record(f"NCT{i:08d}", sponsor=f"Sponsor {i % n}", phases=["PHASE3"])
+            for i in range(n * 3)
+        ]
+
+    @respx.mock
+    async def test_truncation_names_the_shown_and_omitted_counts(self):
+        # TOP_N_DIMENSIONS caps sponsor at 15.
+        mock_studies(self.sponsors(40))
+        response = await run(group_by="sponsor")
+        warning = next(
+            (w for w in response.meta.warnings if "top" in w and "omitted" in w), None
+        )
+        assert warning, response.meta.warnings
+        assert "top 15" in warning
+        assert "of 40" in warning
+        assert "25" in warning
+
+    @respx.mock
+    async def test_the_disclosure_matches_the_rows_actually_shipped(self):
+        mock_studies(self.sponsors(40))
+        response = await run(group_by="sponsor")
+        shown = {row["sponsor"] for row in response.visualization.data}
+        assert len(shown) == 15
+
+    @respx.mock
+    async def test_no_warning_when_nothing_was_truncated(self):
+        mock_studies(self.sponsors(5))
+        response = await run(group_by="sponsor")
+        assert not any("omitted" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_no_warning_when_exactly_at_the_limit(self):
+        mock_studies(self.sponsors(15))
+        response = await run(group_by="sponsor")
+        assert not any("omitted" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_an_uncapped_dimension_never_warns(self):
+        """phase has no cap, so it can never trigger the disclosure."""
+        mock_studies(SAMPLE)
+        response = await run()
+        assert not any("omitted" in w for w in response.meta.warnings)

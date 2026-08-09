@@ -83,6 +83,9 @@ def aggregate(
             for key in keys:
                 buckets[(series, key)].add(nct_id)
 
+    # Counted across series, because the display cap applies to categories on
+    # the axis, not to rows.
+    total_categories = len({key for _series, key in buckets})
     if top_n is not None:
         totals: dict[str, int] = defaultdict(int)
         for (_series, key), ids in buckets.items():
@@ -93,6 +96,7 @@ def aggregate(
         }
         buckets = {k: v for k, v in buckets.items() if k[1] in keep}
         unknown_emitted = unknown_emitted and dimension.unknown_label in keep
+    displayed_categories = len({key for _series, key in buckets})
 
     # Sort on the *raw* key (the dimension defines order in its own terms), then
     # by descending count, then by label -- fully deterministic, no ties left to
@@ -125,6 +129,9 @@ def aggregate(
         unbucketed=len(unbucketed),
         unbucketed_key_included=unknown_emitted,
         multi_valued=dimension.multi_valued,
+        total_categories=total_categories,
+        displayed_categories=displayed_categories,
+        category_limit=top_n,
     )
 
 

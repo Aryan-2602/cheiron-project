@@ -228,6 +228,17 @@ class AggregationResult(BaseModel):
     unbucketed: int = 0
     unbucketed_key_included: bool = False
     multi_valued: bool = False
+    #: Distinct categories before the display cap, and how many survived it.
+    #: Carried so the pipeline can disclose a truncation it would otherwise
+    #: present as the whole picture -- 20 of 47 countries reads as "all
+    #: countries" unless the other 27 are named.
+    total_categories: int = 0
+    displayed_categories: int = 0
+    category_limit: int | None = None
+
+    @property
+    def omitted_categories(self) -> int:
+        return max(0, self.total_categories - self.displayed_categories)
 
 
 # --------------------------------------------------------------------------
