@@ -126,7 +126,39 @@ def _check_counts(
         # checks above prove the NetworkResult is internally consistent; this
         # proves formatting did not alter it on the way out -- a weight of 7
         # published as 70 would otherwise ship unnoticed.
+        if len(spec.data) != 1:
+            raise ValidationFailure(
+                f"a network graph publishes exactly one data container, got "
+                f"{len(spec.data)}"
+            )
         row = spec.data[0] if spec.data else {}
+
+        # Both directions. The per-item checks below prove every *published*
+        # item matches a computed one; these prove nothing computed went
+        # missing and nothing was published twice, which a one-directional
+        # check cannot see -- a dropped node passes it silently.
+        published_node_ids = [n.get("id") for n in row.get("nodes", [])]
+        if len(published_node_ids) != len(set(published_node_ids)):
+            raise ValidationFailure("published graph repeats a node id")
+        if set(published_node_ids) != {n.id for n in network.nodes}:
+            missing = {n.id for n in network.nodes} - set(published_node_ids)
+            extra = set(published_node_ids) - {n.id for n in network.nodes}
+            raise ValidationFailure(
+                f"published node set differs from the computed graph "
+                f"(missing {sorted(missing)}, unexpected {sorted(extra)})"
+            )
+
+        published_edge_keys = [
+            (e.get("source"), e.get("target")) for e in row.get("edges", [])
+        ]
+        if len(published_edge_keys) != len(set(published_edge_keys)):
+            raise ValidationFailure("published graph repeats an edge")
+        if set(published_edge_keys) != {(e.source, e.target) for e in network.edges}:
+            raise ValidationFailure(
+                f"published graph has {len(set(published_edge_keys))} distinct edges "
+                f"but the computed graph has {len(network.edges)}"
+            )
+
         source_nodes = {n.id: n for n in network.nodes}
         for published in row.get("nodes", []):
             node = source_nodes.get(published.get("id"))
@@ -249,6 +281,15 @@ def _check_citations(
             raise ValidationFailure(
                 f"datum carries {len(citations)} citations but claims only "
                 f"{total} supporting trials"
+            )
+        # Exact, not merely an upper bound. total_supporting_trials is what
+        # tells a reader how much evidence a truncated citation list stands
+        # for, so a wrong total misstates the strength of the evidence while
+        # every individual citation still checks out.
+        if contributors is not None and total != len(contributors):
+            raise ValidationFailure(
+                f"datum claims {total} supporting trials but {len(contributors)} "
+                f"trials contributed to it"
             )
         if citations_suppressed and citations:
             raise ValidationFailure(

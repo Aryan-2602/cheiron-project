@@ -387,7 +387,9 @@ class TestPublishedNetworkValues:
     def test_rejects_a_published_node_absent_from_the_graph(self):
         response, store, network = self.network_case()
         response.visualization.data[0]["nodes"][0]["id"] = "drug:invented"
-        with pytest.raises(ValidationFailure, match="not in the graph"):
+        # Caught by the set-equality check, which names both sides of the
+        # difference rather than only the unexpected id.
+        with pytest.raises(ValidationFailure, match="drug:invented"):
             validate_response(response, store, network=network)
 
 
@@ -451,3 +453,120 @@ class TestCitationsBelongToTheirDatum:
             meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
         )
         assert validate_response(response, store, aggregation=result) is response
+
+
+class TestNetworkCompleteness:
+    """The validator checked that every *published* item matched a computed
+    one, but never the reverse -- so a dropped node or a duplicated edge passed
+    silently. Both directions are now asserted against the final pruned graph,
+    so intentional pruning stays valid."""
+
+    network_case = TestPublishedNetworkValues.network_case
+
+    def test_a_valid_graph_passes(self):
+        response, store, network = self.network_case()
+        validate_response(response, store, network=network)
+
+    def test_rejects_a_missing_node(self):
+        response, store, network = self.network_case()
+        response.visualization.data[0]["nodes"].pop()
+        with pytest.raises(ValidationFailure, match="differs from the computed graph"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_a_duplicated_node(self):
+        response, store, network = self.network_case()
+        nodes = response.visualization.data[0]["nodes"]
+        nodes.append(dict(nodes[0]))
+        with pytest.raises(ValidationFailure, match="repeats a node id"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_a_missing_edge(self):
+        response, store, network = self.network_case()
+        response.visualization.data[0]["edges"].pop()
+        with pytest.raises(ValidationFailure, match="distinct edges"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_a_duplicated_edge(self):
+        response, store, network = self.network_case()
+        edges = response.visualization.data[0]["edges"]
+        edges.append(dict(edges[0]))
+        with pytest.raises(ValidationFailure, match="repeats an edge"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_an_extra_invented_edge(self):
+        response, store, network = self.network_case()
+        edges = response.visualization.data[0]["edges"]
+        edges.append({**edges[0], "source": "drug:a", "target": "drug:invented"})
+        with pytest.raises(ValidationFailure):
+            validate_response(response, store, network=network)
+
+    def test_rejects_a_wrong_node_size(self):
+        response, store, network = self.network_case()
+        response.visualization.data[0]["nodes"][0]["size"] += 1
+        with pytest.raises(ValidationFailure, match="reports size"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_a_wrong_edge_weight(self):
+        response, store, network = self.network_case()
+        response.visualization.data[0]["edges"][0]["weight"] += 1
+        with pytest.raises(ValidationFailure, match="reports weight"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_more_than_one_data_container(self):
+        response, store, network = self.network_case()
+        response.visualization.data.append(dict(response.visualization.data[0]))
+        with pytest.raises(ValidationFailure, match="exactly one data container"):
+            validate_response(response, store, network=network)
+
+
+class TestSupportingTotalIsExact:
+    """total_supporting_trials tells a reader how much evidence a truncated
+    citation list stands for. Checking only citations <= total let a wrong
+    total misstate that while every individual citation still checked out."""
+
+    def case(self, records):
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        result = aggregate(records, DIMENSIONS["phase"])
+        spec = build_chart_spec(result, plan(), DIMENSIONS["phase"], store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        return response, store, result
+
+    def test_a_correct_total_passes(self, records):
+        response, store, aggregation = self.case(records)
+        validate_response(response, store, aggregation=aggregation)
+
+    def test_rejects_a_total_one_too_small(self, records):
+        response, store, aggregation = self.case(records)
+        row = response.visualization.data[0]
+        row["total_supporting_trials"] -= 1
+        with pytest.raises(ValidationFailure, match="supporting trials"):
+            validate_response(response, store, aggregation=aggregation)
+
+    def test_rejects_a_total_one_too_large(self, records):
+        response, store, aggregation = self.case(records)
+        response.visualization.data[0]["total_supporting_trials"] += 1
+        with pytest.raises(ValidationFailure, match="supporting trials"):
+            validate_response(response, store, aggregation=aggregation)
+
+    def test_a_sampled_citation_list_with_a_correct_total_passes(self, records):
+        """The normal case: fewer citations than contributors."""
+        response, store, aggregation = self.case(records)
+        row = response.visualization.data[0]
+        row["citations"] = row["citations"][:1]
+        validate_response(response, store, aggregation=aggregation)
+
+    def test_zero_citation_limit_still_requires_an_exact_total(self, records):
+        response, store, aggregation = self.case(records)
+        for row in response.visualization.data:
+            row["citations"] = []
+        validate_response(response, store, aggregation=aggregation, max_citations_per_datum=0)
+        response.visualization.data[0]["total_supporting_trials"] += 1
+        with pytest.raises(ValidationFailure, match="supporting trials"):
+            validate_response(
+                response, store, aggregation=aggregation, max_citations_per_datum=0
+            )
