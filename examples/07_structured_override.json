@@ -35,14 +35,14 @@
               "url": "https://clinicaltrials.gov/study/NCT01642004"
             },
             {
-              "nct_id": "NCT01668784",
-              "excerpt": "\"Study of Nivolumab (BMS-936558) vs. Everolimus in Pre-Treated Advanced or Metastatic Clear-cell Renal Cell Carcinoma (CheckMate 025)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"",
-              "url": "https://clinicaltrials.gov/study/NCT01668784"
+              "nct_id": "NCT03138499",
+              "excerpt": "\"A Study of Nivolumab Plus Brentuximab Vedotin Versus Brentuximab Vedotin Alone in Patients With Advanced Stage Classical Hodgkin Lymphoma, Who Are Relapsed/ Ref...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"",
+              "url": "https://clinicaltrials.gov/study/NCT03138499"
             },
             {
-              "nct_id": "NCT01673867",
-              "excerpt": "\"Study of BMS-936558 (Nivolumab) Compared to Docetaxel in Previously Treated Metastatic Non-squamous NSCLC\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"",
-              "url": "https://clinicaltrials.gov/study/NCT01673867"
+              "nct_id": "NCT07221149",
+              "excerpt": "\"A Study to Evaluate the Safety and Efficacy of Pumitamig in Combination With Chemotherapy Versus Nivolumab in Combination With Chemotherapy in Participants With...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Bristol-Myers Squibb\"",
+              "url": "https://clinicaltrials.gov/study/NCT07221149"
             }
           ],
           "total_supporting_trials": 68
@@ -57,14 +57,14 @@
               "url": "https://clinicaltrials.gov/study/NCT02224781"
             },
             {
-              "nct_id": "NCT02339571",
-              "excerpt": "\"A Phase II/III Trial of Nivolumab, Ipilimumab, and GM-CSF in Patients With Advanced Melanoma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"",
-              "url": "https://clinicaltrials.gov/study/NCT02339571"
+              "nct_id": "NCT03952585",
+              "excerpt": "\"De-intensified Radiation Therapy With Chemotherapy (Cisplatin) or Immunotherapy (Nivolumab) in Treating Patients With Early-Stage, HPV-Positive, Non-Smoking Ass...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"",
+              "url": "https://clinicaltrials.gov/study/NCT03952585"
             },
             {
-              "nct_id": "NCT02595944",
-              "excerpt": "\"Nivolumab After Surgery and Chemotherapy in Treating Patients With Stage IB-IIIA Non-small Cell Lung Cancer (An ALCHEMIST Treatment Trial)\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"",
-              "url": "https://clinicaltrials.gov/study/NCT02595944"
+              "nct_id": "NCT07572123",
+              "excerpt": "\"Evaluating the Addition of Maintenance Immunotherapy Compared to the Usual Treatment of Chemotherapy and Autologous Stem Cell Transplant Alone for High-risk Pat...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"National Cancer Institute (NCI)\"",
+              "url": "https://clinicaltrials.gov/study/NCT07572123"
             }
           ],
           "total_supporting_trials": 20
@@ -79,14 +79,14 @@
               "url": "https://clinicaltrials.gov/study/NCT02267343"
             },
             {
-              "nct_id": "NCT02569242",
-              "excerpt": "\"Study of Nivolumab in Unresectable Advanced or Recurrent Esophageal Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Ono Pharmaceutical Co., Ltd.\"",
-              "url": "https://clinicaltrials.gov/study/NCT02569242"
-            },
-            {
               "nct_id": "NCT02746796",
               "excerpt": "\"Study of ONO-4538 in Gastric Cancer\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Ono Pharmaceutical Co., Ltd.\"",
               "url": "https://clinicaltrials.gov/study/NCT02746796"
+            },
+            {
+              "nct_id": "NCT05144854",
+              "excerpt": "\"A Study to Evaluate the Efficacy and Safety of ONO-4538 in Combination With Ipilimumab and Chemotherapy in Chemotherapy-na\u00efve Participants With HER2-negative Un...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"Ono Pharmaceutical Co., Ltd.\"",
+              "url": "https://clinicaltrials.gov/study/NCT05144854"
             }
           ],
           "total_supporting_trials": 6
@@ -101,14 +101,14 @@
               "url": "https://clinicaltrials.gov/study/NCT04960709"
             },
             {
-              "nct_id": "NCT06097728",
-              "excerpt": "\"MEDI5752 in Combination With Carboplatin Plus Pemetrexed in Unresectable Pleural Mesothelioma\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"AstraZeneca\"",
-              "url": "https://clinicaltrials.gov/study/NCT06097728"
-            },
-            {
               "nct_id": "NCT07431281",
               "excerpt": "\"Sonesitatug Vedotin in Combination With Capecitabine With or Without Rilvegostomig in Participants With Advanced or Metastatic Gastric, Gastroesophageal Junctio...\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"AstraZeneca\"",
               "url": "https://clinicaltrials.gov/study/NCT07431281"
+            },
+            {
+              "nct_id": "NCT07720284",
+              "excerpt": "\"An Open-label Study to Investigate the Efficacy and Safety of Dato-DXd + Rilvegostomig vs SoC in Adult Participants With High-risk MIUC\" \u2014 sponsorCollaboratorsModule.leadSponsor.name: \"AstraZeneca\"",
+              "url": "https://clinicaltrials.gov/study/NCT07720284"
             }
           ],
           "total_supporting_trials": 4
@@ -335,7 +335,7 @@
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by lead sponsor, rendered as a bar chart.",
       "assumptions": [
-        "\u201cthis drug\u201d refers to a drug mentioned earlier in the conversation, but no drug name appears in the current question."
+        "Interpreted 'this drug' as a drug entity mentioned in the conversation context."
       ],
       "warnings": [],
       "sorting": "trial count descending",

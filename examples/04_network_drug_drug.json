@@ -57,14 +57,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01822652"
                 },
                 {
-                  "nct_id": "NCT01866319",
-                  "excerpt": "\"Study to Evaluate the Safety and Efficacy of Two Different Dosing Schedules of Pembrolizumab (MK-3475) Compared to Ipilimumab in Participants With Advanced Mela...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Ipilimumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT01866319"
+                  "nct_id": "NCT04303169",
+                  "excerpt": "\"Substudy 02C: Safety and Efficacy of Pembrolizumab in Combination With Investigational Agents or Pembrolizumab Alone in Participants With Stage III Melanoma Who...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Vibostolimab, Gebasaxturev, MK-4830, Favezelimab + Pembrolizumab, ATRA]",
+                  "url": "https://clinicaltrials.gov/study/NCT04303169"
                 },
                 {
-                  "nct_id": "NCT01993719",
-                  "excerpt": "\"Immunotherapy Using Tumor Infiltrating Lymphocytes for Patients With Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Aldesleukin, Fludarabine, Fludarabine, Cyclophosphamide, Cyclophosphamide, Cyclophosphamide, Young TIL, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT01993719"
+                  "nct_id": "NCT07751042",
+                  "excerpt": "\"Phase 1/2 Study of Intravenous Injection of STX-003 in Advanced Solid Tumors as Monotherapy or in Combination With Pembrolizumab\" \u2014 armsInterventionsModule.interventions[].name: [STX-003, KEYTRUDA\u00ae]",
+                  "url": "https://clinicaltrials.gov/study/NCT07751042"
                 }
               ],
               "total_supporting_trials": 427
@@ -87,14 +87,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02578680"
                 },
                 {
-                  "nct_id": "NCT02730546",
-                  "excerpt": "\"Pembrolizumab, Combination Chemotherapy, and Radiation Therapy Before Surgery in Treating Adult Patients With Locally Advanced Gastroesophageal Junction or Gast...\" \u2014 armsInterventionsModule.interventions[].name: [Carboplatin, Computed Tomography, Fluorouracil, Laboratory Biomarker Analysis, Leucovorin Calcium, Oxaliplatin, Paclitaxel, Pembrolizumab, Positron Emission Tomography, Radiation Therapy, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT02730546"
+                  "nct_id": "NCT05258279",
+                  "excerpt": "\"Lenvatinib in Combination With Carboplatin Pemetrexed and Pembrolizumab for NSCLC With EGFR Mutations\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Carboplatin, Pemetrexed]",
+                  "url": "https://clinicaltrials.gov/study/NCT05258279"
                 },
                 {
-                  "nct_id": "NCT02834975",
-                  "excerpt": "\"Pembrolizumab, Paclitaxel, and Carboplatin in Patients With Advanced Stage Epithelial Ovarian Cancer (EOC).\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT02834975"
+                  "nct_id": "NCT07739966",
+                  "excerpt": "\"A Study of DS-3939a in Participants With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [DS-3939a, Pembrolizumab, Carboplatin, Pemetrexed, DS-1103a]",
+                  "url": "https://clinicaltrials.gov/study/NCT07739966"
                 }
               ],
               "total_supporting_trials": 50
@@ -116,14 +116,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT02578680",
-                  "excerpt": "\"Study of Pemetrexed+Platinum Chemotherapy With or Without Pembrolizumab (MK-3475) in Participants With First Line Metastatic Nonsquamous Non-small Cell Lung Can...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab 200 mg, Cisplatin, Carboplatin, Pemetrexed, Folic acid 350-1000 \u03bcg, Vitamin B12 1000 \u03bcg, Dexamethasone 4 mg, Saline solution]",
-                  "url": "https://clinicaltrials.gov/study/NCT02578680"
+                  "nct_id": "NCT05281003",
+                  "excerpt": "\"Pembrolizumab Plus Chemo in Neoadjuvant Treatment of Esophageal Squamous Cell Carcinoma (Eastern Cooperative Thoracic Oncology Projects 2004, ECTOP-2004)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Cisplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT05281003"
                 },
                 {
-                  "nct_id": "NCT02635360",
-                  "excerpt": "\"Pembrolizumab and Chemoradiation Treatment for Advanced Cervical Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Brachytherapy, Cisplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT02635360"
+                  "nct_id": "NCT07622186",
+                  "excerpt": "\"A Study of SKB571 Combination Therapy in Participants With Non-Small Cell Lung Cancer (NSCLC)\" \u2014 armsInterventionsModule.interventions[].name: [SKB571 for injection, Osimertinib, Furmonertinib, carboplatin, Cisplatin, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07622186"
                 }
               ],
               "total_supporting_trials": 39
@@ -150,14 +150,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02009449"
                 },
                 {
-                  "nct_id": "NCT02730546",
-                  "excerpt": "\"Pembrolizumab, Combination Chemotherapy, and Radiation Therapy Before Surgery in Treating Adult Patients With Locally Advanced Gastroesophageal Junction or Gast...\" \u2014 armsInterventionsModule.interventions[].name: [Carboplatin, Computed Tomography, Fluorouracil, Laboratory Biomarker Analysis, Leucovorin Calcium, Oxaliplatin, Paclitaxel, Pembrolizumab, Positron Emission Tomography, Radiation Therapy, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT02730546"
+                  "nct_id": "NCT04949256",
+                  "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) Plus Lenvatinib (E7080/MK-7902) Plus Chemotherapy in Participants With Metastatic Esophageal Carcinoma (MK-7902-0...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Cisplatin, 5-FU, Oxaliplatin, Leucovorin, Levoleucovorin, Paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT04949256"
                 },
                 {
-                  "nct_id": "NCT02734290",
-                  "excerpt": "\"Standard of Care Chemotherapy Plus Pembrolizumab for Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02734290"
+                  "nct_id": "NCT07216703",
+                  "excerpt": "\"A Clinical Study of Sacituzumab Tirumotecan (MK-2870) in Combination With Pembrolizumab (MK-3475) as First-line Maintenance Treatment of Cervical Cancer (MK-287...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Sacituzumab Tirumotecan, Bevacizumab, Paclitaxel, Cisplatin, Carboplatin, Rescue Medications]",
+                  "url": "https://clinicaltrials.gov/study/NCT07216703"
                 }
               ],
               "total_supporting_trials": 39
@@ -180,14 +180,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02079636"
                 },
                 {
-                  "nct_id": "NCT02578680",
-                  "excerpt": "\"Study of Pemetrexed+Platinum Chemotherapy With or Without Pembrolizumab (MK-3475) in Participants With First Line Metastatic Nonsquamous Non-small Cell Lung Can...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab 200 mg, Cisplatin, Carboplatin, Pemetrexed, Folic acid 350-1000 \u03bcg, Vitamin B12 1000 \u03bcg, Dexamethasone 4 mg, Saline solution]",
-                  "url": "https://clinicaltrials.gov/study/NCT02578680"
+                  "nct_id": "NCT05258279",
+                  "excerpt": "\"Lenvatinib in Combination With Carboplatin Pemetrexed and Pembrolizumab for NSCLC With EGFR Mutations\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Carboplatin, Pemetrexed]",
+                  "url": "https://clinicaltrials.gov/study/NCT05258279"
                 },
                 {
-                  "nct_id": "NCT03562871",
-                  "excerpt": "\"IO102 With Pembrolizumab, With or Without Chemotherapy, as First-line Treatment of Metastatic NSCLC\" \u2014 armsInterventionsModule.interventions[].name: [IO102, pembrolizumab (Keytruda), Carboplatin (Carboplatin Kabi), Pemetrexed (Pemetrexed Alvogen)]",
-                  "url": "https://clinicaltrials.gov/study/NCT03562871"
+                  "nct_id": "NCT07739966",
+                  "excerpt": "\"A Study of DS-3939a in Participants With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [DS-3939a, Pembrolizumab, Carboplatin, Pemetrexed, DS-1103a]",
+                  "url": "https://clinicaltrials.gov/study/NCT07739966"
                 }
               ],
               "total_supporting_trials": 26
@@ -209,14 +209,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02009449"
                 },
                 {
-                  "nct_id": "NCT02840994",
-                  "excerpt": "\"A Trial of CV301 in Combination With Anti-PD-1 Therapy in Subjects With Non-Small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [CV301, Pembrolizumab, Nivolumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT02840994"
+                  "nct_id": "NCT04771715",
+                  "excerpt": "\"Regorafenib Plus Programmed Cell Death-1 (PD-1) Inhibitors in Patients With Advanced Colorectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Regorafenib, Nivolumab, Pembrolizumab, Camrelizumab, Sintilimab, Toripalimab, Tislelizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT04771715"
                 },
                 {
-                  "nct_id": "NCT02949843",
-                  "excerpt": "\"Targeted Therapy in Treating Patients With Incurable Non-Small Cell Lung Cancer With Genetic Mutations\" \u2014 armsInterventionsModule.interventions[].name: [Chemotherapy, Immunotherapy, Laboratory Biomarker Analysis, Nivolumab, Pembrolizumab, Targeted Molecular Therapy, Tyrosine Kinase Inhibitor]",
-                  "url": "https://clinicaltrials.gov/study/NCT02949843"
+                  "nct_id": "NCT07436390",
+                  "excerpt": "\"IFN-Gamma Expression as a Predictor of Response to Immune Checkpoint Inhibitors in First-Line Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Nivolumab, Ipilimumab/Nivolumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07436390"
                 }
               ],
               "total_supporting_trials": 22
@@ -239,14 +239,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03006887"
                 },
                 {
-                  "nct_id": "NCT03321630",
-                  "excerpt": "\"A Phase II a Study of Lenvatinib, a Multi-targeted Tyrosine Kinase Inhibitor, Combined With Pembrolizumab (PD-1 Inhibitor) for the Treatment of Metastatic Gastr...\" \u2014 armsInterventionsModule.interventions[].name: [Lenvatinib, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03321630"
+                  "nct_id": "NCT04889118",
+                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advanced Melanoma (MK-79...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT04889118"
                 },
                 {
-                  "nct_id": "NCT03564691",
-                  "excerpt": "\"Study of MK-4830 as Monotherapy and in Combination With Pembrolizumab (MK-3475) in Participants With Advanced Solid Tumors (MK-4830-001)\" \u2014 armsInterventionsModule.interventions[].name: [MK-4830, Pembrolizumab, Carboplatin, Pemetrexed, Lenvatinib, Paclitaxel, Cisplatin, MK-4830A]",
-                  "url": "https://clinicaltrials.gov/study/NCT03564691"
+                  "nct_id": "NCT06364631",
+                  "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Pembrolizumab, Cabozantinib, Axitinib, Lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06364631"
                 }
               ],
               "total_supporting_trials": 22
@@ -265,14 +265,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 },
                 {
-                  "nct_id": "NCT02768701",
-                  "excerpt": "\"Study Of Single-dose Cyclophosphamide +Pembrolizumab In Patients With Metastatic Triple Negative Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT02768701"
+                  "nct_id": "NCT05207722",
+                  "excerpt": "\"CYNK-101 in Combination with Trastuzumab and Pembrolizumab in Patients with Locally Advanced Unresectable or Metastatic HER2-Positive Gastric or Gastroesophagea...\" \u2014 armsInterventionsModule.interventions[].name: [CYNK-101, Pembrolizumab, Trastuzumab, Recombinant Human Interleukin-2, Cyclophosphamide, Fludarabine, Mesna]",
+                  "url": "https://clinicaltrials.gov/study/NCT05207722"
                 },
                 {
-                  "nct_id": "NCT03006302",
-                  "excerpt": "\"Epacadostat, Pembrolizumab, and CRS-207, With or Without CY/GVAX Pancreas in Patients With Metastatic Pancreas Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Epacadostat, Pembrolizumab, CRS-207, Cyclophosphamide, GVAX Pancreas Vaccine]",
-                  "url": "https://clinicaltrials.gov/study/NCT03006302"
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 17
@@ -294,14 +294,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02079636"
                 },
                 {
-                  "nct_id": "NCT02393248",
-                  "excerpt": "\"Open-Label, Dose-Escalation Study of Pemigatinib in Subjects With Advanced Malignancies - (FIGHT-101)\" \u2014 armsInterventionsModule.interventions[].name: [Pemigatinib, Gemcitabine, Pembrolizumab, Docetaxel, Trastuzumab, Retifanlimab, Cisplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT02393248"
+                  "nct_id": "NCT04241185",
+                  "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) in Combination With Chemoradiotherapy (CRT) Versus CRT Alone in Muscle-invasive Bladder Cancer (MIBC) (MK-3475-99...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Conventional Radiotherapy (Bladder only), Conventional Radiotherapy (Bladder and pelvic nodes), Hypofractionated Radiotherapy (Bladder only), Cisplatin, Fluorouracil (5-FU), Mitomycin C (MMC), Gemcitabine, Placebo to Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT04241185"
                 },
                 {
-                  "nct_id": "NCT02546531",
-                  "excerpt": "\"Defactinib Combined With Pembrolizumab and Gemcitabine in Patients With Advanced Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Defactinib, Pembrolizumab, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02546531"
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 16
@@ -323,14 +323,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02009449"
                 },
                 {
-                  "nct_id": "NCT02555657",
-                  "excerpt": "\"Study of Single Agent Pembrolizumab (MK-3475) Versus Single Agent Chemotherapy for Metastatic Triple Negative Breast Cancer (MK-3475-119/KEYNOTE-119)\" \u2014 armsInterventionsModule.interventions[].name: [pembrolizumab, capecitabine, eribulin, gemcitabine, vinorelbine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02555657"
+                  "nct_id": "NCT05585814",
+                  "excerpt": "\"CapeOX Combined With Bevacizumab Plus Anti-PD1 Antibody as Neoadjuvant Therapy for Microsatellite Stable Locally Advanced Rectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05585814"
                 },
                 {
-                  "nct_id": "NCT02734290",
-                  "excerpt": "\"Standard of Care Chemotherapy Plus Pembrolizumab for Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02734290"
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 16
@@ -352,14 +352,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03834519"
                 },
                 {
-                  "nct_id": "NCT03976362",
-                  "excerpt": "\"A Study of Pembrolizumab (MK-3475) With or Without Maintenance Olaparib in First-line Metastatic Squamous Non-small Cell Lung Cancer (NSCLC, MK-7339-008/KEYLYNK...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Nab-paclitaxel, Olaparib, Placebo]",
-                  "url": "https://clinicaltrials.gov/study/NCT03976362"
+                  "nct_id": "NCT05268510",
+                  "excerpt": "\"Chemotherapy and Pembrolizumab, Followed by Pembrolizumab and Olaparib As Firstline Therapy in Her-2 Negative Gastric/GEJ Adenocarcinoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, mFOLFOX-6, CapOX]",
+                  "url": "https://clinicaltrials.gov/study/NCT05268510"
                 },
                 {
-                  "nct_id": "NCT04191135",
-                  "excerpt": "\"Study of Olaparib Plus Pembrolizumab Versus Chemotherapy Plus Pembrolizumab After Induction With First-Line Chemotherapy Plus Pembrolizumab in Triple Negative B...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, Carboplatin, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT04191135"
+                  "nct_id": "NCT07652242",
+                  "excerpt": "\"Phase 1 Study of a Self-amplifying RNA Vaccine (ITI-5000) in Stage 2-3 Triple Negative Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ITI-5000 mRNA Vaccine, Pembrolizumab, ITI-5000 mRNA Vaccine, Olaparib, Capecitabine, ITI-5000 MTD (Maximum Tolerated Dose)]",
+                  "url": "https://clinicaltrials.gov/study/NCT07652242"
                 }
               ],
               "total_supporting_trials": 13
@@ -384,14 +384,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT03009058",
-                  "excerpt": "\"Study of IMM 101 in Combination With Standard of Care in Patients With Metastatic or Unresectable Cancer\" \u2014 armsInterventionsModule.interventions[].name: [IMM-101, Gemcitabine, Nab-paclitaxel, Capecitabine, Folinic Acid, Fluorouracil, Irinotecan, Oxaliplatin, cetuximab, Anti-PD1, Ipilimumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03009058"
+                  "nct_id": "NCT05719558",
+                  "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05719558"
                 },
                 {
-                  "nct_id": "NCT03189719",
-                  "excerpt": "\"First-line Esophageal Carcinoma Study With Pembrolizumab Plus Chemo vs. Chemo (MK-3475-590/KEYNOTE-590)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Placebo, Cisplatin, 5-FU]",
-                  "url": "https://clinicaltrials.gov/study/NCT03189719"
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 12
@@ -413,14 +413,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01866319"
                 },
                 {
-                  "nct_id": "NCT02089685",
-                  "excerpt": "\"Safety and Tolerability of Pembrolizumab (MK-3475) + Pegylated Interferon Alfa-2b and Pembrolizumab+ Ipilimumab in Participants With Advanced Melanoma or Renal...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, PegIFN-2b, Ipilimumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT02089685"
+                  "nct_id": "NCT03899155",
+                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT03899155"
                 },
                 {
-                  "nct_id": "NCT03009058",
-                  "excerpt": "\"Study of IMM 101 in Combination With Standard of Care in Patients With Metastatic or Unresectable Cancer\" \u2014 armsInterventionsModule.interventions[].name: [IMM-101, Gemcitabine, Nab-paclitaxel, Capecitabine, Folinic Acid, Fluorouracil, Irinotecan, Oxaliplatin, cetuximab, Anti-PD1, Ipilimumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03009058"
+                  "nct_id": "NCT06364631",
+                  "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Pembrolizumab, Cabozantinib, Axitinib, Lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06364631"
                 }
               ],
               "total_supporting_trials": 11
@@ -439,14 +439,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02313272"
                 },
                 {
-                  "nct_id": "NCT03786081",
-                  "excerpt": "\"Safety and Efficacy of Tisotumab Vedotin Monotherapy & in Combination With Other Cancer Agents in Subjects With Cervical Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Tisotumab Vedotin, Bevacizumab, Pembrolizumab, Carboplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT03786081"
+                  "nct_id": "NCT05585814",
+                  "excerpt": "\"CapeOX Combined With Bevacizumab Plus Anti-PD1 Antibody as Neoadjuvant Therapy for Microsatellite Stable Locally Advanced Rectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05585814"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
+                  "nct_id": "NCT07216703",
+                  "excerpt": "\"A Clinical Study of Sacituzumab Tirumotecan (MK-2870) in Combination With Pembrolizumab (MK-3475) as First-line Maintenance Treatment of Cervical Cancer (MK-287...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Sacituzumab Tirumotecan, Bevacizumab, Paclitaxel, Cisplatin, Carboplatin, Rescue Medications]",
+                  "url": "https://clinicaltrials.gov/study/NCT07216703"
                 }
               ],
               "total_supporting_trials": 11
@@ -465,14 +465,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT03009058",
-                  "excerpt": "\"Study of IMM 101 in Combination With Standard of Care in Patients With Metastatic or Unresectable Cancer\" \u2014 armsInterventionsModule.interventions[].name: [IMM-101, Gemcitabine, Nab-paclitaxel, Capecitabine, Folinic Acid, Fluorouracil, Irinotecan, Oxaliplatin, cetuximab, Anti-PD1, Ipilimumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03009058"
+                  "nct_id": "NCT05585814",
+                  "excerpt": "\"CapeOX Combined With Bevacizumab Plus Anti-PD1 Antibody as Neoadjuvant Therapy for Microsatellite Stable Locally Advanced Rectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05585814"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 11
@@ -498,14 +498,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02888665"
                 },
                 {
-                  "nct_id": "NCT03036488",
-                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Chemotherapy vs Placebo Plus Chemotherapy as Neoadjuvant Therapy and Pembrolizumab vs Placebo as Adjuvant Therapy in Parti...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Doxorubicin, Epirubicin, Cyclophosphamide, Placebo, Granulocyte colony stimulating factor: Filgrastim or Pegfilgastrim]",
-                  "url": "https://clinicaltrials.gov/study/NCT03036488"
+                  "nct_id": "NCT05092360",
+                  "excerpt": "\"Phase 3 Study of Nemvaleukin Alfa in Combination With Pembrolizumab in Patients With Platinum-Resistant Epithelial Ovarian Cancer (ARTISTRY-7)\" \u2014 armsInterventionsModule.interventions[].name: [Nemvaleukin and Pembrolizumab Combination, Pembrolizumab, Nemvaleukin, Pegylated Liposomal Doxorubicin (PLD), Paclitaxel, Topotecan, Gemcitabine]",
+                  "url": "https://clinicaltrials.gov/study/NCT05092360"
                 },
                 {
-                  "nct_id": "NCT03211117",
-                  "excerpt": "\"Pembrolizumab, Chemotherapy, and Radiation Therapy With or Without Surgery in Treating Patients With Anaplastic Thyroid Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Docetaxel, Doxorubicin Hydrochloride, Intensity-Modulated Radiation Therapy, Laboratory Biomarker Analysis, Pembrolizumab, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT03211117"
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 10
@@ -524,14 +524,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02826486"
                 },
                 {
-                  "nct_id": "NCT02949843",
-                  "excerpt": "\"Targeted Therapy in Treating Patients With Incurable Non-Small Cell Lung Cancer With Genetic Mutations\" \u2014 armsInterventionsModule.interventions[].name: [Chemotherapy, Immunotherapy, Laboratory Biomarker Analysis, Nivolumab, Pembrolizumab, Targeted Molecular Therapy, Tyrosine Kinase Inhibitor]",
-                  "url": "https://clinicaltrials.gov/study/NCT02949843"
+                  "nct_id": "NCT05512182",
+                  "excerpt": "\"Efficacy of Triplet Combination With Pembrolizumab, Neratinib, and Paclitaxel as a Second Line Treatment in Recurrent/Advanced Gastric Cancer Having Somatic Hum...\" \u2014 armsInterventionsModule.interventions[].name: [Chemotherapy]",
+                  "url": "https://clinicaltrials.gov/study/NCT05512182"
                 },
                 {
-                  "nct_id": "NCT03873883",
-                  "excerpt": "\"First-in-Human Study of EOS100850 (Inupadenant) in Patients with Cancer\" \u2014 armsInterventionsModule.interventions[].name: [EOS100850, Pembrolizumab, Chemotherapy]",
-                  "url": "https://clinicaltrials.gov/study/NCT03873883"
+                  "nct_id": "NCT07035860",
+                  "excerpt": "\"Efficacy and Safety of Chemoimmunotherapy and Carbon Ion Radiotherapy in Unresectable Locally Advanced Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Carbon ion radiotherapy, Chemotherapy, Immunotherapy]",
+                  "url": "https://clinicaltrials.gov/study/NCT07035860"
                 }
               ],
               "total_supporting_trials": 9
@@ -550,14 +550,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT03747120",
-                  "excerpt": "\"Neoadjuvant Her2-targeted Therapy and Immunotherapy With Pembrolizumab [IIT2018-04-MCARTHUR-NEOHP]\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Trastuzumab, Pertuzumab, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03747120"
+                  "nct_id": "NCT06031233",
+                  "excerpt": "\"Evaluating the Safety of Shortened Infusion Times for dIfferent Oncological Immunotherapie\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Pembrolizumab, Ipilimumab, Durvalumab, Atezolizumab, Bevacizumab, Trastuzumab, Rituximab]",
+                  "url": "https://clinicaltrials.gov/study/NCT06031233"
                 },
                 {
-                  "nct_id": "NCT05207722",
-                  "excerpt": "\"CYNK-101 in Combination with Trastuzumab and Pembrolizumab in Patients with Locally Advanced Unresectable or Metastatic HER2-Positive Gastric or Gastroesophagea...\" \u2014 armsInterventionsModule.interventions[].name: [CYNK-101, Pembrolizumab, Trastuzumab, Recombinant Human Interleukin-2, Cyclophosphamide, Fludarabine, Mesna]",
-                  "url": "https://clinicaltrials.gov/study/NCT05207722"
+                  "nct_id": "NCT06764875",
+                  "excerpt": "\"A Phase \u2162 Study of Rilvegostomig in Combination With Fluoropyrimidine and Trastuzumab Deruxtecan as the First-line Treatment for HER2-positive Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Rilvegostomig, Trastuzumab deruxtecan, Trastuzumab, Pembrolizumab, 5-fluorouracil, Capecitabine, Cisplatin, Oxaliplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT06764875"
                 }
               ],
               "total_supporting_trials": 8
@@ -576,14 +576,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 },
                 {
-                  "nct_id": "NCT03841110",
-                  "excerpt": "\"FT500 as Monotherapy and in Combination With Immune Checkpoint Inhibitors in Subjects With Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [FT500, Nivolumab, Pembrolizumab, Atezolizumab, Cyclophosphamide, Fludarabine, IL-2]",
-                  "url": "https://clinicaltrials.gov/study/NCT03841110"
+                  "nct_id": "NCT05207722",
+                  "excerpt": "\"CYNK-101 in Combination with Trastuzumab and Pembrolizumab in Patients with Locally Advanced Unresectable or Metastatic HER2-Positive Gastric or Gastroesophagea...\" \u2014 armsInterventionsModule.interventions[].name: [CYNK-101, Pembrolizumab, Trastuzumab, Recombinant Human Interleukin-2, Cyclophosphamide, Fludarabine, Mesna]",
+                  "url": "https://clinicaltrials.gov/study/NCT05207722"
                 },
                 {
-                  "nct_id": "NCT04282044",
-                  "excerpt": "\"Study of CRX100 as Monotherapy and in Combination With Pembrolizumab in Patients With Advanced Solid Malignancies\" \u2014 armsInterventionsModule.interventions[].name: [CRX100 suspension for infusion, Fludarabine, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT04282044"
+                  "nct_id": "NCT06640582",
+                  "excerpt": "\"TIL Therapy Combined With Pembrolizumab for Advanced Brain Cancer Including Gliomas and Meningiomas\" \u2014 armsInterventionsModule.interventions[].name: [Tumor Infiltrating Lymphocytes (TIL), Cyclophosphamide, Fludarabine, Interleukin-2, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT06640582"
                 }
               ],
               "total_supporting_trials": 8
@@ -605,14 +605,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02707588"
                 },
                 {
-                  "nct_id": "NCT03009058",
-                  "excerpt": "\"Study of IMM 101 in Combination With Standard of Care in Patients With Metastatic or Unresectable Cancer\" \u2014 armsInterventionsModule.interventions[].name: [IMM-101, Gemcitabine, Nab-paclitaxel, Capecitabine, Folinic Acid, Fluorouracil, Irinotecan, Oxaliplatin, cetuximab, Anti-PD1, Ipilimumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03009058"
+                  "nct_id": "NCT05104567",
+                  "excerpt": "\"A Study of SAR444245 Combined With Other Anticancer Therapies for the Treatment of Participants With Gastrointestinal Cancer (Master Protocol) (Pegathor Gastroi...\" \u2014 armsInterventionsModule.interventions[].name: [THOR-707, Pembrolizumab, Cetuximab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05104567"
                 },
                 {
-                  "nct_id": "NCT04670679",
-                  "excerpt": "\"A Dose Escalation/Expansion Study of ERAS-601 in Patients With Advanced or Metastatic Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ERAS-601, Cetuximab, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04670679"
+                  "nct_id": "NCT07252739",
+                  "excerpt": "\"KEYMAKER-U01 Substudy 01J: A Study of Pembrolizumab Plus MK-1084 in Participants With Non-Small Cell Lung Cancer (NSCLC) With Kirsten Rat Sarcoma Viral Oncogene...\" \u2014 armsInterventionsModule.interventions[].name: [MK-1084, Pembrolizumab, Cetuximab, Sacituzumab tirumotecan (sac-TMT), Rescue medication]",
+                  "url": "https://clinicaltrials.gov/study/NCT07252739"
                 }
               ],
               "total_supporting_trials": 8
@@ -631,14 +631,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT03211117",
-                  "excerpt": "\"Pembrolizumab, Chemotherapy, and Radiation Therapy With or Without Surgery in Treating Patients With Anaplastic Thyroid Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Docetaxel, Doxorubicin Hydrochloride, Intensity-Modulated Radiation Therapy, Laboratory Biomarker Analysis, Pembrolizumab, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT03211117"
+                  "nct_id": "NCT05719558",
+                  "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05719558"
                 },
                 {
-                  "nct_id": "NCT03582475",
-                  "excerpt": "\"Pembrolizumab With Combination Chemotherapy in Treating Participants With Locally Advanced or Metastatic Small Cell/Neuroendocrine Cancers of Urothelium or Pros...\" \u2014 armsInterventionsModule.interventions[].name: [Carboplatin, Cisplatin, Docetaxel, Etoposide, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03582475"
+                  "nct_id": "NCT06699212",
+                  "excerpt": "\"A Study of ASP-1929 Photoimmunotherapy in Combination With Pembrolizumab in First-line Treatment of Locoregional Recurrent Squamous Cell Carcinoma of the Head a...\" \u2014 armsInterventionsModule.interventions[].name: [ASP-1929 Photoimmunotherapy, Pembrolizumab, Carboplatin, Cisplatin, 5-fluorouracil, Paclitaxel, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT06699212"
                 }
               ],
               "total_supporting_trials": 8
@@ -657,14 +657,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03564691"
                 },
                 {
-                  "nct_id": "NCT04165070",
-                  "excerpt": "\"KEYMAKER-U01 Substudy 01A: Efficacy and Safety Study of Pembrolizumab (MK-3475) With or Without Chemotherapy When Used With Investigational Agents in Treatment-...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Pemetrexed, Vibostolimab, Boserolimab, MK-4830, MK-0482, Ifinatamab Deruxtecan (I-DXd), HER3-DXd]",
-                  "url": "https://clinicaltrials.gov/study/NCT04165070"
+                  "nct_id": "NCT04165096",
+                  "excerpt": "\"KEYMAKER-U01 Substudy 3: Efficacy and Safety Study of Pembrolizumab (MK-3475) When Used With Investigational Agents in Participants With Advanced Non-small Cell...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Boserolimab, MK-4830, diphenhydramine, acetaminophen, MK-0482]",
+                  "url": "https://clinicaltrials.gov/study/NCT04165096"
                 },
                 {
-                  "nct_id": "NCT04165083",
-                  "excerpt": "\"KEYMAKER-U01 Substudy 2: Efficacy and Safety Study of Pembrolizumab (MK-3475) When Used With Investigational Agents in Treatment-na\u00efve Participants With Anti-pr...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, MK-4830, MK-0482]",
-                  "url": "https://clinicaltrials.gov/study/NCT04165083"
+                  "nct_id": "NCT05342636",
+                  "excerpt": "\"A Study of Combination Therapies With or Without Pembrolizumab (MK-3475) and/or Chemotherapy in Participants With Advanced Esophageal Cancer (MK-3475-06A)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Coformulation favezelimab/pembrolizumab, MK-4830, Lenvatinib, Irinotecan, Paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05342636"
                 }
               ],
               "total_supporting_trials": 7
@@ -683,14 +683,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02312557"
                 },
                 {
-                  "nct_id": "NCT03753243",
-                  "excerpt": "\"Neoadjuvant Pembrolizumab Plus Androgen Axis Blockade Prior to Prostatectomy for High Risk Localized Prostate Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Enzalutamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03753243"
+                  "nct_id": "NCT03834519",
+                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Olaparib Versus Abiraterone Acetate or Enzalutamide in Metastatic Castration-resistant Prostate Cancer (mCRPC) (MK-7339-01...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, Abiraterone acetate, Prednisone, Enzalutamide, Prednisolone]",
+                  "url": "https://clinicaltrials.gov/study/NCT03834519"
                 },
                 {
-                  "nct_id": "NCT03834493",
-                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Enzalutamide Versus Placebo Plus Enzalutamide in Participants With Metastatic Castration-resistant Prostate Cancer (mCRPC)...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Enzalutamide, Placebo]",
-                  "url": "https://clinicaltrials.gov/study/NCT03834493"
+                  "nct_id": "NCT04934722",
+                  "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) Plus Enzalutamide Plus Androgen Deprivation Therapy (ADT) Versus Placebo Plus Enzalutamide Plus ADT in Participan...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Enzalutamide, Androgen Deprivation Therapy (ADT), Placebo]",
+                  "url": "https://clinicaltrials.gov/study/NCT04934722"
                 }
               ],
               "total_supporting_trials": 7
@@ -709,14 +709,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03288545"
                 },
                 {
-                  "nct_id": "NCT06145308",
-                  "excerpt": "\"Precision Treatment of Recurrent/Metastatic Salivary Gland Carcinoma Guided by Molecular Typing\" \u2014 armsInterventionsModule.interventions[].name: [Cohort 1 (HER2-positive, RC48-ADC), Cohort 2 (NTRK-fusion or NTRK-mutant), Cohort 3 (AR-positive, leuprolide + bicalutamide + abiraterone), TROP2 ADC, TKI, Albumin-paclitaxel + platinum, Albumin-paclitaxel + carboplatin + apatinib + camrelizumab, albumin-bound paclitaxel+trastuzumab+pyrotinib, HER2,trastuzumab deruxtecan\u00b1 pertuzumab, AR,AR antagonist ++ goserelin + pertuzumab + trastuzumab, AR,AR antagonist +goserelin +docetaxel, ivonescimab + investigator-choice platinum doublet+, iparomlimab + tuvonralimab, cadonilimab, CDK4/6 inhibitor+AI or fulvestrant, alpelisib+fulvestrant, PARP inhibitor, enfortumab vedotin, HER2, pyrotinib + pertuzumab/trastuzumab, vebecotutamab \u00b1lenvatinib]",
-                  "url": "https://clinicaltrials.gov/study/NCT06145308"
-                },
-                {
                   "nct_id": "NCT06356155",
                   "excerpt": "\"Study of Neoadjuvant Enfortumab Vedotin and Pembrolizumab in Upper Tract Urothelial Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Enfortumab vedotin, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT06356155"
+                },
+                {
+                  "nct_id": "NCT07667335",
+                  "excerpt": "\"Enfortumab Vedotin, Pembrolizumab and Quemliclustat for the Treatment of Unresectable Locally Advanced and Metastatic Urothelial Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Quemliclustat, Biospecimen Collection, Computed Tomography, Enfortumab Vedotin, Magnetic Resonance Imaging, Pembrolizumab, Biopsy Procedure]",
+                  "url": "https://clinicaltrials.gov/study/NCT07667335"
                 }
               ],
               "total_supporting_trials": 6
@@ -735,14 +735,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02949843"
                 },
                 {
-                  "nct_id": "NCT05902260",
-                  "excerpt": "\"The Effects of an Nutritional Intervention on PD-1 ICI in NSCLC\" \u2014 armsInterventionsModule.interventions[].name: [Nutritional intervention, Immunotherapy]",
-                  "url": "https://clinicaltrials.gov/study/NCT05902260"
-                },
-                {
                   "nct_id": "NCT06031597",
                   "excerpt": "\"Radiotherapy Combined With ICIs as Treatment for LA-NSCLC After Failing Induction Immunochemotherapy\" \u2014 armsInterventionsModule.interventions[].name: [radiotherapy, Platinum-Based Drug, Immunotherapy, Immunotherapeutic Agent]",
                   "url": "https://clinicaltrials.gov/study/NCT06031597"
+                },
+                {
+                  "nct_id": "NCT07035860",
+                  "excerpt": "\"Efficacy and Safety of Chemoimmunotherapy and Carbon Ion Radiotherapy in Unresectable Locally Advanced Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Carbon ion radiotherapy, Chemotherapy, Immunotherapy]",
+                  "url": "https://clinicaltrials.gov/study/NCT07035860"
                 }
               ],
               "total_supporting_trials": 5
@@ -761,14 +761,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02133742"
                 },
                 {
-                  "nct_id": "NCT05017012",
-                  "excerpt": "\"A Study to Evaluate the Bioavailability of Pembrolizumab (MK-3475) Via Subcutaneous (SC) Injection of Pembrolizumab Formulated With Berahyaluronidase Alfa (MK-5...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab (+) Berahyaluronidase alfa, Pembrolizumab, Pemetrexed, Carboplatin, Paclitaxel, Nab-paclitaxel, Axitinib, Cisplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT05017012"
-                },
-                {
                   "nct_id": "NCT06211114",
                   "excerpt": "\"Study to Evaluate the Efficacy and Safety of Immunotherapy With Axitinib in Advanced Collecting Duct Carcinoma\" \u2014 armsInterventionsModule.interventions[].name: [PD-(L)1 inhibitor, Axitinib]",
                   "url": "https://clinicaltrials.gov/study/NCT06211114"
+                },
+                {
+                  "nct_id": "NCT06860386",
+                  "excerpt": "\"Study of Adaptive Immunotherapy With VEGFR-TKI in Patients With Advanced RCC\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Axitinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06860386"
                 }
               ],
               "total_supporting_trials": 5
@@ -790,14 +790,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03347292"
                 },
                 {
-                  "nct_id": "NCT04771715",
-                  "excerpt": "\"Regorafenib Plus Programmed Cell Death-1 (PD-1) Inhibitors in Patients With Advanced Colorectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Regorafenib, Nivolumab, Pembrolizumab, Camrelizumab, Sintilimab, Toripalimab, Tislelizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04771715"
-                },
-                {
                   "nct_id": "NCT05233358",
                   "excerpt": "\"HAIC Combined With Second-line \"Target Immunity\" for HCC With TACE Standard Treatment Low Response or Failure\" \u2014 armsInterventionsModule.interventions[].name: [Hepatic Artery Infusion Chemotherapy, Transarterial Chemoembolization, Regorafenib, Immune Checkpoint Inhibitors]",
                   "url": "https://clinicaltrials.gov/study/NCT05233358"
+                },
+                {
+                  "nct_id": "NCT06006923",
+                  "excerpt": "\"Regorafenib in Combination With Pembrolizumab or Pembrolizumab for MSI-H Colorectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Regorafenib, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT06006923"
                 }
               ],
               "total_supporting_trials": 5
@@ -816,14 +816,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03149822"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
-                },
-                {
                   "nct_id": "NCT03957551",
                   "excerpt": "\"Cabozantinib and Pembrolizumab for Advanced Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Cabozantinib, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03957551"
+                },
+                {
+                  "nct_id": "NCT06364631",
+                  "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Pembrolizumab, Cabozantinib, Axitinib, Lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06364631"
                 }
               ],
               "total_supporting_trials": 5
@@ -842,14 +842,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03841110"
                 },
                 {
-                  "nct_id": "NCT04619797",
-                  "excerpt": "\"A Study of Tiragolumab in Combination With Atezolizumab Plus Pemetrexed and Carboplatin/Cisplatin Versus Pembrolizumab Plus Pemetrexed and Carboplatin/Cisplatin...\" \u2014 armsInterventionsModule.interventions[].name: [Tiragolumab, Atezolizumab, Pemetrexed, Carboplatin, Cisplatin, Tiragolumab Matching Placebo, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04619797"
-                },
-                {
                   "nct_id": "NCT05395052",
                   "excerpt": "\"FT536 Monotherapy and in Combination With Monoclonal Antibodies in Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [FT536, Cyclophosphamide, Fludarabine, IL-2, Avelumab, Pembrolizumab, Nivolumab, Atezolizumab, Trastuzumab, Cetuximab, Amivantamab, IL-2]",
                   "url": "https://clinicaltrials.gov/study/NCT05395052"
+                },
+                {
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 5
@@ -871,14 +871,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02578680"
                 },
                 {
-                  "nct_id": "NCT02880228",
-                  "excerpt": "\"Pembrolizumab, Lenalidomide, and Dexamethasone in Treating Patients With Newly Diagnosed Multiple Myeloma Eligible for Stem Cell Transplant\" \u2014 armsInterventionsModule.interventions[].name: [Dexamethasone, Laboratory Biomarker Analysis, Lenalidomide, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT02880228"
-                },
-                {
                   "nct_id": "NCT04265534",
                   "excerpt": "\"KEAPSAKE: A Study of Telaglenastat (CB-839) With Standard-of-Care Chemoimmunotherapy in 1L KEAP1/NRF2-Mutated, Nonsquamous NSCLC\" \u2014 armsInterventionsModule.interventions[].name: [Telaglenastat, Carboplatin Chemotherapy, Pemetrexed Chemotherapy, Pembrolizumab Immunotherapy, Placebo, Folic acid 400 -1000 \u03bcg, Vitamin B12 1000 \u03bcg, Dexamethasone 4 mg]",
                   "url": "https://clinicaltrials.gov/study/NCT04265534"
+                },
+                {
+                  "nct_id": "NCT05514990",
+                  "excerpt": "\"Bortezomib and Pembrolizumab With or Without Pelareorep for the Treatment of Relapsed or Refractory Multiple Myeloma, AMBUSH Trial\" \u2014 armsInterventionsModule.interventions[].name: [Bortezomib, Dexamethasone, Pelareorep, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05514990"
                 }
               ],
               "total_supporting_trials": 5
@@ -896,14 +896,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02578680"
                 },
                 {
-                  "nct_id": "NCT02730546",
-                  "excerpt": "\"Pembrolizumab, Combination Chemotherapy, and Radiation Therapy Before Surgery in Treating Adult Patients With Locally Advanced Gastroesophageal Junction or Gast...\" \u2014 armsInterventionsModule.interventions[].name: [Carboplatin, Computed Tomography, Fluorouracil, Laboratory Biomarker Analysis, Leucovorin Calcium, Oxaliplatin, Paclitaxel, Pembrolizumab, Positron Emission Tomography, Radiation Therapy, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT02730546"
+                  "nct_id": "NCT05267470",
+                  "excerpt": "\"A Study of Bemarituzumab Monotherapy and Combination With Other Anti-cancer Therapy in SqNSCLC With FGFR2b Overexpression (FORTITUDE-201)\" \u2014 armsInterventionsModule.interventions[].name: [Bemarituzumab, Docetaxel, Pembrolizumab, Carboplatin, Paclitaxel, Nab-paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05267470"
                 },
                 {
-                  "nct_id": "NCT02834975",
-                  "excerpt": "\"Pembrolizumab, Paclitaxel, and Carboplatin in Patients With Advanced Stage Epithelial Ovarian Cancer (EOC).\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT02834975"
+                  "nct_id": "NCT07739966",
+                  "excerpt": "\"A Study of DS-3939a in Participants With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [DS-3939a, Pembrolizumab, Carboplatin, Pemetrexed, DS-1103a]",
+                  "url": "https://clinicaltrials.gov/study/NCT07739966"
                 }
               ],
               "total_supporting_trials": 49
@@ -919,14 +919,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT02578680",
-                  "excerpt": "\"Study of Pemetrexed+Platinum Chemotherapy With or Without Pembrolizumab (MK-3475) in Participants With First Line Metastatic Nonsquamous Non-small Cell Lung Can...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab 200 mg, Cisplatin, Carboplatin, Pemetrexed, Folic acid 350-1000 \u03bcg, Vitamin B12 1000 \u03bcg, Dexamethasone 4 mg, Saline solution]",
-                  "url": "https://clinicaltrials.gov/study/NCT02578680"
+                  "nct_id": "NCT05281003",
+                  "excerpt": "\"Pembrolizumab Plus Chemo in Neoadjuvant Treatment of Esophageal Squamous Cell Carcinoma (Eastern Cooperative Thoracic Oncology Projects 2004, ECTOP-2004)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Cisplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT05281003"
                 },
                 {
-                  "nct_id": "NCT02635360",
-                  "excerpt": "\"Pembrolizumab and Chemoradiation Treatment for Advanced Cervical Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Brachytherapy, Cisplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT02635360"
+                  "nct_id": "NCT07622186",
+                  "excerpt": "\"A Study of SKB571 Combination Therapy in Participants With Non-Small Cell Lung Cancer (NSCLC)\" \u2014 armsInterventionsModule.interventions[].name: [SKB571 for injection, Osimertinib, Furmonertinib, carboplatin, Cisplatin, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07622186"
                 }
               ],
               "total_supporting_trials": 39
@@ -942,14 +942,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02009449"
                 },
                 {
-                  "nct_id": "NCT02730546",
-                  "excerpt": "\"Pembrolizumab, Combination Chemotherapy, and Radiation Therapy Before Surgery in Treating Adult Patients With Locally Advanced Gastroesophageal Junction or Gast...\" \u2014 armsInterventionsModule.interventions[].name: [Carboplatin, Computed Tomography, Fluorouracil, Laboratory Biomarker Analysis, Leucovorin Calcium, Oxaliplatin, Paclitaxel, Pembrolizumab, Positron Emission Tomography, Radiation Therapy, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT02730546"
+                  "nct_id": "NCT05017012",
+                  "excerpt": "\"A Study to Evaluate the Bioavailability of Pembrolizumab (MK-3475) Via Subcutaneous (SC) Injection of Pembrolizumab Formulated With Berahyaluronidase Alfa (MK-5...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab (+) Berahyaluronidase alfa, Pembrolizumab, Pemetrexed, Carboplatin, Paclitaxel, Nab-paclitaxel, Axitinib, Cisplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT05017012"
                 },
                 {
-                  "nct_id": "NCT02734290",
-                  "excerpt": "\"Standard of Care Chemotherapy Plus Pembrolizumab for Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02734290"
+                  "nct_id": "NCT07216703",
+                  "excerpt": "\"A Clinical Study of Sacituzumab Tirumotecan (MK-2870) in Combination With Pembrolizumab (MK-3475) as First-line Maintenance Treatment of Cervical Cancer (MK-287...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Sacituzumab Tirumotecan, Bevacizumab, Paclitaxel, Cisplatin, Carboplatin, Rescue Medications]",
+                  "url": "https://clinicaltrials.gov/study/NCT07216703"
                 }
               ],
               "total_supporting_trials": 37
@@ -965,14 +965,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02079636"
                 },
                 {
-                  "nct_id": "NCT02578680",
-                  "excerpt": "\"Study of Pemetrexed+Platinum Chemotherapy With or Without Pembrolizumab (MK-3475) in Participants With First Line Metastatic Nonsquamous Non-small Cell Lung Can...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab 200 mg, Cisplatin, Carboplatin, Pemetrexed, Folic acid 350-1000 \u03bcg, Vitamin B12 1000 \u03bcg, Dexamethasone 4 mg, Saline solution]",
-                  "url": "https://clinicaltrials.gov/study/NCT02578680"
+                  "nct_id": "NCT05258279",
+                  "excerpt": "\"Lenvatinib in Combination With Carboplatin Pemetrexed and Pembrolizumab for NSCLC With EGFR Mutations\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Carboplatin, Pemetrexed]",
+                  "url": "https://clinicaltrials.gov/study/NCT05258279"
                 },
                 {
-                  "nct_id": "NCT03562871",
-                  "excerpt": "\"IO102 With Pembrolizumab, With or Without Chemotherapy, as First-line Treatment of Metastatic NSCLC\" \u2014 armsInterventionsModule.interventions[].name: [IO102, pembrolizumab (Keytruda), Carboplatin (Carboplatin Kabi), Pemetrexed (Pemetrexed Alvogen)]",
-                  "url": "https://clinicaltrials.gov/study/NCT03562871"
+                  "nct_id": "NCT07739966",
+                  "excerpt": "\"A Study of DS-3939a in Participants With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [DS-3939a, Pembrolizumab, Carboplatin, Pemetrexed, DS-1103a]",
+                  "url": "https://clinicaltrials.gov/study/NCT07739966"
                 }
               ],
               "total_supporting_trials": 26
@@ -988,14 +988,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT02834975",
-                  "excerpt": "\"Pembrolizumab, Paclitaxel, and Carboplatin in Patients With Advanced Stage Epithelial Ovarian Cancer (EOC).\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT02834975"
+                  "nct_id": "NCT05382286",
+                  "excerpt": "\"Study of Sacituzumab Govitecan-hziy and Pembrolizumab Versus Treatment of Physician's Choice and Pembrolizumab in Patients With Previously Untreated, Locally Ad...\" \u2014 armsInterventionsModule.interventions[].name: [Sacituzumab Govitecan-hziy, Pembrolizumab, Paclitaxel, nab-Paclitaxel, Gemcitabine, Carboplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT05382286"
                 },
                 {
-                  "nct_id": "NCT03036488",
-                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Chemotherapy vs Placebo Plus Chemotherapy as Neoadjuvant Therapy and Pembrolizumab vs Placebo as Adjuvant Therapy in Parti...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Doxorubicin, Epirubicin, Cyclophosphamide, Placebo, Granulocyte colony stimulating factor: Filgrastim or Pegfilgastrim]",
-                  "url": "https://clinicaltrials.gov/study/NCT03036488"
+                  "nct_id": "NCT07216703",
+                  "excerpt": "\"A Clinical Study of Sacituzumab Tirumotecan (MK-2870) in Combination With Pembrolizumab (MK-3475) as First-line Maintenance Treatment of Cervical Cancer (MK-287...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Sacituzumab Tirumotecan, Bevacizumab, Paclitaxel, Cisplatin, Carboplatin, Rescue Medications]",
+                  "url": "https://clinicaltrials.gov/study/NCT07216703"
                 }
               ],
               "total_supporting_trials": 25
@@ -1011,14 +1011,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02578680"
                 },
                 {
-                  "nct_id": "NCT02934503",
-                  "excerpt": "\"Study of Pembrolizumab and Chemotherapy With or Without Radiation in Small Cell Lung Cancer (SCLC)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Cisplatin, Carboplatin, Etoposide, Radiation therapy]",
-                  "url": "https://clinicaltrials.gov/study/NCT02934503"
+                  "nct_id": "NCT05925491",
+                  "excerpt": "\"Pembrolizumab in Locally Advanced Sinonasal Carcinoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Cisplatin, Docetaxel, Carboplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT05925491"
                 },
                 {
-                  "nct_id": "NCT03288545",
-                  "excerpt": "\"A Study of Enfortumab Vedotin Alone or With Other Therapies for Treatment of Urothelial Cancer\" \u2014 armsInterventionsModule.interventions[].name: [enfortumab vedotin (EV), pembrolizumab, cisplatin, carboplatin, gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT03288545"
+                  "nct_id": "NCT07622186",
+                  "excerpt": "\"A Study of SKB571 Combination Therapy in Participants With Non-Small Cell Lung Cancer (NSCLC)\" \u2014 armsInterventionsModule.interventions[].name: [SKB571 for injection, Osimertinib, Furmonertinib, carboplatin, Cisplatin, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07622186"
                 }
               ],
               "total_supporting_trials": 23
@@ -1034,14 +1034,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02578680"
                 },
                 {
-                  "nct_id": "NCT03562871",
-                  "excerpt": "\"IO102 With Pembrolizumab, With or Without Chemotherapy, as First-line Treatment of Metastatic NSCLC\" \u2014 armsInterventionsModule.interventions[].name: [IO102, pembrolizumab (Keytruda), Carboplatin (Carboplatin Kabi), Pemetrexed (Pemetrexed Alvogen)]",
-                  "url": "https://clinicaltrials.gov/study/NCT03562871"
+                  "nct_id": "NCT05687266",
+                  "excerpt": "\"Phase III, Open-label, First-line Study of Dato-DXd in Combination With Durvalumab and Carboplatin for Advanced NSCLC Without Actionable Genomic Alterations\" \u2014 armsInterventionsModule.interventions[].name: [Datopotamab deruxtecan, Durvalumab, Carboplatin, Pembrolizumab, Cisplatin, Pemetrexed, Paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05687266"
                 },
                 {
-                  "nct_id": "NCT03564691",
-                  "excerpt": "\"Study of MK-4830 as Monotherapy and in Combination With Pembrolizumab (MK-3475) in Participants With Advanced Solid Tumors (MK-4830-001)\" \u2014 armsInterventionsModule.interventions[].name: [MK-4830, Pembrolizumab, Carboplatin, Pemetrexed, Lenvatinib, Paclitaxel, Cisplatin, MK-4830A]",
-                  "url": "https://clinicaltrials.gov/study/NCT03564691"
+                  "nct_id": "NCT07739966",
+                  "excerpt": "\"A Study of DS-3939a in Participants With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [DS-3939a, Pembrolizumab, Carboplatin, Pemetrexed, DS-1103a]",
+                  "url": "https://clinicaltrials.gov/study/NCT07739966"
                 }
               ],
               "total_supporting_trials": 23
@@ -1057,14 +1057,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02009449"
                 },
                 {
-                  "nct_id": "NCT02840994",
-                  "excerpt": "\"A Trial of CV301 in Combination With Anti-PD-1 Therapy in Subjects With Non-Small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [CV301, Pembrolizumab, Nivolumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT02840994"
+                  "nct_id": "NCT04771715",
+                  "excerpt": "\"Regorafenib Plus Programmed Cell Death-1 (PD-1) Inhibitors in Patients With Advanced Colorectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Regorafenib, Nivolumab, Pembrolizumab, Camrelizumab, Sintilimab, Toripalimab, Tislelizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT04771715"
                 },
                 {
-                  "nct_id": "NCT02949843",
-                  "excerpt": "\"Targeted Therapy in Treating Patients With Incurable Non-Small Cell Lung Cancer With Genetic Mutations\" \u2014 armsInterventionsModule.interventions[].name: [Chemotherapy, Immunotherapy, Laboratory Biomarker Analysis, Nivolumab, Pembrolizumab, Targeted Molecular Therapy, Tyrosine Kinase Inhibitor]",
-                  "url": "https://clinicaltrials.gov/study/NCT02949843"
+                  "nct_id": "NCT07436390",
+                  "excerpt": "\"IFN-Gamma Expression as a Predictor of Response to Immune Checkpoint Inhibitors in First-Line Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Nivolumab, Ipilimumab/Nivolumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07436390"
                 }
               ],
               "total_supporting_trials": 22
@@ -1080,14 +1080,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03006887"
                 },
                 {
-                  "nct_id": "NCT03321630",
-                  "excerpt": "\"A Phase II a Study of Lenvatinib, a Multi-targeted Tyrosine Kinase Inhibitor, Combined With Pembrolizumab (PD-1 Inhibitor) for the Treatment of Metastatic Gastr...\" \u2014 armsInterventionsModule.interventions[].name: [Lenvatinib, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03321630"
+                  "nct_id": "NCT04889118",
+                  "excerpt": "\"Safety and Efficacy Study of Pembrolizumab (MK-3475) Combined With Lenvatinib (MK-7902/E7080) as First-line Intervention in Adults With Advanced Melanoma (MK-79...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Placebo for lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT04889118"
                 },
                 {
-                  "nct_id": "NCT03564691",
-                  "excerpt": "\"Study of MK-4830 as Monotherapy and in Combination With Pembrolizumab (MK-3475) in Participants With Advanced Solid Tumors (MK-4830-001)\" \u2014 armsInterventionsModule.interventions[].name: [MK-4830, Pembrolizumab, Carboplatin, Pemetrexed, Lenvatinib, Paclitaxel, Cisplatin, MK-4830A]",
-                  "url": "https://clinicaltrials.gov/study/NCT03564691"
+                  "nct_id": "NCT06364631",
+                  "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Pembrolizumab, Cabozantinib, Axitinib, Lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06364631"
                 }
               ],
               "total_supporting_trials": 20
@@ -1103,14 +1103,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02009449"
                 },
                 {
-                  "nct_id": "NCT02555657",
-                  "excerpt": "\"Study of Single Agent Pembrolizumab (MK-3475) Versus Single Agent Chemotherapy for Metastatic Triple Negative Breast Cancer (MK-3475-119/KEYNOTE-119)\" \u2014 armsInterventionsModule.interventions[].name: [pembrolizumab, capecitabine, eribulin, gemcitabine, vinorelbine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02555657"
+                  "nct_id": "NCT05585814",
+                  "excerpt": "\"CapeOX Combined With Bevacizumab Plus Anti-PD1 Antibody as Neoadjuvant Therapy for Microsatellite Stable Locally Advanced Rectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05585814"
                 },
                 {
-                  "nct_id": "NCT02734290",
-                  "excerpt": "\"Standard of Care Chemotherapy Plus Pembrolizumab for Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02734290"
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 15
@@ -1126,14 +1126,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 },
                 {
-                  "nct_id": "NCT02768701",
-                  "excerpt": "\"Study Of Single-dose Cyclophosphamide +Pembrolizumab In Patients With Metastatic Triple Negative Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT02768701"
+                  "nct_id": "NCT05366062",
+                  "excerpt": "\"ERC1671 to Treat Malignant Gliomas When Given in Combination With GM-CSF, Cyclophosphamide, Bevacizumab and Pembrolizumab\" \u2014 armsInterventionsModule.interventions[].name: [ERC1671, GM-CSF, Cyclophosphamide, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05366062"
                 },
                 {
-                  "nct_id": "NCT03006302",
-                  "excerpt": "\"Epacadostat, Pembrolizumab, and CRS-207, With or Without CY/GVAX Pancreas in Patients With Metastatic Pancreas Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Epacadostat, Pembrolizumab, CRS-207, Cyclophosphamide, GVAX Pancreas Vaccine]",
-                  "url": "https://clinicaltrials.gov/study/NCT03006302"
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 15
@@ -1149,14 +1149,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02578680"
                 },
                 {
-                  "nct_id": "NCT03564691",
-                  "excerpt": "\"Study of MK-4830 as Monotherapy and in Combination With Pembrolizumab (MK-3475) in Participants With Advanced Solid Tumors (MK-4830-001)\" \u2014 armsInterventionsModule.interventions[].name: [MK-4830, Pembrolizumab, Carboplatin, Pemetrexed, Lenvatinib, Paclitaxel, Cisplatin, MK-4830A]",
-                  "url": "https://clinicaltrials.gov/study/NCT03564691"
+                  "nct_id": "NCT05791097",
+                  "excerpt": "\"Study of Efficacy and Safety of Ociperlimab in Combination With Tislelizumab and Platinum-based Doublet Chemotherapy as First-line Treatment for Participants Wi...\" \u2014 armsInterventionsModule.interventions[].name: [Ociperlimab, Placebo, Tislelizumab, Pembrolizumab, Carboplatin, Cisplatin, Pemetrexed, Paclitaxel, Nab-paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05791097"
                 },
                 {
-                  "nct_id": "NCT03645928",
-                  "excerpt": "\"Study of Autologous Tumor Infiltrating Lymphocytes in Patients With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [Lifileucel, LN-145, Pembrolizumab, LN-145-S1, Ipilimumab, Nivolumab, Nivolumab-relatlimab, Cisplatin, Carboplatin, Paclitaxel, Nab paclitaxel, Pemetrexed]",
-                  "url": "https://clinicaltrials.gov/study/NCT03645928"
+                  "nct_id": "NCT06793215",
+                  "excerpt": "\"A Study Evaluating the Efficacy and Safety of Divarasib and Pembrolizumab Versus Pembrolizumab and Pemetrexed and Carboplatin or Cisplatin in Participants With...\" \u2014 armsInterventionsModule.interventions[].name: [Divarasib, Pembrolizumab, Pemetrexed, Carboplatin, Cisplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT06793215"
                 }
               ],
               "total_supporting_trials": 15
@@ -1172,14 +1172,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02079636"
                 },
                 {
-                  "nct_id": "NCT02393248",
-                  "excerpt": "\"Open-Label, Dose-Escalation Study of Pemigatinib in Subjects With Advanced Malignancies - (FIGHT-101)\" \u2014 armsInterventionsModule.interventions[].name: [Pemigatinib, Gemcitabine, Pembrolizumab, Docetaxel, Trastuzumab, Retifanlimab, Cisplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT02393248"
+                  "nct_id": "NCT04191135",
+                  "excerpt": "\"Study of Olaparib Plus Pembrolizumab Versus Chemotherapy Plus Pembrolizumab After Induction With First-Line Chemotherapy Plus Pembrolizumab in Triple Negative B...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, Carboplatin, Gemcitabine]",
+                  "url": "https://clinicaltrials.gov/study/NCT04191135"
                 },
                 {
-                  "nct_id": "NCT02546531",
-                  "excerpt": "\"Defactinib Combined With Pembrolizumab and Gemcitabine in Patients With Advanced Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Defactinib, Pembrolizumab, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02546531"
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 14
@@ -1195,14 +1195,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03834519"
                 },
                 {
-                  "nct_id": "NCT03976362",
-                  "excerpt": "\"A Study of Pembrolizumab (MK-3475) With or Without Maintenance Olaparib in First-line Metastatic Squamous Non-small Cell Lung Cancer (NSCLC, MK-7339-008/KEYLYNK...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Nab-paclitaxel, Olaparib, Placebo]",
-                  "url": "https://clinicaltrials.gov/study/NCT03976362"
+                  "nct_id": "NCT05268510",
+                  "excerpt": "\"Chemotherapy and Pembrolizumab, Followed by Pembrolizumab and Olaparib As Firstline Therapy in Her-2 Negative Gastric/GEJ Adenocarcinoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, mFOLFOX-6, CapOX]",
+                  "url": "https://clinicaltrials.gov/study/NCT05268510"
                 },
                 {
-                  "nct_id": "NCT04191135",
-                  "excerpt": "\"Study of Olaparib Plus Pembrolizumab Versus Chemotherapy Plus Pembrolizumab After Induction With First-Line Chemotherapy Plus Pembrolizumab in Triple Negative B...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, Carboplatin, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT04191135"
+                  "nct_id": "NCT07652242",
+                  "excerpt": "\"Phase 1 Study of a Self-amplifying RNA Vaccine (ITI-5000) in Stage 2-3 Triple Negative Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ITI-5000 mRNA Vaccine, Pembrolizumab, ITI-5000 mRNA Vaccine, Olaparib, Capecitabine, ITI-5000 MTD (Maximum Tolerated Dose)]",
+                  "url": "https://clinicaltrials.gov/study/NCT07652242"
                 }
               ],
               "total_supporting_trials": 13
@@ -1218,14 +1218,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03053856"
                 },
                 {
-                  "nct_id": "NCT03564691",
-                  "excerpt": "\"Study of MK-4830 as Monotherapy and in Combination With Pembrolizumab (MK-3475) in Participants With Advanced Solid Tumors (MK-4830-001)\" \u2014 armsInterventionsModule.interventions[].name: [MK-4830, Pembrolizumab, Carboplatin, Pemetrexed, Lenvatinib, Paclitaxel, Cisplatin, MK-4830A]",
-                  "url": "https://clinicaltrials.gov/study/NCT03564691"
+                  "nct_id": "NCT05687266",
+                  "excerpt": "\"Phase III, Open-label, First-line Study of Dato-DXd in Combination With Durvalumab and Carboplatin for Advanced NSCLC Without Actionable Genomic Alterations\" \u2014 armsInterventionsModule.interventions[].name: [Datopotamab deruxtecan, Durvalumab, Carboplatin, Pembrolizumab, Cisplatin, Pemetrexed, Paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05687266"
                 },
                 {
-                  "nct_id": "NCT03645928",
-                  "excerpt": "\"Study of Autologous Tumor Infiltrating Lymphocytes in Patients With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [Lifileucel, LN-145, Pembrolizumab, LN-145-S1, Ipilimumab, Nivolumab, Nivolumab-relatlimab, Cisplatin, Carboplatin, Paclitaxel, Nab paclitaxel, Pemetrexed]",
-                  "url": "https://clinicaltrials.gov/study/NCT03645928"
+                  "nct_id": "NCT07216703",
+                  "excerpt": "\"A Clinical Study of Sacituzumab Tirumotecan (MK-2870) in Combination With Pembrolizumab (MK-3475) as First-line Maintenance Treatment of Cervical Cancer (MK-287...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Sacituzumab Tirumotecan, Bevacizumab, Paclitaxel, Cisplatin, Carboplatin, Rescue Medications]",
+                  "url": "https://clinicaltrials.gov/study/NCT07216703"
                 }
               ],
               "total_supporting_trials": 12
@@ -1241,14 +1241,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02313272"
                 },
                 {
-                  "nct_id": "NCT03786081",
-                  "excerpt": "\"Safety and Efficacy of Tisotumab Vedotin Monotherapy & in Combination With Other Cancer Agents in Subjects With Cervical Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Tisotumab Vedotin, Bevacizumab, Pembrolizumab, Carboplatin]",
-                  "url": "https://clinicaltrials.gov/study/NCT03786081"
+                  "nct_id": "NCT05585814",
+                  "excerpt": "\"CapeOX Combined With Bevacizumab Plus Anti-PD1 Antibody as Neoadjuvant Therapy for Microsatellite Stable Locally Advanced Rectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05585814"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
+                  "nct_id": "NCT07216703",
+                  "excerpt": "\"A Clinical Study of Sacituzumab Tirumotecan (MK-2870) in Combination With Pembrolizumab (MK-3475) as First-line Maintenance Treatment of Cervical Cancer (MK-287...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Sacituzumab Tirumotecan, Bevacizumab, Paclitaxel, Cisplatin, Carboplatin, Rescue Medications]",
+                  "url": "https://clinicaltrials.gov/study/NCT07216703"
                 }
               ],
               "total_supporting_trials": 11
@@ -1264,14 +1264,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT03189719",
-                  "excerpt": "\"First-line Esophageal Carcinoma Study With Pembrolizumab Plus Chemo vs. Chemo (MK-3475-590/KEYNOTE-590)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Placebo, Cisplatin, 5-FU]",
-                  "url": "https://clinicaltrials.gov/study/NCT03189719"
+                  "nct_id": "NCT05719558",
+                  "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05719558"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 11
@@ -1287,14 +1287,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01866319"
                 },
                 {
-                  "nct_id": "NCT02089685",
-                  "excerpt": "\"Safety and Tolerability of Pembrolizumab (MK-3475) + Pegylated Interferon Alfa-2b and Pembrolizumab+ Ipilimumab in Participants With Advanced Melanoma or Renal...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, PegIFN-2b, Ipilimumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT02089685"
+                  "nct_id": "NCT03899155",
+                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT03899155"
                 },
                 {
-                  "nct_id": "NCT03546686",
-                  "excerpt": "\"Peri-Operative Immune Checkpoint Inhibition and Cryoablation in Women With Triple-negative Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Core Biopsy/Cryoablation, Breast Surgery, Ipilimumab, Nivolumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03546686"
+                  "nct_id": "NCT06364631",
+                  "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Pembrolizumab, Cabozantinib, Axitinib, Lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06364631"
                 }
               ],
               "total_supporting_trials": 10
@@ -1310,14 +1310,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
+                  "nct_id": "NCT05585814",
+                  "excerpt": "\"CapeOX Combined With Bevacizumab Plus Anti-PD1 Antibody as Neoadjuvant Therapy for Microsatellite Stable Locally Advanced Rectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05585814"
                 },
                 {
-                  "nct_id": "NCT04262687",
-                  "excerpt": "\"Chemotherapy and Immunotherapy as Treatment for MSS Metastatic Colorectal Cancer With High Immune Infiltrate\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04262687"
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 10
@@ -1333,14 +1333,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02888665"
                 },
                 {
-                  "nct_id": "NCT03036488",
-                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Chemotherapy vs Placebo Plus Chemotherapy as Neoadjuvant Therapy and Pembrolizumab vs Placebo as Adjuvant Therapy in Parti...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Doxorubicin, Epirubicin, Cyclophosphamide, Placebo, Granulocyte colony stimulating factor: Filgrastim or Pegfilgastrim]",
-                  "url": "https://clinicaltrials.gov/study/NCT03036488"
+                  "nct_id": "NCT05092360",
+                  "excerpt": "\"Phase 3 Study of Nemvaleukin Alfa in Combination With Pembrolizumab in Patients With Platinum-Resistant Epithelial Ovarian Cancer (ARTISTRY-7)\" \u2014 armsInterventionsModule.interventions[].name: [Nemvaleukin and Pembrolizumab Combination, Pembrolizumab, Nemvaleukin, Pegylated Liposomal Doxorubicin (PLD), Paclitaxel, Topotecan, Gemcitabine]",
+                  "url": "https://clinicaltrials.gov/study/NCT05092360"
                 },
                 {
-                  "nct_id": "NCT03211117",
-                  "excerpt": "\"Pembrolizumab, Chemotherapy, and Radiation Therapy With or Without Surgery in Treating Patients With Anaplastic Thyroid Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Docetaxel, Doxorubicin Hydrochloride, Intensity-Modulated Radiation Therapy, Laboratory Biomarker Analysis, Pembrolizumab, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT03211117"
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 10
@@ -1356,14 +1356,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03564691"
                 },
                 {
-                  "nct_id": "NCT03645928",
-                  "excerpt": "\"Study of Autologous Tumor Infiltrating Lymphocytes in Patients With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [Lifileucel, LN-145, Pembrolizumab, LN-145-S1, Ipilimumab, Nivolumab, Nivolumab-relatlimab, Cisplatin, Carboplatin, Paclitaxel, Nab paclitaxel, Pemetrexed]",
-                  "url": "https://clinicaltrials.gov/study/NCT03645928"
+                  "nct_id": "NCT05017012",
+                  "excerpt": "\"A Study to Evaluate the Bioavailability of Pembrolizumab (MK-3475) Via Subcutaneous (SC) Injection of Pembrolizumab Formulated With Berahyaluronidase Alfa (MK-5...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab (+) Berahyaluronidase alfa, Pembrolizumab, Pemetrexed, Carboplatin, Paclitaxel, Nab-paclitaxel, Axitinib, Cisplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT05017012"
                 },
                 {
-                  "nct_id": "NCT04165070",
-                  "excerpt": "\"KEYMAKER-U01 Substudy 01A: Efficacy and Safety Study of Pembrolizumab (MK-3475) With or Without Chemotherapy When Used With Investigational Agents in Treatment-...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Pemetrexed, Vibostolimab, Boserolimab, MK-4830, MK-0482, Ifinatamab Deruxtecan (I-DXd), HER3-DXd]",
-                  "url": "https://clinicaltrials.gov/study/NCT04165070"
+                  "nct_id": "NCT06731907",
+                  "excerpt": "\"A Study of Pembrolizumab With or Without Chemotherapy in Combination With Additional Treatments for Advanced Non-Small Cell Lung Cancer (NSCLC) (MK-3475-01G/KEY...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Nab-paclitaxel, Pemetrexed, HER3-DXd]",
+                  "url": "https://clinicaltrials.gov/study/NCT06731907"
                 }
               ],
               "total_supporting_trials": 10
@@ -1379,14 +1379,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT03288545",
-                  "excerpt": "\"A Study of Enfortumab Vedotin Alone or With Other Therapies for Treatment of Urothelial Cancer\" \u2014 armsInterventionsModule.interventions[].name: [enfortumab vedotin (EV), pembrolizumab, cisplatin, carboplatin, gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT03288545"
+                  "nct_id": "NCT05967182",
+                  "excerpt": "\"A Single-Arm Study of Pembrolizumab With Gemcitabine and Cisplatin as Perioperative Therapy for Potentially Resectable Intrahepatic Cholangiocarcinoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Gemcitabine, Cisplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT05967182"
                 },
                 {
-                  "nct_id": "NCT04003636",
-                  "excerpt": "\"Pembrolizumab (MK-3475) Plus Gemcitabine/Cisplatin Versus Placebo Plus Gemcitabine/Cisplatin for First-Line Advanced and/or Unresectable Biliary Tract Carcinoma...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Gemcitabine, Cisplatin, Placebo]",
-                  "url": "https://clinicaltrials.gov/study/NCT04003636"
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 8
@@ -1402,14 +1402,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT03747120",
-                  "excerpt": "\"Neoadjuvant Her2-targeted Therapy and Immunotherapy With Pembrolizumab [IIT2018-04-MCARTHUR-NEOHP]\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Trastuzumab, Pertuzumab, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03747120"
+                  "nct_id": "NCT06031233",
+                  "excerpt": "\"Evaluating the Safety of Shortened Infusion Times for dIfferent Oncological Immunotherapie\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Pembrolizumab, Ipilimumab, Durvalumab, Atezolizumab, Bevacizumab, Trastuzumab, Rituximab]",
+                  "url": "https://clinicaltrials.gov/study/NCT06031233"
                 },
                 {
-                  "nct_id": "NCT05207722",
-                  "excerpt": "\"CYNK-101 in Combination with Trastuzumab and Pembrolizumab in Patients with Locally Advanced Unresectable or Metastatic HER2-Positive Gastric or Gastroesophagea...\" \u2014 armsInterventionsModule.interventions[].name: [CYNK-101, Pembrolizumab, Trastuzumab, Recombinant Human Interleukin-2, Cyclophosphamide, Fludarabine, Mesna]",
-                  "url": "https://clinicaltrials.gov/study/NCT05207722"
+                  "nct_id": "NCT06764875",
+                  "excerpt": "\"A Phase \u2162 Study of Rilvegostomig in Combination With Fluoropyrimidine and Trastuzumab Deruxtecan as the First-line Treatment for HER2-positive Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Rilvegostomig, Trastuzumab deruxtecan, Trastuzumab, Pembrolizumab, 5-fluorouracil, Capecitabine, Cisplatin, Oxaliplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT06764875"
                 }
               ],
               "total_supporting_trials": 8
@@ -1425,14 +1425,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT03211117",
-                  "excerpt": "\"Pembrolizumab, Chemotherapy, and Radiation Therapy With or Without Surgery in Treating Patients With Anaplastic Thyroid Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Docetaxel, Doxorubicin Hydrochloride, Intensity-Modulated Radiation Therapy, Laboratory Biomarker Analysis, Pembrolizumab, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT03211117"
+                  "nct_id": "NCT05719558",
+                  "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05719558"
                 },
                 {
-                  "nct_id": "NCT03582475",
-                  "excerpt": "\"Pembrolizumab With Combination Chemotherapy in Treating Participants With Locally Advanced or Metastatic Small Cell/Neuroendocrine Cancers of Urothelium or Pros...\" \u2014 armsInterventionsModule.interventions[].name: [Carboplatin, Cisplatin, Docetaxel, Etoposide, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03582475"
+                  "nct_id": "NCT06699212",
+                  "excerpt": "\"A Study of ASP-1929 Photoimmunotherapy in Combination With Pembrolizumab in First-line Treatment of Locoregional Recurrent Squamous Cell Carcinoma of the Head a...\" \u2014 armsInterventionsModule.interventions[].name: [ASP-1929 Photoimmunotherapy, Pembrolizumab, Carboplatin, Cisplatin, 5-fluorouracil, Paclitaxel, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT06699212"
                 }
               ],
               "total_supporting_trials": 8
@@ -1448,14 +1448,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 },
                 {
-                  "nct_id": "NCT03841110",
-                  "excerpt": "\"FT500 as Monotherapy and in Combination With Immune Checkpoint Inhibitors in Subjects With Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [FT500, Nivolumab, Pembrolizumab, Atezolizumab, Cyclophosphamide, Fludarabine, IL-2]",
-                  "url": "https://clinicaltrials.gov/study/NCT03841110"
+                  "nct_id": "NCT05207722",
+                  "excerpt": "\"CYNK-101 in Combination with Trastuzumab and Pembrolizumab in Patients with Locally Advanced Unresectable or Metastatic HER2-Positive Gastric or Gastroesophagea...\" \u2014 armsInterventionsModule.interventions[].name: [CYNK-101, Pembrolizumab, Trastuzumab, Recombinant Human Interleukin-2, Cyclophosphamide, Fludarabine, Mesna]",
+                  "url": "https://clinicaltrials.gov/study/NCT05207722"
                 },
                 {
-                  "nct_id": "NCT04282044",
-                  "excerpt": "\"Study of CRX100 as Monotherapy and in Combination With Pembrolizumab in Patients With Advanced Solid Malignancies\" \u2014 armsInterventionsModule.interventions[].name: [CRX100 suspension for infusion, Fludarabine, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT04282044"
+                  "nct_id": "NCT06640582",
+                  "excerpt": "\"TIL Therapy Combined With Pembrolizumab for Advanced Brain Cancer Including Gliomas and Meningiomas\" \u2014 armsInterventionsModule.interventions[].name: [Tumor Infiltrating Lymphocytes (TIL), Cyclophosphamide, Fludarabine, Interleukin-2, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT06640582"
                 }
               ],
               "total_supporting_trials": 8
@@ -1471,14 +1471,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT03009058",
-                  "excerpt": "\"Study of IMM 101 in Combination With Standard of Care in Patients With Metastatic or Unresectable Cancer\" \u2014 armsInterventionsModule.interventions[].name: [IMM-101, Gemcitabine, Nab-paclitaxel, Capecitabine, Folinic Acid, Fluorouracil, Irinotecan, Oxaliplatin, cetuximab, Anti-PD1, Ipilimumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03009058"
+                  "nct_id": "NCT05719558",
+                  "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05719558"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 8
@@ -1494,14 +1494,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03546686"
                 },
                 {
-                  "nct_id": "NCT03645928",
-                  "excerpt": "\"Study of Autologous Tumor Infiltrating Lymphocytes in Patients With Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [Lifileucel, LN-145, Pembrolizumab, LN-145-S1, Ipilimumab, Nivolumab, Nivolumab-relatlimab, Cisplatin, Carboplatin, Paclitaxel, Nab paclitaxel, Pemetrexed]",
-                  "url": "https://clinicaltrials.gov/study/NCT03645928"
+                  "nct_id": "NCT05533697",
+                  "excerpt": "\"Study of mRNA-4359 Administered Alone and in Combination With Immune Checkpoint Blockade in Participants With Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [mRNA-4359, Pembrolizumab, Ipilimumab, Nivolumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05533697"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
+                  "nct_id": "NCT06364631",
+                  "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Pembrolizumab, Cabozantinib, Axitinib, Lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06364631"
                 }
               ],
               "total_supporting_trials": 7
@@ -1517,14 +1517,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02312557"
                 },
                 {
-                  "nct_id": "NCT03753243",
-                  "excerpt": "\"Neoadjuvant Pembrolizumab Plus Androgen Axis Blockade Prior to Prostatectomy for High Risk Localized Prostate Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Enzalutamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03753243"
+                  "nct_id": "NCT03834519",
+                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Olaparib Versus Abiraterone Acetate or Enzalutamide in Metastatic Castration-resistant Prostate Cancer (mCRPC) (MK-7339-01...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, Abiraterone acetate, Prednisone, Enzalutamide, Prednisolone]",
+                  "url": "https://clinicaltrials.gov/study/NCT03834519"
                 },
                 {
-                  "nct_id": "NCT03834493",
-                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Enzalutamide Versus Placebo Plus Enzalutamide in Participants With Metastatic Castration-resistant Prostate Cancer (mCRPC)...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Enzalutamide, Placebo]",
-                  "url": "https://clinicaltrials.gov/study/NCT03834493"
+                  "nct_id": "NCT04934722",
+                  "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) Plus Enzalutamide Plus Androgen Deprivation Therapy (ADT) Versus Placebo Plus Enzalutamide Plus ADT in Participan...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Enzalutamide, Androgen Deprivation Therapy (ADT), Placebo]",
+                  "url": "https://clinicaltrials.gov/study/NCT04934722"
                 }
               ],
               "total_supporting_trials": 7
@@ -1540,14 +1540,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT01993719"
                 },
                 {
-                  "nct_id": "NCT03841110",
-                  "excerpt": "\"FT500 as Monotherapy and in Combination With Immune Checkpoint Inhibitors in Subjects With Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [FT500, Nivolumab, Pembrolizumab, Atezolizumab, Cyclophosphamide, Fludarabine, IL-2]",
-                  "url": "https://clinicaltrials.gov/study/NCT03841110"
+                  "nct_id": "NCT05207722",
+                  "excerpt": "\"CYNK-101 in Combination with Trastuzumab and Pembrolizumab in Patients with Locally Advanced Unresectable or Metastatic HER2-Positive Gastric or Gastroesophagea...\" \u2014 armsInterventionsModule.interventions[].name: [CYNK-101, Pembrolizumab, Trastuzumab, Recombinant Human Interleukin-2, Cyclophosphamide, Fludarabine, Mesna]",
+                  "url": "https://clinicaltrials.gov/study/NCT05207722"
                 },
                 {
-                  "nct_id": "NCT05176470",
-                  "excerpt": "\"Neoadj Admin Autologous Tumor Infiltrating Lymphocytes & Pembrolizumab for Treatment of Adv Melanoma Patients\" \u2014 armsInterventionsModule.interventions[].name: [Cyclophosphamide, Fludarabine, Lifileucel, Pembrolizumab, Therapeutic Conventional Surgery]",
-                  "url": "https://clinicaltrials.gov/study/NCT05176470"
+                  "nct_id": "NCT06640582",
+                  "excerpt": "\"TIL Therapy Combined With Pembrolizumab for Advanced Brain Cancer Including Gliomas and Meningiomas\" \u2014 armsInterventionsModule.interventions[].name: [Tumor Infiltrating Lymphocytes (TIL), Cyclophosphamide, Fludarabine, Interleukin-2, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT06640582"
                 }
               ],
               "total_supporting_trials": 7
@@ -1563,14 +1563,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02707588"
                 },
                 {
-                  "nct_id": "NCT04670679",
-                  "excerpt": "\"A Dose Escalation/Expansion Study of ERAS-601 in Patients With Advanced or Metastatic Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ERAS-601, Cetuximab, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04670679"
+                  "nct_id": "NCT05104567",
+                  "excerpt": "\"A Study of SAR444245 Combined With Other Anticancer Therapies for the Treatment of Participants With Gastrointestinal Cancer (Master Protocol) (Pegathor Gastroi...\" \u2014 armsInterventionsModule.interventions[].name: [THOR-707, Pembrolizumab, Cetuximab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05104567"
                 },
                 {
-                  "nct_id": "NCT05061420",
-                  "excerpt": "\"A Study of SAR444245 Combined With Other Anticancer Therapies for the Treatment of Participants With HNSCC (Master Protocol) (Pegathor Head and Neck 204)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, SAR444245 (Thor-707), Cetuximab]",
-                  "url": "https://clinicaltrials.gov/study/NCT05061420"
+                  "nct_id": "NCT07252739",
+                  "excerpt": "\"KEYMAKER-U01 Substudy 01J: A Study of Pembrolizumab Plus MK-1084 in Participants With Non-Small Cell Lung Cancer (NSCLC) With Kirsten Rat Sarcoma Viral Oncogene...\" \u2014 armsInterventionsModule.interventions[].name: [MK-1084, Pembrolizumab, Cetuximab, Sacituzumab tirumotecan (sac-TMT), Rescue medication]",
+                  "url": "https://clinicaltrials.gov/study/NCT07252739"
                 }
               ],
               "total_supporting_trials": 7
@@ -1586,14 +1586,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03189719"
                 },
                 {
-                  "nct_id": "NCT04241185",
-                  "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) in Combination With Chemoradiotherapy (CRT) Versus CRT Alone in Muscle-invasive Bladder Cancer (MIBC) (MK-3475-99...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Conventional Radiotherapy (Bladder only), Conventional Radiotherapy (Bladder and pelvic nodes), Hypofractionated Radiotherapy (Bladder only), Cisplatin, Fluorouracil (5-FU), Mitomycin C (MMC), Gemcitabine, Placebo to Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04241185"
+                  "nct_id": "NCT05945823",
+                  "excerpt": "\"Phase 2 Futibatinib in Combination With PD-1 Antibody Based Standard of Care in Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [Futibatinib, Pembrolizumab, Cisplatin, 5-FU, Oxaliplatin, Leucovorin, Levoleucovorin, Irinotecan]",
+                  "url": "https://clinicaltrials.gov/study/NCT05945823"
                 },
                 {
-                  "nct_id": "NCT04949256",
-                  "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) Plus Lenvatinib (E7080/MK-7902) Plus Chemotherapy in Participants With Metastatic Esophageal Carcinoma (MK-7902-0...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Cisplatin, 5-FU, Oxaliplatin, Leucovorin, Levoleucovorin, Paclitaxel]",
-                  "url": "https://clinicaltrials.gov/study/NCT04949256"
+                  "nct_id": "NCT06764875",
+                  "excerpt": "\"A Phase \u2162 Study of Rilvegostomig in Combination With Fluoropyrimidine and Trastuzumab Deruxtecan as the First-line Treatment for HER2-positive Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Rilvegostomig, Trastuzumab deruxtecan, Trastuzumab, Pembrolizumab, 5-fluorouracil, Capecitabine, Cisplatin, Oxaliplatin]",
+                  "url": "https://clinicaltrials.gov/study/NCT06764875"
                 }
               ],
               "total_supporting_trials": 7
@@ -1609,14 +1609,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02826486"
                 },
                 {
-                  "nct_id": "NCT02949843",
-                  "excerpt": "\"Targeted Therapy in Treating Patients With Incurable Non-Small Cell Lung Cancer With Genetic Mutations\" \u2014 armsInterventionsModule.interventions[].name: [Chemotherapy, Immunotherapy, Laboratory Biomarker Analysis, Nivolumab, Pembrolizumab, Targeted Molecular Therapy, Tyrosine Kinase Inhibitor]",
-                  "url": "https://clinicaltrials.gov/study/NCT02949843"
-                },
-                {
                   "nct_id": "NCT03873883",
                   "excerpt": "\"First-in-Human Study of EOS100850 (Inupadenant) in Patients with Cancer\" \u2014 armsInterventionsModule.interventions[].name: [EOS100850, Pembrolizumab, Chemotherapy]",
                   "url": "https://clinicaltrials.gov/study/NCT03873883"
+                },
+                {
+                  "nct_id": "NCT06731478",
+                  "excerpt": "\"Study of TDXd, Chemotherapy, Pembrolizumab, and Trastuzumab in First-Line Metastatic HER2-Positive Gastric or Gastroesophageal Junction Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Trastuzumab Deruxtecan, pembrolizumab, Trastuzumab, Chemotherapy]",
+                  "url": "https://clinicaltrials.gov/study/NCT06731478"
                 }
               ],
               "total_supporting_trials": 6
@@ -1632,14 +1632,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03564691"
                 },
                 {
-                  "nct_id": "NCT04165070",
-                  "excerpt": "\"KEYMAKER-U01 Substudy 01A: Efficacy and Safety Study of Pembrolizumab (MK-3475) With or Without Chemotherapy When Used With Investigational Agents in Treatment-...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Pemetrexed, Vibostolimab, Boserolimab, MK-4830, MK-0482, Ifinatamab Deruxtecan (I-DXd), HER3-DXd]",
-                  "url": "https://clinicaltrials.gov/study/NCT04165070"
-                },
-                {
                   "nct_id": "NCT04165083",
                   "excerpt": "\"KEYMAKER-U01 Substudy 2: Efficacy and Safety Study of Pembrolizumab (MK-3475) When Used With Investigational Agents in Treatment-na\u00efve Participants With Anti-pr...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, MK-4830, MK-0482]",
                   "url": "https://clinicaltrials.gov/study/NCT04165083"
+                },
+                {
+                  "nct_id": "NCT05342636",
+                  "excerpt": "\"A Study of Combination Therapies With or Without Pembrolizumab (MK-3475) and/or Chemotherapy in Participants With Advanced Esophageal Cancer (MK-3475-06A)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Coformulation favezelimab/pembrolizumab, MK-4830, Lenvatinib, Irinotecan, Paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05342636"
                 }
               ],
               "total_supporting_trials": 6
@@ -1655,14 +1655,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03009058"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
-                },
-                {
                   "nct_id": "NCT04262687",
                   "excerpt": "\"Chemotherapy and Immunotherapy as Treatment for MSS Metastatic Colorectal Cancer With High Immune Infiltrate\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT04262687"
+                },
+                {
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 6
@@ -1678,14 +1678,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02009449"
                 },
                 {
-                  "nct_id": "NCT02734290",
-                  "excerpt": "\"Standard of Care Chemotherapy Plus Pembrolizumab for Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT02734290"
-                },
-                {
                   "nct_id": "NCT03009058",
                   "excerpt": "\"Study of IMM 101 in Combination With Standard of Care in Patients With Metastatic or Unresectable Cancer\" \u2014 armsInterventionsModule.interventions[].name: [IMM-101, Gemcitabine, Nab-paclitaxel, Capecitabine, Folinic Acid, Fluorouracil, Irinotecan, Oxaliplatin, cetuximab, Anti-PD1, Ipilimumab, Cyclophosphamide]",
                   "url": "https://clinicaltrials.gov/study/NCT03009058"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 6
@@ -1701,14 +1701,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03582475"
                 },
                 {
-                  "nct_id": "NCT05267470",
-                  "excerpt": "\"A Study of Bemarituzumab Monotherapy and Combination With Other Anti-cancer Therapy in SqNSCLC With FGFR2b Overexpression (FORTITUDE-201)\" \u2014 armsInterventionsModule.interventions[].name: [Bemarituzumab, Docetaxel, Pembrolizumab, Carboplatin, Paclitaxel, Nab-paclitaxel]",
-                  "url": "https://clinicaltrials.gov/study/NCT05267470"
-                },
-                {
                   "nct_id": "NCT05719558",
                   "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
                   "url": "https://clinicaltrials.gov/study/NCT05719558"
+                },
+                {
+                  "nct_id": "NCT06699212",
+                  "excerpt": "\"A Study of ASP-1929 Photoimmunotherapy in Combination With Pembrolizumab in First-line Treatment of Locoregional Recurrent Squamous Cell Carcinoma of the Head a...\" \u2014 armsInterventionsModule.interventions[].name: [ASP-1929 Photoimmunotherapy, Pembrolizumab, Carboplatin, Cisplatin, 5-fluorouracil, Paclitaxel, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT06699212"
                 }
               ],
               "total_supporting_trials": 6
@@ -1724,14 +1724,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03288545"
                 },
                 {
-                  "nct_id": "NCT06356155",
-                  "excerpt": "\"Study of Neoadjuvant Enfortumab Vedotin and Pembrolizumab in Upper Tract Urothelial Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Enfortumab vedotin, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT06356155"
-                },
-                {
                   "nct_id": "NCT06493552",
                   "excerpt": "\"Modular Trial of sEphB4-HSA in EphrinB2-High Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [SEphB4-HSA, Pembrolizumab, Gemcitabine, Cisplatin, Enfortumab vedotin]",
                   "url": "https://clinicaltrials.gov/study/NCT06493552"
+                },
+                {
+                  "nct_id": "NCT07667335",
+                  "excerpt": "\"Enfortumab Vedotin, Pembrolizumab and Quemliclustat for the Treatment of Unresectable Locally Advanced and Metastatic Urothelial Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Quemliclustat, Biospecimen Collection, Computed Tomography, Enfortumab Vedotin, Magnetic Resonance Imaging, Pembrolizumab, Biopsy Procedure]",
+                  "url": "https://clinicaltrials.gov/study/NCT07667335"
                 }
               ],
               "total_supporting_trials": 5
@@ -1747,14 +1747,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03288545"
                 },
                 {
-                  "nct_id": "NCT04191135",
-                  "excerpt": "\"Study of Olaparib Plus Pembrolizumab Versus Chemotherapy Plus Pembrolizumab After Induction With First-Line Chemotherapy Plus Pembrolizumab in Triple Negative B...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, Carboplatin, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT04191135"
-                },
-                {
                   "nct_id": "NCT05382286",
                   "excerpt": "\"Study of Sacituzumab Govitecan-hziy and Pembrolizumab Versus Treatment of Physician's Choice and Pembrolizumab in Patients With Previously Untreated, Locally Ad...\" \u2014 armsInterventionsModule.interventions[].name: [Sacituzumab Govitecan-hziy, Pembrolizumab, Paclitaxel, nab-Paclitaxel, Gemcitabine, Carboplatin]",
                   "url": "https://clinicaltrials.gov/study/NCT05382286"
+                },
+                {
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 5
@@ -1770,14 +1770,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03149822"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
-                },
-                {
                   "nct_id": "NCT03957551",
                   "excerpt": "\"Cabozantinib and Pembrolizumab for Advanced Metastatic Melanoma\" \u2014 armsInterventionsModule.interventions[].name: [Cabozantinib, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT03957551"
+                },
+                {
+                  "nct_id": "NCT06364631",
+                  "excerpt": "\"CARE1 Pragmatic Clinical Trial\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Pembrolizumab, Cabozantinib, Axitinib, Lenvatinib]",
+                  "url": "https://clinicaltrials.gov/study/NCT06364631"
                 }
               ],
               "total_supporting_trials": 5
@@ -1793,14 +1793,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03841110"
                 },
                 {
-                  "nct_id": "NCT04619797",
-                  "excerpt": "\"A Study of Tiragolumab in Combination With Atezolizumab Plus Pemetrexed and Carboplatin/Cisplatin Versus Pembrolizumab Plus Pemetrexed and Carboplatin/Cisplatin...\" \u2014 armsInterventionsModule.interventions[].name: [Tiragolumab, Atezolizumab, Pemetrexed, Carboplatin, Cisplatin, Tiragolumab Matching Placebo, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04619797"
-                },
-                {
                   "nct_id": "NCT05395052",
                   "excerpt": "\"FT536 Monotherapy and in Combination With Monoclonal Antibodies in Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [FT536, Cyclophosphamide, Fludarabine, IL-2, Avelumab, Pembrolizumab, Nivolumab, Atezolizumab, Trastuzumab, Cetuximab, Amivantamab, IL-2]",
                   "url": "https://clinicaltrials.gov/study/NCT05395052"
+                },
+                {
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 5
@@ -1816,14 +1816,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03976362"
                 },
                 {
-                  "nct_id": "NCT04191135",
-                  "excerpt": "\"Study of Olaparib Plus Pembrolizumab Versus Chemotherapy Plus Pembrolizumab After Induction With First-Line Chemotherapy Plus Pembrolizumab in Triple Negative B...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Olaparib, Carboplatin, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT04191135"
-                },
-                {
                   "nct_id": "NCT06245889",
                   "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
                   "url": "https://clinicaltrials.gov/study/NCT06245889"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 5
@@ -1839,14 +1839,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02393248"
                 },
                 {
-                  "nct_id": "NCT03582475",
-                  "excerpt": "\"Pembrolizumab With Combination Chemotherapy in Treating Participants With Locally Advanced or Metastatic Small Cell/Neuroendocrine Cancers of Urothelium or Pros...\" \u2014 armsInterventionsModule.interventions[].name: [Carboplatin, Cisplatin, Docetaxel, Etoposide, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03582475"
-                },
-                {
                   "nct_id": "NCT05925491",
                   "excerpt": "\"Pembrolizumab in Locally Advanced Sinonasal Carcinoma\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Cisplatin, Docetaxel, Carboplatin]",
                   "url": "https://clinicaltrials.gov/study/NCT05925491"
+                },
+                {
+                  "nct_id": "NCT06699212",
+                  "excerpt": "\"A Study of ASP-1929 Photoimmunotherapy in Combination With Pembrolizumab in First-line Treatment of Locoregional Recurrent Squamous Cell Carcinoma of the Head a...\" \u2014 armsInterventionsModule.interventions[].name: [ASP-1929 Photoimmunotherapy, Pembrolizumab, Carboplatin, Cisplatin, 5-fluorouracil, Paclitaxel, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT06699212"
                 }
               ],
               "total_supporting_trials": 5
@@ -1862,14 +1862,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03009058"
                 },
                 {
-                  "nct_id": "NCT03036488",
-                  "excerpt": "\"Study of Pembrolizumab (MK-3475) Plus Chemotherapy vs Placebo Plus Chemotherapy as Neoadjuvant Therapy and Pembrolizumab vs Placebo as Adjuvant Therapy in Parti...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Carboplatin, Paclitaxel, Doxorubicin, Epirubicin, Cyclophosphamide, Placebo, Granulocyte colony stimulating factor: Filgrastim or Pegfilgastrim]",
-                  "url": "https://clinicaltrials.gov/study/NCT03036488"
-                },
-                {
                   "nct_id": "NCT06245889",
                   "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
                   "url": "https://clinicaltrials.gov/study/NCT06245889"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 5
@@ -1885,14 +1885,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03036488"
                 },
                 {
-                  "nct_id": "NCT05092360",
-                  "excerpt": "\"Phase 3 Study of Nemvaleukin Alfa in Combination With Pembrolizumab in Patients With Platinum-Resistant Epithelial Ovarian Cancer (ARTISTRY-7)\" \u2014 armsInterventionsModule.interventions[].name: [Nemvaleukin and Pembrolizumab Combination, Pembrolizumab, Nemvaleukin, Pegylated Liposomal Doxorubicin (PLD), Paclitaxel, Topotecan, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT05092360"
-                },
-                {
                   "nct_id": "NCT06245889",
                   "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
                   "url": "https://clinicaltrials.gov/study/NCT06245889"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 5
@@ -1908,14 +1908,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03009058"
                 },
                 {
-                  "nct_id": "NCT05092360",
-                  "excerpt": "\"Phase 3 Study of Nemvaleukin Alfa in Combination With Pembrolizumab in Patients With Platinum-Resistant Epithelial Ovarian Cancer (ARTISTRY-7)\" \u2014 armsInterventionsModule.interventions[].name: [Nemvaleukin and Pembrolizumab Combination, Pembrolizumab, Nemvaleukin, Pegylated Liposomal Doxorubicin (PLD), Paclitaxel, Topotecan, Gemcitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT05092360"
-                },
-                {
                   "nct_id": "NCT05382286",
                   "excerpt": "\"Study of Sacituzumab Govitecan-hziy and Pembrolizumab Versus Treatment of Physician's Choice and Pembrolizumab in Patients With Previously Untreated, Locally Ad...\" \u2014 armsInterventionsModule.interventions[].name: [Sacituzumab Govitecan-hziy, Pembrolizumab, Paclitaxel, nab-Paclitaxel, Gemcitabine, Carboplatin]",
                   "url": "https://clinicaltrials.gov/study/NCT05382286"
+                },
+                {
+                  "nct_id": "NCT06623422",
+                  "excerpt": "\"A Study of Pembrolizumab (MK-3475) With or Without Intismeran Autogene (V940) in Participants With Non-small Cell Lung Cancer (V940-009/INTerpath-009)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Paclitaxel, Intismeran autogene, Placebo]",
+                  "url": "https://clinicaltrials.gov/study/NCT06623422"
                 }
               ],
               "total_supporting_trials": 4
@@ -1931,14 +1931,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02578680"
                 },
                 {
-                  "nct_id": "NCT02880228",
-                  "excerpt": "\"Pembrolizumab, Lenalidomide, and Dexamethasone in Treating Patients With Newly Diagnosed Multiple Myeloma Eligible for Stem Cell Transplant\" \u2014 armsInterventionsModule.interventions[].name: [Dexamethasone, Laboratory Biomarker Analysis, Lenalidomide, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT02880228"
-                },
-                {
                   "nct_id": "NCT05493618",
                   "excerpt": "\"Pembrolizumab, Belantamab and Dexamethasone in Refractory Multiple Myeloma.\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Belantamab mafodotin, Dexamethasone]",
                   "url": "https://clinicaltrials.gov/study/NCT05493618"
+                },
+                {
+                  "nct_id": "NCT05514990",
+                  "excerpt": "\"Bortezomib and Pembrolizumab With or Without Pelareorep for the Treatment of Relapsed or Refractory Multiple Myeloma, AMBUSH Trial\" \u2014 armsInterventionsModule.interventions[].name: [Bortezomib, Dexamethasone, Pelareorep, Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT05514990"
                 }
               ],
               "total_supporting_trials": 4
@@ -1954,14 +1954,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT06245889"
                 },
                 {
-                  "nct_id": "NCT06797635",
-                  "excerpt": "\"Study of Patritumab Deruxtecan Plus Pembrolizumab With Other Anticancer Agents in Participants With High-Risk Early-Stage Triple-Negative or Hormone Receptor-Lo...\" \u2014 armsInterventionsModule.interventions[].name: [Patritumab deruxtecan, Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin hydrochloride, Epirubicin hydrochloride, Cyclophosphamide, Capecitabine, Olaparib]",
-                  "url": "https://clinicaltrials.gov/study/NCT06797635"
-                },
-                {
                   "nct_id": "NCT06829199",
                   "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
                   "url": "https://clinicaltrials.gov/study/NCT06829199"
+                },
+                {
+                  "nct_id": "NCT07652242",
+                  "excerpt": "\"Phase 1 Study of a Self-amplifying RNA Vaccine (ITI-5000) in Stage 2-3 Triple Negative Breast Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ITI-5000 mRNA Vaccine, Pembrolizumab, ITI-5000 mRNA Vaccine, Olaparib, Capecitabine, ITI-5000 MTD (Maximum Tolerated Dose)]",
+                  "url": "https://clinicaltrials.gov/study/NCT07652242"
                 }
               ],
               "total_supporting_trials": 4
@@ -1977,14 +1977,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03976362"
                 },
                 {
-                  "nct_id": "NCT06245889",
-                  "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT06245889"
-                },
-                {
                   "nct_id": "NCT06797635",
                   "excerpt": "\"Study of Patritumab Deruxtecan Plus Pembrolizumab With Other Anticancer Agents in Participants With High-Risk Early-Stage Triple-Negative or Hormone Receptor-Lo...\" \u2014 armsInterventionsModule.interventions[].name: [Patritumab deruxtecan, Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin hydrochloride, Epirubicin hydrochloride, Cyclophosphamide, Capecitabine, Olaparib]",
                   "url": "https://clinicaltrials.gov/study/NCT06797635"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 4
@@ -2000,14 +2000,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03841110"
                 },
                 {
-                  "nct_id": "NCT05395052",
-                  "excerpt": "\"FT536 Monotherapy and in Combination With Monoclonal Antibodies in Advanced Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [FT536, Cyclophosphamide, Fludarabine, IL-2, Avelumab, Pembrolizumab, Nivolumab, Atezolizumab, Trastuzumab, Cetuximab, Amivantamab, IL-2]",
-                  "url": "https://clinicaltrials.gov/study/NCT05395052"
-                },
-                {
                   "nct_id": "NCT06031233",
                   "excerpt": "\"Evaluating the Safety of Shortened Infusion Times for dIfferent Oncological Immunotherapie\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Pembrolizumab, Ipilimumab, Durvalumab, Atezolizumab, Bevacizumab, Trastuzumab, Rituximab]",
                   "url": "https://clinicaltrials.gov/study/NCT06031233"
+                },
+                {
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 4
@@ -2023,14 +2023,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03645928"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
-                },
-                {
                   "nct_id": "NCT06561386",
                   "excerpt": "\"A Study to Compare the Efficacy of Nivolumab and Relatlimab Plus Chemotherapy vs Pembrolizumab Plus Chemotherapy for Stage IV/Recurrent Non-squamous Non-small C...\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Relatlimab, Pembrolizumab, Carboplatin, Pemetrexed, Cisplatin]",
                   "url": "https://clinicaltrials.gov/study/NCT06561386"
+                },
+                {
+                  "nct_id": "NCT06632327",
+                  "excerpt": "\"Comparing Impact of Treatment Before or After Surgery in Patients With Stage II-IIIB Resectable Non-small Cell Lung Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Surgical Procedure, Cisplatin, Carboplatin, Pemetrexed, Gemcitabine, Docetaxel, Vinorelbine, Nivolumab, Pembrolizumab, Atezolizumab, Computed Tomography, Magnetic Resonance Imaging, Positron Emission Tomography]",
+                  "url": "https://clinicaltrials.gov/study/NCT06632327"
                 }
               ],
               "total_supporting_trials": 4
@@ -2046,14 +2046,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03564691"
                 },
                 {
-                  "nct_id": "NCT04781088",
-                  "excerpt": "\"Lenvatinib, Pembrolizumab, and Paclitaxel for Treatment of Recurrent Endometrial, Epithelial Ovarian, Fallopian Tube, or Primary Peritoneal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Lenvatinib, Paclitaxel, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04781088"
-                },
-                {
                   "nct_id": "NCT04949256",
                   "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) Plus Lenvatinib (E7080/MK-7902) Plus Chemotherapy in Participants With Metastatic Esophageal Carcinoma (MK-7902-0...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Cisplatin, 5-FU, Oxaliplatin, Leucovorin, Levoleucovorin, Paclitaxel]",
                   "url": "https://clinicaltrials.gov/study/NCT04949256"
+                },
+                {
+                  "nct_id": "NCT05342636",
+                  "excerpt": "\"A Study of Combination Therapies With or Without Pembrolizumab (MK-3475) and/or Chemotherapy in Participants With Advanced Esophageal Cancer (MK-3475-06A)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Coformulation favezelimab/pembrolizumab, MK-4830, Lenvatinib, Irinotecan, Paclitaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05342636"
                 }
               ],
               "total_supporting_trials": 4
@@ -2069,14 +2069,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03009058"
                 },
                 {
-                  "nct_id": "NCT06245889",
-                  "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT06245889"
-                },
-                {
                   "nct_id": "NCT06797635",
                   "excerpt": "\"Study of Patritumab Deruxtecan Plus Pembrolizumab With Other Anticancer Agents in Participants With High-Risk Early-Stage Triple-Negative or Hormone Receptor-Lo...\" \u2014 armsInterventionsModule.interventions[].name: [Patritumab deruxtecan, Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin hydrochloride, Epirubicin hydrochloride, Cyclophosphamide, Capecitabine, Olaparib]",
                   "url": "https://clinicaltrials.gov/study/NCT06797635"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 4
@@ -2092,14 +2092,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03009058"
                 },
                 {
-                  "nct_id": "NCT03899155",
-                  "excerpt": "\"Pan Tumor Rollover Study\" \u2014 armsInterventionsModule.interventions[].name: [Nivolumab, Ipilimumab, Cabozantinib, Trametinib, Relatlimab, Nivolumab + Relatlimab, Capecitabine, Bevacizumab, Temozolomide, Rucaparib, Daratumumab, Regorafinib, Leucovorin, Fluorouracil, Oxaliplatin, Enzalutamide, Sunitinib, Pemetrexed, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT03899155"
-                },
-                {
                   "nct_id": "NCT06764875",
                   "excerpt": "\"A Phase \u2162 Study of Rilvegostomig in Combination With Fluoropyrimidine and Trastuzumab Deruxtecan as the First-line Treatment for HER2-positive Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Rilvegostomig, Trastuzumab deruxtecan, Trastuzumab, Pembrolizumab, 5-fluorouracil, Capecitabine, Cisplatin, Oxaliplatin]",
                   "url": "https://clinicaltrials.gov/study/NCT06764875"
+                },
+                {
+                  "nct_id": "NCT07673887",
+                  "excerpt": "\"A Study of ASP2138 Together With Chemotherapy and Pembrolizumab in Adults With Gastric Cancer\" \u2014 armsInterventionsModule.interventions[].name: [ASP2138, Pembrolizumab, Oxaliplatin, Capecitabine, Folinic acid, 5-FU, Placebo for ASP2138, Placebo for Pembrolizumab]",
+                  "url": "https://clinicaltrials.gov/study/NCT07673887"
                 }
               ],
               "total_supporting_trials": 4
@@ -2115,14 +2115,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03899155"
                 },
                 {
-                  "nct_id": "NCT04262687",
-                  "excerpt": "\"Chemotherapy and Immunotherapy as Treatment for MSS Metastatic Colorectal Cancer With High Immune Infiltrate\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
-                  "url": "https://clinicaltrials.gov/study/NCT04262687"
-                },
-                {
                   "nct_id": "NCT05585814",
                   "excerpt": "\"CapeOX Combined With Bevacizumab Plus Anti-PD1 Antibody as Neoadjuvant Therapy for Microsatellite Stable Locally Advanced Rectal Cancer\" \u2014 armsInterventionsModule.interventions[].name: [Capecitabine, Oxaliplatin, Bevacizumab, Pembrolizumab]",
                   "url": "https://clinicaltrials.gov/study/NCT05585814"
+                },
+                {
+                  "nct_id": "NCT05719558",
+                  "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT05719558"
                 }
               ],
               "total_supporting_trials": 4
@@ -2138,14 +2138,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03036488"
                 },
                 {
-                  "nct_id": "NCT06245889",
-                  "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT06245889"
-                },
-                {
                   "nct_id": "NCT06797635",
                   "excerpt": "\"Study of Patritumab Deruxtecan Plus Pembrolizumab With Other Anticancer Agents in Participants With High-Risk Early-Stage Triple-Negative or Hormone Receptor-Lo...\" \u2014 armsInterventionsModule.interventions[].name: [Patritumab deruxtecan, Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin hydrochloride, Epirubicin hydrochloride, Cyclophosphamide, Capecitabine, Olaparib]",
                   "url": "https://clinicaltrials.gov/study/NCT06797635"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 4
@@ -2161,14 +2161,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03036488"
                 },
                 {
-                  "nct_id": "NCT06245889",
-                  "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT06245889"
-                },
-                {
                   "nct_id": "NCT06797635",
                   "excerpt": "\"Study of Patritumab Deruxtecan Plus Pembrolizumab With Other Anticancer Agents in Participants With High-Risk Early-Stage Triple-Negative or Hormone Receptor-Lo...\" \u2014 armsInterventionsModule.interventions[].name: [Patritumab deruxtecan, Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin hydrochloride, Epirubicin hydrochloride, Cyclophosphamide, Capecitabine, Olaparib]",
                   "url": "https://clinicaltrials.gov/study/NCT06797635"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 4
@@ -2184,14 +2184,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT03036488"
                 },
                 {
-                  "nct_id": "NCT06245889",
-                  "excerpt": "\"PET Dynamics to Response-Adapted Neoadjuvant Therapy in TNBC\" \u2014 armsInterventionsModule.interventions[].name: [Paclitaxel, Carboplatin, Pembrolizumab, Doxorubicin, Cyclophosphamide, Olaparib, Capecitabine]",
-                  "url": "https://clinicaltrials.gov/study/NCT06245889"
-                },
-                {
                   "nct_id": "NCT06797635",
                   "excerpt": "\"Study of Patritumab Deruxtecan Plus Pembrolizumab With Other Anticancer Agents in Participants With High-Risk Early-Stage Triple-Negative or Hormone Receptor-Lo...\" \u2014 armsInterventionsModule.interventions[].name: [Patritumab deruxtecan, Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin hydrochloride, Epirubicin hydrochloride, Cyclophosphamide, Capecitabine, Olaparib]",
                   "url": "https://clinicaltrials.gov/study/NCT06797635"
+                },
+                {
+                  "nct_id": "NCT06829199",
+                  "excerpt": "\"A Clinical Study of Boserolimab (MK-5890) With Pembrolizumab and Chemotherapy in People With Early Triple-Negative Breast Cancer (MK-5890-003)\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Paclitaxel, Carboplatin, Doxorubicin (hydrochloride), Boserolimab, Epirubicin Hydrochloride, Cyclophosphamide, Capecitabine, Olaparib (if approved/available locally)]",
+                  "url": "https://clinicaltrials.gov/study/NCT06829199"
                 }
               ],
               "total_supporting_trials": 4
@@ -2207,14 +2207,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT05719558",
-                  "excerpt": "\"A Study of ASP1002 in Adults for Treatment of Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [ASP1002, Bevacizumab, Oxaliplatin, Leucovorin, Fluorouracil, Irinotecan, Trifluridine-Tipiracil, Pembrolizumab, Pemetrexed, Carboplatin, Ramucirumab, Docetaxel]",
-                  "url": "https://clinicaltrials.gov/study/NCT05719558"
-                },
-                {
                   "nct_id": "NCT06057038",
                   "excerpt": "\"A Safety Trial of GEN1042 in Japanese Subjects With Malignant Solid Tumors\" \u2014 armsInterventionsModule.interventions[].name: [GEN1042, Pembrolizumab, Cisplatin, Carboplatin, 5-Fluorouracil]",
                   "url": "https://clinicaltrials.gov/study/NCT06057038"
+                },
+                {
+                  "nct_id": "NCT06699212",
+                  "excerpt": "\"A Study of ASP-1929 Photoimmunotherapy in Combination With Pembrolizumab in First-line Treatment of Locoregional Recurrent Squamous Cell Carcinoma of the Head a...\" \u2014 armsInterventionsModule.interventions[].name: [ASP-1929 Photoimmunotherapy, Pembrolizumab, Carboplatin, Cisplatin, 5-fluorouracil, Paclitaxel, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT06699212"
                 }
               ],
               "total_supporting_trials": 4
@@ -2230,14 +2230,14 @@
                   "url": "https://clinicaltrials.gov/study/NCT02730546"
                 },
                 {
-                  "nct_id": "NCT03009058",
-                  "excerpt": "\"Study of IMM 101 in Combination With Standard of Care in Patients With Metastatic or Unresectable Cancer\" \u2014 armsInterventionsModule.interventions[].name: [IMM-101, Gemcitabine, Nab-paclitaxel, Capecitabine, Folinic Acid, Fluorouracil, Irinotecan, Oxaliplatin, cetuximab, Anti-PD1, Ipilimumab, Cyclophosphamide]",
-                  "url": "https://clinicaltrials.gov/study/NCT03009058"
-                },
-                {
                   "nct_id": "NCT04949256",
                   "excerpt": "\"Efficacy and Safety of Pembrolizumab (MK-3475) Plus Lenvatinib (E7080/MK-7902) Plus Chemotherapy in Participants With Metastatic Esophageal Carcinoma (MK-7902-0...\" \u2014 armsInterventionsModule.interventions[].name: [Pembrolizumab, Lenvatinib, Cisplatin, 5-FU, Oxaliplatin, Leucovorin, Levoleucovorin, Paclitaxel]",
                   "url": "https://clinicaltrials.gov/study/NCT04949256"
+                },
+                {
+                  "nct_id": "NCT06699212",
+                  "excerpt": "\"A Study of ASP-1929 Photoimmunotherapy in Combination With Pembrolizumab in First-line Treatment of Locoregional Recurrent Squamous Cell Carcinoma of the Head a...\" \u2014 armsInterventionsModule.interventions[].name: [ASP-1929 Photoimmunotherapy, Pembrolizumab, Carboplatin, Cisplatin, 5-fluorouracil, Paclitaxel, Docetaxel]",
+                  "url": "https://clinicaltrials.gov/study/NCT06699212"
                 }
               ],
               "total_supporting_trials": 4
@@ -3428,7 +3428,7 @@
       ],
       "query_interpretation": "Interpreted as a relationship question, rendered as a network graph.",
       "assumptions": [
-        "Interpreted 'frequently co-occur in combination studies' as a drug-drug relationship centered on pembrolizumab."
+        "Interpreted 'co-occur in combination studies with pembrolizumab' as a drug-drug relationship network."
       ],
       "warnings": [
         "Fetched 600 of 2,922 matching trials (capped at max_studies=600); figures below describe that sample, not the full result set.",

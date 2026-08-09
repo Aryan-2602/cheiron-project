@@ -441,6 +441,13 @@ format     -> build_citations(nct_ids, store, dimension, limit) renders excerpts
 validate   -> every cited nct_id must exist in the store
 ```
 
+**Which contributors get cited is an evenly-spaced sample, not the first few.** Contributors arrive sorted ascending and NCT ids are assigned roughly chronologically, so taking the first `limit` cited every bucket's oldest members — a 373-trial Phase 2 bucket was evidenced by three 1990s studies, which is deterministic but reads as cherry-picked from one end. A systematic sample across the sorted list keeps every property the design relies on: same contributors always give the same citations, no dependence on an optionally-missing field like enrolment (whose absence would make the choice non-deterministic), no bias toward either end, and identical behaviour when `limit >= n`. The effect on a real bucket:
+
+```
+Phase 2 (373 trials)   before  NCT00001499, NCT00002465, NCT00003154
+                       after   NCT00001499, NCT03396185, NCT07751042
+```
+
 An excerpt quotes the **exact response field** that caused the membership, alongside the trial's brief title and the field's path:
 
 ```

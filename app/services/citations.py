@@ -121,6 +121,31 @@ def build_excerpt(record: dict[str, Any], dimension: str) -> str:
     return f'"{title}" — {path}: {rendered}' if title else f"{path}: {rendered}"
 
 
+def _spread(nct_ids: list[str], limit: int) -> list[str]:
+    """Pick ``limit`` ids spread evenly across ``nct_ids``, order preserved.
+
+    The aggregator returns contributors sorted ascending, and NCT ids are
+    assigned roughly chronologically, so taking the first ``limit`` -- as this
+    once did -- cited every bucket's oldest members: a 373-trial bucket was
+    evidenced by three 1990s studies. That is deterministic but arbitrary, and
+    reads as cherry-picked from one end.
+
+    A systematic sample keeps every property the design depends on: it is fully
+    deterministic (same contributors always give the same citations), it needs
+    no optionally-missing field such as enrolment, whose absence would make the
+    choice non-deterministic, it is unbiased toward either end, and it is
+    identical to the old behaviour when ``limit >= len(nct_ids)``.
+    """
+    n = len(nct_ids)
+    if limit >= n:
+        return list(nct_ids)
+    if limit == 1:
+        return [nct_ids[0]]
+    # Anchors at both ends so the sample visibly spans the range.
+    picked = {round(i * (n - 1) / (limit - 1)) for i in range(limit)}
+    return [nct_ids[i] for i in sorted(picked)]
+
+
 def build_citations(
     nct_ids: list[str],
     store: StudyStore,
@@ -139,7 +164,7 @@ def build_citations(
         return [], total
 
     citations: list[Citation] = []
-    for nct_id in nct_ids[:limit]:
+    for nct_id in _spread(nct_ids, limit):
         record = store.get(nct_id)
         if record is None:
             # Cannot happen for aggregator output (ids come from the store), but

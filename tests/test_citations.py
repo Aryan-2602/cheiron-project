@@ -112,3 +112,60 @@ class TestCitationsTrackAggregation:
             assert total == datum.value
             assert all(c.nct_id in store for c in citations)
             assert all(c.excerpt.strip() for c in citations)
+
+
+class TestCitationSelection:
+    """Contributors arrive sorted ascending and NCT ids are assigned roughly
+    chronologically, so taking the first N cited every bucket's oldest members
+    -- a 373-trial bucket evidenced by three 1990s studies."""
+
+    def bucket(self, n):
+        return [f"NCT{i:08d}" for i in range(1, n + 1)]
+
+    def store_for(self, ids):
+        return store_from({i: make_record(i, phases=["PHASE2"]) for i in ids})
+
+    def cite(self, ids, limit):
+        citations, total = build_citations(
+            ids, self.store_for(ids), "phase", limit=limit
+        )
+        return [c.nct_id for c in citations], total
+
+    def test_sample_spans_the_range_instead_of_clustering_at_the_start(self):
+        ids = self.bucket(373)
+        cited, total = self.cite(ids, 3)
+        assert total == 373
+        assert cited == [ids[0], ids[186], ids[-1]]
+
+    def test_the_full_contributor_count_is_still_reported(self):
+        _, total = self.cite(self.bucket(373), 3)
+        assert total == 373
+
+    def test_selection_is_stable_across_repeated_calls(self):
+        ids = self.bucket(200)
+        assert self.cite(ids, 4)[0] == self.cite(ids, 4)[0]
+
+    def test_limit_at_or_above_the_bucket_size_returns_everything_in_order(self):
+        ids = self.bucket(3)
+        assert self.cite(ids, 3)[0] == ids
+        assert self.cite(ids, 10)[0] == ids
+
+    def test_limit_of_one_returns_exactly_one(self):
+        assert len(self.cite(self.bucket(50), 1)[0]) == 1
+
+    def test_limit_of_zero_returns_none_but_still_reports_the_total(self):
+        cited, total = self.cite(self.bucket(50), 0)
+        assert cited == []
+        assert total == 50
+
+    def test_never_emits_more_citations_than_requested(self):
+        ids = self.bucket(97)
+        for limit in range(1, 21):
+            assert len(self.cite(ids, limit)[0]) <= limit
+
+    def test_every_cited_id_is_a_real_contributor(self):
+        """The validator rejects a citation outside the datum's contributor
+        set, so this is the property the whole selection must preserve."""
+        ids = self.bucket(97)
+        for limit in (1, 3, 7, 20):
+            assert set(self.cite(ids, limit)[0]) <= set(ids)
