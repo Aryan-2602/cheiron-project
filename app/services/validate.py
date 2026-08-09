@@ -122,6 +122,39 @@ def _check_counts(
                     f"edge {edge.source}->{edge.target} references a node that is "
                     f"not in the graph"
                 )
+        # Re-derive the *published* graph from the one that was computed. The
+        # checks above prove the NetworkResult is internally consistent; this
+        # proves formatting did not alter it on the way out -- a weight of 7
+        # published as 70 would otherwise ship unnoticed.
+        row = spec.data[0] if spec.data else {}
+        source_nodes = {n.id: n for n in network.nodes}
+        for published in row.get("nodes", []):
+            node = source_nodes.get(published.get("id"))
+            if node is None:
+                raise ValidationFailure(
+                    f"published node {published.get('id')!r} is not in the graph "
+                    f"it was built from"
+                )
+            if published.get("size") != node.size:
+                raise ValidationFailure(
+                    f"published node {node.id!r} reports size "
+                    f"{published.get('size')} but the graph computed {node.size}"
+                )
+
+        source_edges = {(e.source, e.target): e for e in network.edges}
+        for published in row.get("edges", []):
+            key = (published.get("source"), published.get("target"))
+            edge = source_edges.get(key)
+            if edge is None:
+                raise ValidationFailure(
+                    f"published edge {key} is not in the graph it was built from"
+                )
+            if published.get("weight") != edge.weight:
+                raise ValidationFailure(
+                    f"published edge {key} reports weight "
+                    f"{published.get('weight')} but the graph computed {edge.weight}"
+                )
+
         for node in network.nodes:
             # A merge is a claim that several names are one compound. It is only
             # defensible if the resolved identity that justified it is present.
@@ -144,11 +177,52 @@ def _iter_citation_blocks(spec: VisualizationSpec):
         yield from spec.data
 
 
+def _citation_targets(
+    spec: VisualizationSpec,
+    aggregation: AggregationResult | None,
+    network: NetworkResult | None,
+) -> list[tuple[dict, set[str] | None]]:
+    """Pair each published datum with the contributor set it may cite from.
+
+    Without this, a citation only has to name a trial that appears *somewhere*
+    in the fetched store -- so a real, verifiable NCT id belonging to a
+    different bucket would pass. The evidence for a bar has to be the trials in
+    that bar.
+
+    ``None`` means no source was supplied for that datum, in which case the
+    weaker store-membership check is all that applies.
+    """
+    if spec.type == "network_graph":
+        if network is None:
+            return [(item, None) for item in _iter_citation_blocks(spec)]
+        row = spec.data[0] if spec.data else {}
+        nodes = {n.id: set(n.nct_ids) for n in network.nodes}
+        edges = {(e.source, e.target): set(e.nct_ids) for e in network.edges}
+        pairs: list[tuple[dict, set[str] | None]] = []
+        for published in row.get("nodes", []):
+            pairs.append((published, nodes.get(published.get("id"))))
+        for published in row.get("edges", []):
+            key = (published.get("source"), published.get("target"))
+            pairs.append((published, edges.get(key)))
+        return pairs
+
+    if aggregation is None:
+        return [(row, None) for row in spec.data]
+    # Rows are index-aligned with the aggregation -- _check_counts has already
+    # asserted that, and runs first.
+    return [
+        (row, set(datum.nct_ids))
+        for row, datum in zip(spec.data, aggregation.data, strict=False)
+    ]
+
+
 def _check_citations(
     spec: VisualizationSpec,
     store: StudyStore,
     *,
     max_citations_per_datum: int | None = None,
+    aggregation: AggregationResult | None = None,
+    network: NetworkResult | None = None,
 ) -> None:
     """Every citation must point at a record we actually fetched.
 
@@ -165,7 +239,7 @@ def _check_citations(
     """
     citations_suppressed = max_citations_per_datum == 0
 
-    for item in _iter_citation_blocks(spec):
+    for item, contributors in _citation_targets(spec, aggregation, network):
         citations = item.get("citations", [])
         total = item.get("total_supporting_trials")
 
@@ -194,6 +268,11 @@ def _check_citations(
                 raise ValidationFailure(
                     f"citation references {nct_id!r}, which is not among the "
                     f"{len(store)} records fetched for this request"
+                )
+            if contributors is not None and nct_id not in contributors:
+                raise ValidationFailure(
+                    f"citation references {nct_id!r}, which is a fetched trial but "
+                    f"not one of the {len(contributors)} that produced this datum"
                 )
             if not (citation.get("excerpt") or "").strip():
                 raise ValidationFailure(f"citation for {nct_id} has an empty excerpt")
@@ -233,7 +312,11 @@ def validate_response(
     _check_encoding_matches_data(response.visualization)
     _check_counts(response.visualization, aggregation, network)
     _check_citations(
-        response.visualization, store, max_citations_per_datum=max_citations_per_datum
+        response.visualization,
+        store,
+        max_citations_per_datum=max_citations_per_datum,
+        aggregation=aggregation,
+        network=network,
     )
     _check_meta(response, store)
 

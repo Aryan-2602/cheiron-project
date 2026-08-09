@@ -23,6 +23,7 @@ from app.services.network import build_cooccurrence_network
 from app.services.store import StudyStore
 from app.services.validate import ValidationFailure, validate_response
 from app.services.viz import build_chart_spec, build_network_spec
+from tests.conftest import make_record
 
 
 def plan(**kwargs):
@@ -337,3 +338,116 @@ class TestZeroCitationRequests:
             validate_response(
                 response, store, aggregation=result, max_citations_per_datum=0
             )
+
+
+class TestPublishedNetworkValues:
+    """The internal checks prove the graph is self-consistent. These prove
+    formatting did not alter it on the way out."""
+
+    def network_case(self):
+        records = {
+            "NCT00000001": make_record(
+                "NCT00000001", interventions=[("DRUG", "A"), ("DRUG", "B")]
+            ),
+            "NCT00000002": make_record(
+                "NCT00000002", interventions=[("DRUG", "A"), ("DRUG", "B")]
+            ),
+            "NCT00000003": make_record(
+                "NCT00000003", interventions=[("DRUG", "A"), ("DRUG", "C")]
+            ),
+        }
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        network = build_cooccurrence_network(store.records, min_edge_weight=1)
+        spec = build_network_spec(network, plan(query_type="relationship"), store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        return response, store, network
+
+    def test_known_good_network_passes(self):
+        response, store, network = self.network_case()
+        assert validate_response(response, store, network=network) is response
+
+    def test_rejects_an_inflated_published_edge_weight(self):
+        """A weight of 2 published as 70 previously shipped unnoticed."""
+        response, store, network = self.network_case()
+        response.visualization.data[0]["edges"][0]["weight"] = 70
+        with pytest.raises(ValidationFailure, match="reports weight 70"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_an_altered_published_node_size(self):
+        response, store, network = self.network_case()
+        response.visualization.data[0]["nodes"][0]["size"] = 999
+        with pytest.raises(ValidationFailure, match="reports size 999"):
+            validate_response(response, store, network=network)
+
+    def test_rejects_a_published_node_absent_from_the_graph(self):
+        response, store, network = self.network_case()
+        response.visualization.data[0]["nodes"][0]["id"] = "drug:invented"
+        with pytest.raises(ValidationFailure, match="not in the graph"):
+            validate_response(response, store, network=network)
+
+
+class TestCitationsBelongToTheirDatum:
+    """A citation naming a real trial is not enough -- it has to be one of the
+    trials that produced *this* number."""
+
+    def test_rejects_a_real_trial_from_the_wrong_bucket(self, records):
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        result = aggregate(records, DIMENSIONS["phase"])
+        spec = build_chart_spec(result, plan(), DIMENSIONS["phase"], store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+
+        # Find a row and a fetched trial that did NOT contribute to it.
+        row_index, datum = next(
+            (i, d) for i, d in enumerate(result.data) if d.nct_ids
+        )
+        intruder = next(n for n in store.nct_ids if n not in datum.nct_ids)
+        response.visualization.data[row_index]["citations"] = [
+            {"nct_id": intruder, "excerpt": "real trial, wrong bucket",
+             "url": store.study_url(intruder)}
+        ]
+
+        # It is a genuine fetched record, so the store-membership check passes...
+        assert intruder in store
+        # ...but it did not produce this datum.
+        with pytest.raises(ValidationFailure, match="not one of the"):
+            validate_response(response, store, aggregation=result)
+
+    def test_rejects_a_wrong_bucket_citation_on_a_network_node(self):
+        response, store, network = TestPublishedNetworkValues().network_case()
+        # Drug C appears in one trial only, so another fetched trial is
+        # guaranteed to be a real record that did not produce this node.
+        node_row = min(
+            response.visualization.data[0]["nodes"], key=lambda n: n["size"]
+        )
+        source = next(n for n in network.nodes if n.id == node_row["id"])
+        intruder = next(n for n in sorted(store.nct_ids) if n not in set(source.nct_ids))
+
+        node_row["citations"] = [
+            {"nct_id": intruder, "excerpt": "real trial, wrong node",
+             "url": store.study_url(intruder)}
+        ]
+        assert intruder in store
+        with pytest.raises(ValidationFailure, match="not one of the"):
+            validate_response(response, store, network=network)
+
+    def test_correct_citations_still_pass(self, records):
+        store = StudyStore()
+        store.add_records(records.values())
+        store.add_url("https://example.test")
+        result = aggregate(records, DIMENSIONS["phase"])
+        spec = build_chart_spec(result, plan(), DIMENSIONS["phase"], store)
+        response = QueryResponse(
+            visualization=spec,
+            meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
+        )
+        assert validate_response(response, store, aggregation=result) is response
