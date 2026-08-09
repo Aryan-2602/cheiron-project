@@ -302,7 +302,7 @@
       ],
       "query_interpretation": "Interpreted as a time trend question, grouped by start year, rendered as a time series.",
       "assumptions": [
-        "Interpreted \"per year since 2015\" as a time trend grouped by start year starting in 2015."
+        "Interpreted 'number of trials ... per year since 2015' as a year-by-year trend grouped by trial start year."
       ],
       "warnings": [
         "Fetched 1,000 of 2,922 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",

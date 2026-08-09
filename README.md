@@ -72,10 +72,12 @@ python scripts/run_examples.py         # writes examples/*.json from live data
 A single-file demo client lives in [`frontend/`](frontend/). It exists to demonstrate the claim this project makes about its own output — that a frontend can render it **without guessing**.
 
 ```bash
-uvicorn app.main:app --reload              # terminal 1
+uvicorn app.main:app --reload              # terminal 1  (port 8000)
 cd frontend && python -m http.server 5500  # terminal 2
 open http://localhost:5500
 ```
+
+The demo's API endpoint is the single constant `API` at the top of the script, hardcoded to `http://127.0.0.1:8000/api/v1/query`. Running the backend on another port means editing that one line — a deliberate limitation of a dependency-free single-file demo with no build step or config loader, not an oversight.
 
 Seven buttons run the documented example queries verbatim -- exactly one per file in `examples/`, including the structured-override example, which sets the overrides it was captured with -- so a walkthrough needs no typing and each button reproduces the committed response it names. An "Advanced options" panel exposes the structured overrides; whenever any are set, a badge shows which ones, because a stale override silently filtering later queries is otherwise invisible.
 
@@ -217,10 +219,7 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
     "total_studies_processed": 1000,
     "api_urls": ["https://clinicaltrials.gov/api/v2/studies?fields=...&query.cond=lung+cancer&countTotal=true"],
     "query_interpretation": "Interpreted as a distribution question, grouped by phase, rendered as a bar chart.",
-    "assumptions": [
-      "Interpreted 'distributed across phases' as grouping trials by phase.",
-      "Interpreted 'lung cancer trials' as trials with the condition 'lung cancer'."
-    ],
+    "assumptions": ["Interpreted 'distributed across phases' as grouping trials by phase."],
     "warnings": [
       "Fetched 1,000 of 14,425 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",
       "Trials can belong to more than one bucket on this axis (for example a combined Phase 1/2 trial), so bucket totals may sum to more than the number of trials.",
@@ -234,6 +233,8 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
 ```
 
 *(Real output, abridged to one data row and one citation — the full file is [`examples/01_bar_phase.json`](examples/01_bar_phase.json).)*
+
+Regenerating the examples reproduces every number here exactly — counts, citations, `nct_ids`, edge weights. The one field that varies between runs is `assumptions`, whose text is model-authored prose rather than a computed value. That split is the architecture visible in the output: the model writes the sentence explaining an interpretation, and nothing else on the page.
 
 ### `visualization`
 
@@ -390,12 +391,12 @@ Real output from example 4 (600 pembrolizumab trials):
 | Edge | Weight |
 |---|---|
 | carboplatin — pembrolizumab | 49 |
-| cisplatin — pembrolizumab | 39 |
-| paclitaxel — pembrolizumab | 35 |
+| cisplatin — pembrolizumab | 40 |
+| paclitaxel — pembrolizumab | 37 |
 | pembrolizumab — pemetrexed | 26 |
 | carboplatin — paclitaxel | 25 |
 
-These are the actual standard-of-care chemo-immunotherapy regimens in non-small-cell lung cancer, which is a useful sanity check that the graph is measuring something real. Opening the top edge's first citation, [NCT02578680](https://clinicaltrials.gov/study/NCT02578680), shows *"Pembrolizumab 200 mg, Cisplatin, Carboplatin, Pemetrexed…"* in its intervention list.
+These are the actual standard-of-care chemo-immunotherapy regimens in non-small-cell lung cancer, which is a useful sanity check that the graph is measuring something real. Opening the top edge's first citation, [NCT02578680](https://clinicaltrials.gov/study/NCT02578680), has `armsInterventionsModule.interventions[].name: [Carboplatin, Cisplatin, Dexamethasone 4 mg, Pembrolizumab 200 mg, Pemetrexed]` — which is the excerpt the citation itself carries, quoted verbatim rather than paraphrased.
 
 ### `sponsor_drug` — bipartite
 
@@ -594,7 +595,7 @@ That both catches a silent-filter regression and gives the user a useful answer 
 
 **Several requested statuses are a union, expressed in one upstream clause.** `status:rec com` is a single verified filter, so "recruiting or completed melanoma trials" narrows upstream rather than being fetched broad and cut down afterwards. An earlier version applied `status:rec` whenever *any* requested status was recruiting and then filtered client-side for the other, composing two filters into an intersection and charting a confident zero.
 
-**A comparison only ships when grounding supports it.** A compared name reaches `query.intr` / `query.cond` / `query.spons` only if *every* compared value was grounded into that same list. "Compare Pembrolizumab vs melanoma" is therefore not a drug comparison with melanoma searched as a drug — it demotes to a single distribution, keeps both entities in their own fields, and says so in `meta.assumptions`. A grouped bar chart is a claim that the data has series, so it is never emitted without at least two labelled searches behind it.
+**A comparison only ships when grounding supports it.** A compared name reaches `query.intr` / `query.cond` / `query.spons` only if it appears in the question text, which is what keeps an invented entity out of an upstream field. If a *different* entity list contradicts the claimed kind, the comparison is dropped: "Compare Pembrolizumab vs melanoma" is not a drug comparison with melanoma searched as a drug — it demotes to a single distribution, keeps both entities in their own fields, and says so in `meta.assumptions`. Silence is not contradiction, though: names the model put in `compare_entities` and nowhere else are still compared, because requiring them to be duplicated into `entities.drugs` as well discarded the commonest correct shape and fell back to searching the whole sentence as free text. A grouped bar chart is a claim that the data has series, so it is never emitted without at least two labelled searches behind it. Series are capped at five, each costing its own upstream search, with any surplus named.
 
 **"Stopped recruiting" is an exclusion, not a status.** Completed, terminated and active-not-recruiting trials have all stopped recruiting, so every stop- or pause-verb form (`stopped`/`paused`/`suspended`/`withdrawn`/`halted` + "recruiting") excludes `RECRUITING` rather than requesting a status. The same verbs alone still name their own status — `halted trials` is `TERMINATED`, `paused trials` is `SUSPENDED`.
 
