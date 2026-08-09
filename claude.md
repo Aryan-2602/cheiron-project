@@ -16,8 +16,11 @@ No langchain/langgraph — one LLM call with a fixed schema needs no framework.
   distinct testable modules (app/agents, app/services)
 - Write tests alongside implementation, not after
 - Commit after each working module with descriptive messages
-- Aggregators stay behind the shared aggregate() interface — no per-chart-type logic
-  in route handlers or the pipeline
+- Aggregation stays behind the shared aggregate() interface, with per-axis variation in
+  the Dimension registry — adding a chart axis means adding a Dimension and nothing else.
+  Chart-*family* dispatch (network vs chart, temporal vs categorical) does exist in the
+  pipeline and the empty-result handler, deliberately: an empty spec has to keep the
+  family it was asked for, or a frontend routing on `type` renders it wrong.
 
 ## Current focus
 Complete. All 6 pipeline stages implemented, plus RxNorm drug resolution, structured
