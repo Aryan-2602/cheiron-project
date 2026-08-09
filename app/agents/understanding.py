@@ -311,6 +311,55 @@ def extract_years_from_query(query: str) -> set[int]:
     return {int(y) for y in _YEAR.findall(query)}
 
 
+#: A two-ended range, in the forms people actually write. Checked before the
+#: one-ended cues, so "from 2015 to 2020" is not read as a bare "from".
+_YEAR_SPAN = re.compile(
+    r"\b(?:between\s+)?(19[89]\d|20[0-3]\d)\s*(?:-|--|–|—|to|and|through|until|till)\s*"
+    r"(19[89]\d|20[0-3]\d)\b",
+    re.IGNORECASE,
+)
+
+#: Cues that bind a single year to one end of the range.
+_YEAR_START_CUE = re.compile(
+    r"\b(?:since|from|after|starting(?:\s+in)?|beginning(?:\s+in)?|onwards?\s+from)\s+"
+    r"(19[89]\d|20[0-3]\d)\b",
+    re.IGNORECASE,
+)
+_YEAR_END_CUE = re.compile(
+    r"\b(?:before|until|till|through|up\s+to|prior\s+to|by)\s+(19[89]\d|20[0-3]\d)\b",
+    re.IGNORECASE,
+)
+
+
+def extract_year_range_from_query(query: str) -> YearRange | None:
+    """Read the *direction* of a year expression, not only the years.
+
+    Grounding already required each year to appear literally in the question,
+    but which end of the range each belonged to was left to the model -- and
+    ``YearRange(start=2024, end=2020)`` validates happily while guaranteeing
+    zero results. Reading the direction here removes that failure mode.
+
+    Returns ``None`` when the question names no year expression this
+    understands, in which case the model's own range is used as before.
+    """
+    span = _YEAR_SPAN.search(query)
+    if span:
+        low, high = sorted((int(span.group(1)), int(span.group(2))))
+        return YearRange(start=low, end=high)
+
+    start_match = _YEAR_START_CUE.search(query)
+    end_match = _YEAR_END_CUE.search(query)
+    start = int(start_match.group(1)) if start_match else None
+    end = int(end_match.group(1)) if end_match else None
+    if start is None and end is None:
+        return None
+    if start is not None and end is not None and start > end:
+        # "after 2020 and before 2015" is not answerable as written; ordering
+        # the bounds is the reading that returns data rather than nothing.
+        start, end = end, start
+    return YearRange(start=start, end=end)
+
+
 #: Words that flip a status mention into an exclusion. Checked only against the
 #: text immediately before a match, and only after longer phrases have been
 #: masked -- so the "not" belonging to "not yet recruiting" or "active, not
@@ -415,6 +464,15 @@ def extract_statuses_from_query(query: str) -> list[str]:
     return _match_statuses(query)[0]
 
 
+def extract_excluded_statuses_from_query(query: str) -> list[str]:
+    """Statuses the question asked to exclude ("trials that are not recruiting").
+
+    Kept separate from :func:`ground_entities` so that function's signature --
+    and the ``ExtractedEntities`` shape the LLM also fills -- stay unchanged.
+    """
+    return _match_statuses(query)[1]
+
+
 def ground_entities(
     understanding: QueryUnderstanding, query: str
 ) -> tuple[ExtractedEntities, list[str]]:
@@ -470,23 +528,36 @@ def ground_entities(
                 f"Ignored status {status!r}: the question does not support it."
             )
     if negated_statuses:
-        # There is no way to express "every status except X" in a search, and
-        # inventing one is out of scope. An honest superset plus this
-        # disclosure beats filtering to the exact opposite of the request.
+        # There is no upstream parameter for "every status except X", so the
+        # exclusion is enforced client-side as overallStatus not in {...}. A
+        # negative predicate never enumerates, which is what makes it safe: a
+        # status outside our vocabulary (APPROVED_FOR_MARKETING appears in live
+        # data) is correctly kept rather than silently dropped.
         excluded = ", ".join(s.replace("_", " ").lower() for s in negated_statuses)
         warnings.append(
-            f"Read the question as excluding {excluded} trials. Filtering by "
-            f"status exclusion is not supported, so no status filter was "
-            f"applied and trials of every status are included below."
+            f"Read the question as excluding {excluded} trials, applied after "
+            f"fetching; ClinicalTrials.gov has no status-exclusion parameter."
         )
 
-    # Year bounds: the value must be written in the question. Note this grounds
-    # *which* years may be used, not which end of the range each belongs to --
-    # that reading stays with the model and is disclosed in meta.warnings when
-    # the filter is applied.
+    # Year bounds: the value must be written in the question, and so must its
+    # direction. A range the question states explicitly ("from 2015 to 2020",
+    # "since 2015", "before 2020") is read here and wins outright -- the model
+    # used to own that reading, and a reversed range validates happily while
+    # guaranteeing zero results.
     years_in_query = extract_years_from_query(query)
-    grounded_range = None
-    if entities.year_range is not None:
+    grounded_range = extract_year_range_from_query(query)
+    if grounded_range is not None and entities.year_range is not None:
+        # The question stated the range outright, so it wins -- but say so when
+        # the model proposed a different one, rather than dropping it silently.
+        for label, proposed in (
+            ("start year", entities.year_range.start),
+            ("end year", entities.year_range.end),
+        ):
+            if proposed is not None and proposed not in years_in_query:
+                warnings.append(
+                    f"Ignored {label} {proposed}: it does not appear in the question."
+                )
+    if grounded_range is None and entities.year_range is not None:
         start, end = entities.year_range.start, entities.year_range.end
         if start is not None and start not in years_in_query:
             warnings.append(
@@ -498,6 +569,12 @@ def ground_entities(
                 f"Ignored end year {end}: it does not appear in the question."
             )
             end = None
+        if start is not None and end is not None and start > end:
+            warnings.append(
+                f"Read the range as {end}-{start}: the bounds arrived reversed, "
+                f"which would have matched no trials."
+            )
+            start, end = end, start
         if start is not None or end is not None:
             grounded_range = YearRange(start=start, end=end)
 
@@ -771,6 +848,7 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
         query=request.query,
         query_type=understanding.query_type,
         entities=entities,
+        excluded_statuses=extract_excluded_statuses_from_query(request.query),
         group_by=group_by,
         compare_entities=compare_entities,
         compare_entity_kind=compare_kind,

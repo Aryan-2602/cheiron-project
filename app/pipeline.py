@@ -196,6 +196,28 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
             f"({len(store.records):,} of {before:,} fetched trials); {reason}."
         )
 
+    excluded = normalize_statuses(plan.excluded_statuses)
+    if excluded:
+        before = len(store.records)
+        store.records = {
+            nct_id: record
+            for nct_id, record in store.records.items()
+            # A negative predicate, never an enumeration of "everything else":
+            # a status outside our vocabulary is kept, which is what the
+            # question asked for.
+            if (
+                record.get("protocolSection", {})
+                .get("statusModule", {})
+                .get("overallStatus")
+            )
+            not in excluded
+        }
+        warnings.append(
+            f"Excluded trials whose status is {', '.join(sorted(excluded))}, "
+            f"filtered client-side ({len(store.records):,} of {before:,} fetched "
+            f"trials); ClinicalTrials.gov has no status-exclusion parameter."
+        )
+
     years = plan.entities.year_range
     if years and (years.start is not None or years.end is not None):
         low = years.start if years.start is not None else -9999

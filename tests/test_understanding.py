@@ -15,8 +15,10 @@ from app.agents.understanding import (
     _match_statuses,
     build_plan,
     call_llm,
+    extract_excluded_statuses_from_query,
     extract_phases_from_query,
     extract_statuses_from_query,
+    extract_year_range_from_query,
     extract_years_from_query,
     ground_compare_entities,
     ground_entities,
@@ -623,7 +625,7 @@ class TestStatusNegation:
             "show me melanoma trials that are not recruiting",
         )
         assert grounded.statuses == []
-        assert any("exclusion is not supported" in w for w in warnings)
+        assert any("excluding recruiting" in w for w in warnings)
 
 
 class TestCompareEntityDeduplication:
@@ -708,7 +710,7 @@ class TestCompareEntityDeduplication:
             "melanoma trials that are not recruiting",
         )
         assert not any("does not support" in w for w in warnings)
-        assert any("exclusion is not supported" in w for w in warnings)
+        assert any("excluding recruiting" in w for w in warnings)
 
 
 class TestStatusWordBoundaries:
@@ -905,3 +907,97 @@ class TestPlanSemanticReconciliation:
             query_type="geographic", viz_type="geo_bar_chart", group_by="sponsor",
         )
         assert plan.assumptions
+
+
+class TestYearRangeDirection:
+    """Grounding required each year to appear in the question, but which end of
+    the range it belonged to was left to the model -- and YearRange(2024, 2020)
+    validates happily while guaranteeing zero results."""
+
+    @pytest.mark.parametrize(
+        "query,start,end",
+        [
+            ("trials since 2015", 2015, None),
+            ("trials from 2015", 2015, None),
+            ("trials after 2015", 2015, None),
+            ("trials starting in 2015", 2015, None),
+            ("trials before 2020", None, 2020),
+            ("trials until 2020", None, 2020),
+            ("trials through 2020", None, 2020),
+            ("trials up to 2020", None, 2020),
+            ("trials between 2015 and 2020", 2015, 2020),
+            ("trials from 2015 to 2020", 2015, 2020),
+            ("trials 2015-2020", 2015, 2020),
+            ("trials 2015–2020", 2015, 2020),
+            ("how many trials started each year from 2020 through 2024", 2020, 2024),
+        ],
+    )
+    def test_common_forms_bind_years_to_the_right_end(self, query, start, end):
+        assert extract_year_range_from_query(query) == YearRange(start=start, end=end)
+
+    def test_a_bare_year_is_not_read_as_a_range(self):
+        """"trials in 2018" states no direction, so the model's reading stands."""
+        assert extract_year_range_from_query("melanoma trials in 2018") is None
+
+    def test_no_year_expression_returns_none(self):
+        assert extract_year_range_from_query("melanoma trials by phase") is None
+
+    def test_a_span_is_ordered_regardless_of_how_it_was_written(self):
+        assert extract_year_range_from_query("trials 2020-2015") == YearRange(
+            start=2015, end=2020
+        )
+
+    def test_the_query_beats_a_reversed_model_range(self):
+        entities, _ = ground_entities(
+            understanding(year_range=YearRange(start=2024, end=2020)),
+            "trials from 2020 to 2024",
+        )
+        assert entities.year_range == YearRange(start=2020, end=2024)
+
+    def test_a_reversed_model_range_is_ordered_and_disclosed(self):
+        """No direction cue in the query, so the model's bounds are used -- but
+        reversed they would match nothing."""
+        entities, warnings = ground_entities(
+            understanding(year_range=YearRange(start=2024, end=2020)),
+            "melanoma trials in 2020 or 2024",
+        )
+        assert entities.year_range == YearRange(start=2020, end=2024)
+        assert any("reversed" in w for w in warnings)
+
+
+class TestStatusExclusionIsApplied:
+    """"not recruiting" is a real constraint, not just a false positive to
+    suppress. It is enforced as overallStatus not in {...}."""
+
+    @pytest.mark.parametrize(
+        "query,excluded",
+        [
+            ("trials that are not recruiting", ["RECRUITING"]),
+            ("non-recruiting studies", ["RECRUITING"]),
+            ("melanoma trials that are not completed", ["COMPLETED"]),
+            ("completed but not recruiting", ["RECRUITING"]),
+        ],
+    )
+    def test_negated_statuses_become_exclusions(self, query, excluded):
+        assert extract_excluded_statuses_from_query(query) == excluded
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "recruiting trials",
+            "active, not recruiting",
+            "not yet recruiting",
+            "completed trials",
+        ],
+    )
+    def test_positive_statuses_produce_no_exclusion(self, query):
+        assert extract_excluded_statuses_from_query(query) == []
+
+    def test_the_plan_carries_the_exclusion(self):
+        plan = build_plan(
+            QueryRequest(query="melanoma trials that are not recruiting, by phase"),
+            understanding(conditions=["melanoma"]),
+        )
+        assert plan.excluded_statuses == ["RECRUITING"]
+        # And it is not also requested positively.
+        assert plan.entities.statuses == []

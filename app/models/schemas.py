@@ -195,6 +195,13 @@ class QueryPlan(BaseModel):
     compare_entity_kind: CompareEntityKind | None = None
     network_kind: NetworkKind | None = None
     viz_type: VizType
+    #: Statuses the question asked to *exclude* ("trials that are not
+    #: recruiting"). Deliberately here and not on ``ExtractedEntities``: that
+    #: type is also the LLM's structured-output schema, and exclusions are
+    #: derived deterministically from the query text, never proposed by the
+    #: model. Applied as ``overallStatus not in ...``, so a status absent from
+    #: our vocabulary is correctly *retained* rather than silently dropped.
+    excluded_statuses: list[str] = Field(default_factory=list)
     assumptions: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     max_citations_per_datum: int = 3
