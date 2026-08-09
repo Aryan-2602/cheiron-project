@@ -631,3 +631,42 @@ class TestDenseRecordsAreSkippedNotTruncated:
     def test_nothing_is_skipped_in_an_ordinary_corpus(self):
         network = build_cooccurrence_network(self.records(dense=0))
         assert network.dense_records_skipped == 0
+
+
+class TestCompoundDosageUnits:
+    """"mg/kg" was listed after "mg" in the alternation, so the shorter branch
+    matched first and left the divisor behind: "Pembrolizumab 200 mg/kg"
+    normalised to "pembrolizumab kg", a different node from plain
+    "pembrolizumab" -- exactly the fragmentation this function prevents."""
+
+    @pytest.mark.parametrize(
+        "name,expected",
+        [
+            ("Pembrolizumab 200 mg/kg", "pembrolizumab"),
+            ("Pembrolizumab 200mg/kg", "pembrolizumab"),
+            ("Drug 5 mg/m2", "drug"),
+            ("Drug 3 mg/kg/day", "drug"),
+            ("Drug 5 g/kg", "drug"),
+            ("Drug 10 ml", "drug"),
+            ("Drug 20 units", "drug"),
+            ("Vitamin D 1000 IU", "vitamin d"),
+            ("Nab-paclitaxel 125 mg/m2", "nab-paclitaxel"),
+        ],
+    )
+    def test_a_dose_is_stripped_whole(self, name, expected):
+        assert normalize_intervention(name) == expected
+
+    def test_every_dose_form_of_one_agent_is_one_node(self):
+        forms = [
+            "Pembrolizumab",
+            "Pembrolizumab 200 mg",
+            "Pembrolizumab 200 mg/kg",
+            "Pembrolizumab 2 mg/kg/day",
+        ]
+        assert len({normalize_intervention(f) for f in forms}) == 1
+
+    @pytest.mark.parametrize(
+        "name", ["Interleukin 2", "COVID 19 vaccine", "Carboplatin AUC 5"]
+    )
+    def test_a_number_that_is_not_a_dose_is_kept(self, name):
+        assert normalize_intervention(name) == name.lower()

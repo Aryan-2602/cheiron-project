@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import time
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -117,8 +118,13 @@ class AggFilter:
         if not phases:
             raise ValueError("at least one phase is required")
         for phase in phases:
-            if phase not in (1, 2, 3, 4):
-                raise ValueError(f"phase must be 1-4, got {phase!r}")
+            # 0 is Early Phase 1, which the registry treats as its own phase.
+            # Verified live: phase:0 returns 6,431 trials, all EARLY_PHASE1,
+            # and phase:1 returns 65,325 -- "phase:0 1" returns exactly 71,756.
+            # The spelled-out form phase:early_phase1 is another silent-failure
+            # trap: HTTP 200 with zero results, like phase:PHASE3.
+            if phase not in (0, 1, 2, 3, 4):
+                raise ValueError(f"phase must be 0-4, got {phase!r}")
         # Bare numbers, verified live. "PHASE3" returns 200 with zero results.
         # Space-separated values are a true union: phase:2 = 89,652,
         # phase:3 = 49,614, "phase:2 3" = 131,704 -- fewer than the sum,
@@ -585,6 +591,38 @@ def join_values(values: Iterable[str]) -> tuple[str | None, list[str]]:
     return " OR ".join(cleaned), warnings
 
 
+#: Phrases that state the population outright: the whole registry.
+#:
+#: Narrow and literal on purpose. This is not a general intent classifier --
+#: it exists so that "What phases are most common across all clinical trials?"
+#: retrieves the registry instead of full-text searching for its own wording,
+#: which is a question about trials rather than a question about the phrase.
+#: Each phrase names trials or the registry explicitly, so a bare "all" inside
+#: an entity ("all-trans retinoic acid") cannot reach it.
+_WHOLE_REGISTRY = re.compile(
+    r"\b(?:"
+    r"all\s+(?:clinical\s+)?(?:trials|studies)"
+    r"|every\s+(?:clinical\s+)?(?:trial|study)"
+    r"|the\s+(?:whole|entire|full)\s+(?:registry|database)"
+    r"|(?:across|in|throughout)\s+the\s+registry"
+    r"|(?:entire|whole|full)\s+clinicaltrials\.gov(?:\s+registry)?"
+    r"|clinicaltrials\.gov\s+(?:as\s+a\s+whole|overall)"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def names_whole_registry(query: str) -> bool:
+    """Whether the question states its population as the whole registry.
+
+    Such a question has a scope -- it is just not a scope any ``query.*``
+    parameter expresses, because it is the absence of one. Treating it as
+    scopeless sent the sentence to ``query.term``, so "all clinical trials"
+    retrieved trials whose text contains those words rather than all of them.
+    """
+    return bool(_WHOLE_REGISTRY.search(query))
+
+
 def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
     """Translate a :class:`~app.models.schemas.QueryPlan` into upstream searches.
 
@@ -624,7 +662,8 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
     # live. So every requested phase goes upstream in one clause rather than
     # being fetched unfiltered and narrowed afterwards -- which spent the fetch
     # budget on trials that were about to be discarded.
-    valid_phases = sorted({p for p in entities.phases if p in (1, 2, 3, 4)})
+    # 0 included: Early Phase 1 is its own registry phase, verified live.
+    valid_phases = sorted({p for p in entities.phases if p in (0, 1, 2, 3, 4)})
     if valid_phases:
         agg.append(AggFilter.phase(*valid_phases))
     # Likewise for status, but only when *every* requested status has a
@@ -714,6 +753,6 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
         or getattr(plan, "excluded_statuses", None)
         or (year_range and (year_range.start is not None or year_range.end is not None))
     )
-    if not has_scope and not has_predicate:
+    if not has_scope and not has_predicate and not names_whole_registry(plan.query):
         search = CTGovSearch(term=plan.query, agg_filters=tuple(agg))
     return [search], notes_except()

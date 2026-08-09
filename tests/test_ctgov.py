@@ -919,3 +919,53 @@ class TestUnusableIdsAreRefusedAtTheStore:
         assert store.add_records([entry, make_record("NCT00000001")]) == {
             "NCT00000001"
         }
+
+
+class TestExplicitAllRegistryQueries:
+    """A question that states its population as the whole registry has a
+    scope -- it is just not one any query.* parameter expresses, because it is
+    the absence of one. Treating it as scopeless sent the sentence to
+    query.term, so "all clinical trials" retrieved trials whose text contains
+    those words rather than all of them."""
+
+    def plan(self, query):
+        return QueryPlan(
+            query=query,
+            query_type="distribution",
+            group_by="phase",
+            viz_type="bar_chart",
+            entities=ExtractedEntities(
+                drugs=[], conditions=[], sponsors=[], phases=[],
+                statuses=[], countries=[], year_range=None,
+            ),
+        )
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "What phases are most common across all clinical trials?",
+            "Show all trials by phase",
+            "across all trials, what is the phase mix",
+            "the entire registry by phase",
+            "across the registry by sponsor",
+            "every clinical trial by phase",
+        ],
+    )
+    def test_an_all_registry_query_retrieves_the_registry(self, query):
+        searches, _notes = build_searches(self.plan(query))
+        assert searches[0].term is None
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            # The free-text fallback still earns its keep for an ordinary
+            # medical topic that nothing structured recognised.
+            "trials about refractory solid tumors",
+            # "all" inside an entity name must not read as registry scope.
+            "all-trans retinoic acid trials by phase",
+            "trials of all-trans retinoic acid",
+        ],
+    )
+    def test_an_ordinary_unstructured_query_still_falls_back(self, query):
+        searches, _notes = build_searches(self.plan(query))
+        assert searches[0].term == query

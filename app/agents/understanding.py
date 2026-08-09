@@ -294,12 +294,31 @@ def _appears_in(candidate: str, haystack: str) -> bool:
 #: A phase mention plus the contiguous list that follows it. Anchoring on the
 #: word "phase" and capturing only the run of connected tokens is what stops
 #: "phase 2 study of 3 drugs" from yielding phase 3.
+#: Separator between the anchor word and the list. Hyphens, en-dashes and the
+#: empty string are all accepted, because "phase-3", "Phase-III" and "phase3"
+#: are ordinary ways to write it in trial contexts and each previously
+#: extracted nothing -- the model's own phases=[3] was then dropped with
+#: "Ignored phase 3: the question does not mention it", a disclosed but wrong
+#: answer. A comma is still excluded, so "in phase, 3 patients" stays [].
+_PHASE_SEPARATOR = r"[\s:\-\u2010-\u2015]*"
+
+#: Early Phase 1 is its own registry phase, not a flavour of Phase 1. Verified
+#: live: aggFilters=phase:0 returns 6,431 trials, every sampled one
+#: EARLY_PHASE1, and phase:1 returns 65,325 -- "phase:0 1" returns exactly
+#: 71,756. Folding it into Phase 1 would have overstated Phase 1 by 6,431.
+_EARLY_PHASE = re.compile(rf"\bearly{_PHASE_SEPARATOR}phases?{_PHASE_SEPARATOR}1\b", re.IGNORECASE)
+
 _PHASE_LIST = re.compile(
-    r"\bphases?\b[\s:]*((?:(?:[1-4]|iv|iii|ii|i)\b[\s]*(?:[/,&+-]|or|and|to)?[\s]*)+)",
+    rf"\bphases?{_PHASE_SEPARATOR}"
+    r"((?:(?:[1-4]|iv|iii|ii|i)\b[\s]*(?:[/,&+-]|or|and|to)?[\s]*)+)",
     re.IGNORECASE,
 )
 _PHASE_TOKEN = re.compile(r"\b([1-4]|iv|iii|ii|i)\b", re.IGNORECASE)
 _ROMAN_PHASES = {"i": 1, "ii": 2, "iii": 3, "iv": 4}
+
+#: How Early Phase 1 is carried through the plan: the API's own encoding, so
+#: nothing has to translate between a local convention and the wire format.
+EARLY_PHASE = 0
 
 #: Four-digit years plausible for a trial start date. Bounded so that a dose
 #: ("200 mg") or an NCT id can never be mistaken for a year.
@@ -344,7 +363,15 @@ def extract_phases_from_query(query: str) -> list[int]:
     """Phase numbers the user actually wrote. Handles "phase 3", "phase 1/2",
     "phases 2 and 3", and roman numerals."""
     found: set[int] = set()
-    for match in _PHASE_LIST.finditer(query):
+    # Masked before the general scan, so "early phase 1" does not also register
+    # as a plain phase 1 -- the same longest-phrase-first discipline the status
+    # matcher uses.
+    remaining = _EARLY_PHASE.sub(
+        lambda m: " " * len(m.group()), query, count=0
+    )
+    if remaining != query:
+        found.add(EARLY_PHASE)
+    for match in _PHASE_LIST.finditer(remaining):
         for token in _PHASE_TOKEN.findall(match.group(1)):
             token = token.lower()
             found.add(int(token) if token.isdigit() else _ROMAN_PHASES[token])
@@ -379,7 +406,32 @@ _YEAR_START_EXCLUSIVE = re.compile(
     r"\b(?:after|later\s+than)\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
 )
 _YEAR_END_INCLUSIVE = re.compile(
-    r"\b(?:until|till|through|up\s+to|by)\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
+    r"\b(?:until|till|through|up\s+to)\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
+)
+
+#: "by" is separate because it is the one cue that is not always temporal. It
+#: also introduces an agent ("sponsored by") and a grouping ("grouped by"), and
+#: treating those as a deadline silently narrowed the population to trials
+#: ending on or before a year the question never bounded.
+_YEAR_END_BY = re.compile(
+    r"\b(?:(\w+)\s+)?by\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
+)
+
+#: Verbs after which "by" takes an agent or an axis rather than a deadline.
+#: "approved" is here despite reading temporally in isolation: "approved by"
+#: overwhelmingly names a regulator. Where the reading is genuinely ambiguous
+#: this errs towards not filtering -- an unfiltered chart shows the reader more
+#: than they asked for, which they can see; a wrongly bounded one shows less,
+#: which they cannot.
+_BY_TAKES_AN_AGENT = frozenset(
+    {
+        "sponsored", "funded", "run", "led", "conducted", "managed", "made",
+        "produced", "developed", "designed", "owned", "operated", "supported",
+        "approved", "cleared", "authorised", "authorized", "filed", "submitted",
+        "published", "written", "reviewed", "grouped", "split", "broken",
+        "divided", "ordered", "sorted", "organised", "organized", "ranked",
+        "coloured", "colored", "segmented", "faceted",
+    }
 )
 _YEAR_END_EXCLUSIVE = re.compile(
     r"\b(?:before|prior\s+to|earlier\s+than)\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
@@ -411,6 +463,10 @@ def extract_year_range_from_query(query: str) -> YearRange | None:
         start = int(match.group(1)) + 1
     if match := _YEAR_END_INCLUSIVE.search(query):
         end = int(match.group(1))
+    elif (match := _YEAR_END_BY.search(query)) and (
+        (match.group(1) or "").lower() not in _BY_TAKES_AN_AGENT
+    ):
+        end = int(match.group(2))
     elif match := _YEAR_END_EXCLUSIVE.search(query):
         end = int(match.group(1)) - 1
 
@@ -515,14 +571,46 @@ def _cue_in(tail: list[str]) -> str | None:
     # "non-recruiting" and "aren't recruiting" attach the cue to the match or
     # to the preceding word, so the joined tail is checked as well as each
     # token -- that also covers the two-word cues ("no longer", "other than").
-    joined = " ".join(tail).rstrip("-")
+    #
+    # Hyphens read as spaces, because a multi-word cue can be written either
+    # way: "no longer recruiting" and "no-longer-recruiting" mean the same
+    # thing, and only the first survived a whitespace split.
+    joined = " ".join(tail)
+    for hyphen in _HYPHENS:
+        joined = joined.replace(hyphen, " ")
+    joined = " ".join(joined.split())
     for cue in _NEGATION_CUES:
         if joined.endswith(cue):
             return cue
-    for word in tail:
-        if word.rstrip("-") in _NEGATION_CUES:
-            return word.rstrip("-")
+    for word in joined.split():
+        if word in _NEGATION_CUES:
+            return word
     return None
+
+
+_HYPHENS = "-‐‑‒–—―"
+
+
+def _is_hyphenated_compound(haystack: str, index: int) -> bool:
+    """Whether the phrase at ``index`` is the tail of an unrelated compound.
+
+    A negation cue attached by a hyphen ("non-recruiting", "no-longer-
+    recruiting") is not a compound in this sense -- it is the construction the
+    cue scan exists to read -- so it is deliberately excluded.
+    """
+    if index == 0 or haystack[index - 1] not in _HYPHENS:
+        return False
+    prefix = haystack[: index - 1].rsplit(" ", 1)[-1].strip(_HYPHENS)
+    if not prefix:
+        return False
+    # Both the last segment and the whole hyphenated run, because a cue can be
+    # one word ("non-recruiting") or several ("no-longer-recruiting").
+    spaced = prefix
+    for hyphen in _HYPHENS:
+        spaced = spaced.replace(hyphen, " ")
+    return not (
+        spaced in _NEGATION_CUES or spaced.rsplit(" ", 1)[-1] in _NEGATION_CUES
+    )
 
 
 def _negation_cue(text_before: str) -> str | None:
@@ -607,6 +695,15 @@ def _match_statuses(query: str) -> tuple[list[str], list[str]]:
         while match:
             index = match.start()
             phrase = match.group()
+            if _is_hyphenated_compound(haystack, index):
+                # "re-enrolling" is not "enrolling": \b fires after the hyphen,
+                # so a bare status phrase matched inside an unrelated compound
+                # word and requested a status the question never named. Every
+                # hyphenated form the vocabulary *does* know
+                # ("not-yet-recruiting") is longer, so it was matched and
+                # masked before this line is reached.
+                match = pattern.search(haystack, index + len(phrase))
+                continue
             cue = _negation_cue(haystack[:index])
             bucket = negated if cue else found
             if status not in bucket:
@@ -687,10 +784,9 @@ def ground_entities(
     # Phases: the text is authoritative.
     grounded_phases = extract_phases_from_query(query)
     for phase in entities.phases:
-        if phase in (1, 2, 3, 4) and phase not in grounded_phases:
-            warnings.append(
-                f"Ignored phase {phase}: the question does not mention it."
-            )
+        if phase in (0, 1, 2, 3, 4) and phase not in grounded_phases:
+            label = "early phase 1" if phase == EARLY_PHASE else f"phase {phase}"
+            warnings.append(f"Ignored {label}: the question does not mention it.")
 
     # Statuses: likewise, and this also keeps an unrecognised status string out
     # of the client-side filter, where it would have matched no trial at all.
@@ -1028,15 +1124,19 @@ def _infer_compare_kind(
     Deliberately evidence-based rather than a guess: with no list containing
     them all there is nothing to infer from, and inventing a kind would send
     the names to the wrong ClinicalTrials.gov field.
+
+    *One* kind, strictly. Two lists containing them all is not evidence for
+    either -- it used to resolve to whichever came first in
+    ``COMPARE_KIND_SOURCES``, so a dict literal's ordering decided whether a
+    comparison searched ``query.intr`` or ``query.cond``. Ambiguity is
+    reported as ambiguity, and the grouped-bar guard demotes the chart.
     """
-    return next(
-        (
-            kind
-            for kind in COMPARE_KIND_SOURCES
-            if _grounds_every_entity(compare_entities, entities, kind)
-        ),
-        None,
-    )
+    matches = [
+        kind
+        for kind in COMPARE_KIND_SOURCES
+        if _grounds_every_entity(compare_entities, entities, kind)
+    ]
+    return matches[0] if len(matches) == 1 else None
 
 
 def reconcile_plan_semantics(

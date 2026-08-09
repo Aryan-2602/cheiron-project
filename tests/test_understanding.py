@@ -13,6 +13,7 @@ from app.agents.understanding import (
     STATUS_VOCABULARY,
     UnderstandingError,
     _appears_in,
+    _infer_compare_kind,
     _match_statuses,
     axis_named_in_query,
     build_plan,
@@ -1854,3 +1855,168 @@ class TestDemotedComparisonReportsWhatShipped:
         )
         assert plan.viz_type == "grouped_bar_chart"
         assert plan.query_type == "comparison"
+
+
+class TestPhaseSpellings:
+    """The anchor required whitespace or a colon between "phase" and its list,
+    so "phase-3", "Phase-III" and "phase3" extracted nothing -- and the model's
+    own phases=[3] was then dropped with "the question does not mention it",
+    a disclosed but wrong answer for a very common way of writing it."""
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("phase 3", [3]),
+            ("phase-3", [3]),
+            ("Phase-III", [3]),
+            ("phase3", [3]),
+            ("a phase-1/2 study", [1, 2]),
+            ("phase 1/2", [1, 2]),
+            ("phases 2 and 3", [2, 3]),
+            ("phase II", [2]),
+        ],
+    )
+    def test_a_written_phase_is_extracted(self, query, expected):
+        assert extract_phases_from_query(query) == expected
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            # The contiguous-list rule, which the wider separator must not relax.
+            ("phase 2 study of 3 drugs", [2]),
+            ("in phase, 3 patients", []),
+            ("no phases here", []),
+            ("a study of 3 drugs", []),
+        ],
+    )
+    def test_a_number_that_is_not_a_phase_is_not_extracted(self, query, expected):
+        assert extract_phases_from_query(query) == expected
+
+
+class TestEarlyPhaseOneIsItsOwnPhase:
+    """Verified live: aggFilters=phase:0 returns 6,431 trials, every sampled
+    one EARLY_PHASE1, while phase:1 returns 65,325 -- and "phase:0 1" returns
+    exactly 71,756. Folding Early Phase 1 into Phase 1 would have overstated
+    Phase 1 by 6,431 trials.
+
+    The spelled-out phase:early_phase1 is another silent-failure trap: HTTP
+    200 with zero results, like phase:PHASE3.
+    """
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("early phase 1", [0]),
+            ("Early Phase 1 trials", [0]),
+            ("early-phase-1", [0]),
+            ("earlyphase1", [0]),
+            ("early phase 1 and phase 2", [0, 2]),
+        ],
+    )
+    def test_early_phase_one_does_not_collapse_into_phase_one(self, query, expected):
+        assert extract_phases_from_query(query) == expected
+
+    def test_a_plain_phase_one_query_is_unaffected(self):
+        assert extract_phases_from_query("phase 1 trials") == [1]
+
+
+class TestHyphenatedCompoundsAreNotStatuses:
+    """\\b fires after a hyphen, so a bare status phrase matched inside an
+    unrelated compound word and requested a status nobody named."""
+
+    def test_re_enrolling_is_not_enrolling(self):
+        assert _match_statuses("re-enrolling") == ([], [])
+
+    def test_reenrolling_is_not_enrolling(self):
+        assert _match_statuses("reenrolling") == ([], [])
+
+    @pytest.mark.parametrize(
+        "query,excluded",
+        [
+            # A cue attached by a hyphen is the construction the cue scan
+            # exists to read, so it must survive the compound check.
+            ("non-recruiting trials", ["RECRUITING"]),
+            ("no-longer-recruiting trials", ["RECRUITING"]),
+        ],
+    )
+    def test_a_hyphenated_negation_cue_still_negates(self, query, excluded):
+        found, negated = _match_statuses(query)
+        assert negated == excluded
+        assert found == []
+
+    def test_a_vocabulary_phrase_that_is_itself_hyphenated_still_matches(self):
+        assert _match_statuses("not-yet-recruiting")[0] == ["NOT_YET_RECRUITING"]
+
+
+class TestByIsNotAlwaysADeadline:
+    """"by" also introduces an agent ("sponsored by") and an axis ("grouped
+    by"), and reading those as a deadline silently narrowed the population to
+    trials ending on or before a year the question never bounded."""
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "approved by 2020 FDA",
+            "sponsored by 2020 Foundation",
+            "grouped by 2020 cohort",
+            "funded by 2019 grant",
+        ],
+    )
+    def test_an_agent_or_axis_by_sets_no_bound(self, query):
+        assert extract_year_range_from_query(query) is None
+
+    @pytest.mark.parametrize(
+        "query,end",
+        [
+            ("trials completed by 2020", 2020),
+            ("finished by 2018", 2018),
+            ("trials by 2020", 2020),
+        ],
+    )
+    def test_a_temporal_by_still_bounds_the_range(self, query, end):
+        assert extract_year_range_from_query(query).end == end
+
+    @pytest.mark.parametrize(
+        "query,start,end",
+        [
+            ("until 2020", None, 2020),
+            ("up to 2020", None, 2020),
+            ("before 2020", None, 2019),
+            ("after 2015", 2016, None),
+        ],
+    )
+    def test_the_other_cues_are_unchanged(self, query, start, end):
+        found = extract_year_range_from_query(query)
+        assert (found.start, found.end) == (start, end)
+
+
+class TestAmbiguousKindIsNotResolvedByDictOrder:
+    """Two lists containing every compared name is not evidence for either.
+    It used to resolve to whichever came first in COMPARE_KIND_SOURCES, so a
+    dict literal's ordering decided whether a comparison searched query.intr
+    or query.cond."""
+
+    def entities(self, **lists):
+        return ExtractedEntities(
+            drugs=lists.get("drugs", []),
+            conditions=lists.get("conditions", []),
+            sponsors=lists.get("sponsors", []),
+            phases=[], statuses=[], countries=[], year_range=None,
+        )
+
+    @pytest.mark.parametrize(
+        "lists",
+        [
+            {"drugs": ["Alpha", "Beta"], "conditions": ["Alpha", "Beta"]},
+            {"conditions": ["Alpha", "Beta"], "sponsors": ["Alpha", "Beta"]},
+            {"drugs": ["Alpha", "Beta"], "sponsors": ["Alpha", "Beta"]},
+        ],
+    )
+    def test_a_tie_infers_nothing(self, lists):
+        assert _infer_compare_kind(["Alpha", "Beta"], self.entities(**lists)) is None
+
+    def test_a_single_grounding_list_still_infers(self):
+        assert (
+            _infer_compare_kind(["Alpha", "Beta"], self.entities(drugs=["Alpha", "Beta"]))
+            == "drug"
+        )

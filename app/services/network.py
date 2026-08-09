@@ -80,8 +80,18 @@ def is_stopword_drug(key: str) -> bool:
 
 
 _PARENTHETICAL = re.compile(r"\([^)]*\)")
+#: A dose, including compound and per-unit forms. The per-unit tail is its own
+#: repeated group rather than an alternative: with "mg/kg" listed *after* "mg",
+#: the shorter branch matched first and left the divisor behind, so
+#: "Pembrolizumab 200 mg/kg" normalised to "pembrolizumab kg" -- a different
+#: node from plain "pembrolizumab", which is exactly the fragmentation this
+#: function exists to prevent.
 _DOSAGE = re.compile(
-    r"\b\d+(\.\d+)?\s*(mg|mcg|g|ml|mg/kg|mg/m2|iu|units?|%)\b", re.IGNORECASE
+    r"\b\d+(?:\.\d+)?\s*"
+    r"(?:mcg|mg|kg|ml|iu|units?|g|l|%)"
+    r"(?:\s*/\s*(?:kg|m2|m\^2|day|dose|hour|hr|week|wk|min|body|bsa|l))*"
+    r"(?![a-z0-9])",
+    re.IGNORECASE,
 )
 _ROUTE = re.compile(
     r"\b(iv|im|sc|po|oral(ly)?|intravenous(ly)?|subcutaneous(ly)?|"
