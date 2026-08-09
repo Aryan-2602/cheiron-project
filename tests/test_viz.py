@@ -87,3 +87,58 @@ class TestAppliedScope:
         plan = self.plan(drugs=["Pembrolizumab", "Nivolumab"])
         assert applied_scope(plan) == applied_scope(plan)
         assert "Nivolumab" in applied_scope(plan)
+
+
+class TestFilterOnlyTitles:
+    """A filter-only question has no entity to name, and falling back to
+    "Clinical trials" only when the *whole* phrase was empty left titles like
+    "(phase 3) by lead sponsor" with no subject at all."""
+
+    def plan(self, **kwargs):
+        entities = ExtractedEntities(
+            drugs=kwargs.pop("drugs", []),
+            conditions=[], sponsors=[], countries=[],
+            phases=kwargs.pop("phases", []),
+            statuses=kwargs.pop("statuses", []),
+            year_range=kwargs.pop("year_range", None),
+        )
+        return QueryPlan(
+            query="q", query_type="distribution", entities=entities,
+            group_by="phase", viz_type="bar_chart", **kwargs,
+        )
+
+    def test_a_year_only_scope_still_names_a_subject(self):
+        scope = applied_scope(self.plan(year_range=YearRange(start=2020, end=2024)))
+        assert scope.startswith("Clinical trials")
+        assert "2020" in scope
+
+    def test_a_phase_only_scope_still_names_a_subject(self):
+        assert applied_scope(self.plan(phases=[3])) == "Clinical trials (phase 3)"
+
+    def test_a_status_only_scope_still_names_a_subject(self):
+        assert applied_scope(self.plan(statuses=["RECRUITING"])) == (
+            "Clinical trials (recruiting)"
+        )
+
+    def test_an_exclusion_only_scope_still_names_a_subject(self):
+        assert applied_scope(self.plan(excluded_statuses=["RECRUITING"])) == (
+            "Clinical trials (not recruiting)"
+        )
+
+    def test_no_scope_at_all_is_unchanged(self):
+        assert applied_scope(self.plan()) == "Clinical trials"
+
+    def test_a_named_entity_still_leads(self):
+        assert applied_scope(self.plan(drugs=["Pembrolizumab"], phases=[3])) == (
+            "Pembrolizumab trials (phase 3)"
+        )
+
+    def test_no_title_ever_starts_with_a_bare_qualifier(self):
+        for kwargs in (
+            {"phases": [3]},
+            {"statuses": ["RECRUITING"]},
+            {"year_range": YearRange(start=2020, end=2024)},
+            {"excluded_statuses": ["RECRUITING"]},
+            {},
+        ):
+            assert not applied_scope(self.plan(**kwargs)).startswith("(")

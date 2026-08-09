@@ -988,3 +988,37 @@ class TestEmptyResultKinds:
         assert any("usable" in w for w in body.meta.warnings)
         # And it must not offer the wrong advice: trials *were* found.
         assert not any("No trials matched" in w for w in body.meta.warnings)
+
+
+class TestUnscopedSampleDisclosure:
+    """A question with predicates but no population scope has no upstream
+    parameter that narrows the registry, so the fetch cap takes the first N in
+    ClinicalTrials.gov's own order. The cap was disclosed; that the *shape* of
+    the chart inherits that ordering was not."""
+
+    def studies(self, n):
+        return [
+            make_record(f"NCT{i:08d}", phases=["PHASE3"], start_date=f"202{i % 5}-01-01")
+            for i in range(n)
+        ]
+
+    @respx.mock
+    async def test_an_unscoped_truncated_query_says_the_sample_is_ordered(self):
+        mock_studies(self.studies(30), total=597_691)
+        response = await run(drugs=[], phases=[3], request={"max_studies": 100})
+        assert any("capped slice of the whole registry" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_a_scoped_query_does_not_carry_the_warning(self):
+        """A condition or drug narrows the population upstream, so the sample is
+        of that population rather than of the registry."""
+        mock_studies(self.studies(30), total=597_691)
+        response = await run(drugs=["Pembrolizumab"], request={"max_studies": 100})
+        assert not any("capped slice of the whole registry" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_an_unscoped_but_untruncated_query_does_not_carry_it(self):
+        """Nothing was dropped, so there is no sampling to disclose."""
+        mock_studies(self.studies(5), total=5)
+        response = await run(drugs=[], phases=[3])
+        assert not any("capped slice of the whole registry" in w for w in response.meta.warnings)

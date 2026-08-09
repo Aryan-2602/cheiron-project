@@ -841,11 +841,23 @@ class TestPlanSemanticReconciliation:
         )
         assert plan.group_by == "start_year"
 
-    def test_histogram_of_phase_becomes_an_enrollment_distribution(self):
-        """A histogram bins a continuous measure; phase is categorical."""
+    def test_histogram_never_steals_an_explicitly_named_axis(self):
+        """An axis the question named outranks a chart type the model guessed.
+        Rewriting group_by here answered a different question: "distributed by
+        phase" became an enrollment histogram purely because the model said
+        "histogram"."""
         plan = self.plan_for(
             "melanoma trials by phase",
             query_type="distribution", viz_type="histogram", group_by="phase",
+        )
+        assert (plan.viz_type, plan.group_by) == ("bar_chart", "phase")
+        assert any("categorical" in a for a in plan.assumptions)
+
+    def test_histogram_with_no_named_axis_becomes_an_enrollment_distribution(self):
+        """With no axis in the question the chart type is the only signal."""
+        plan = self.plan_for(
+            "show the distribution of melanoma trials",
+            query_type="distribution", viz_type="histogram", group_by=None,
         )
         assert (plan.viz_type, plan.group_by) == ("histogram", "enrollment_bucket")
         assert any("enrollment-size" in a for a in plan.assumptions)

@@ -745,6 +745,7 @@ def reconcile_plan_semantics(
     *,
     query_type: str,
     group_by: str | None,
+    axis_was_specified: bool = True,
     viz_type: str,
     network_kind: str | None,
     compare_entities: list[str],
@@ -778,13 +779,18 @@ def reconcile_plan_semantics(
     # incompatible pair is resolved by trusting whichever side the question
     # actually supports: an explicit non-enrollment axis wins over the chart.
     if viz_type == "histogram" and group_by != HISTOGRAM_GROUP_BY:
-        if group_by in (None, "phase") and query_type == "distribution":
+        if not axis_was_specified and query_type == "distribution":
+            # No axis was named, so the chart type is the only signal there is.
             group_by = HISTOGRAM_GROUP_BY
             assumptions.append(
                 "Read this as an enrollment-size distribution, which is what a "
                 "histogram measures."
             )
         else:
+            # An axis the question named explicitly outranks a chart type the
+            # model guessed. Rewriting group_by here answered a different
+            # question: "distributed by phase" became an enrollment histogram
+            # purely because the model said "histogram".
             viz_type = "bar_chart"
             assumptions.append(
                 f"Rendered as a bar chart rather than a histogram: "
@@ -848,6 +854,10 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
             start=request.start_year, end=request.end_year
         )
 
+    # Kept before defaulting, so reconciliation can tell "the question named no
+    # axis" from "the question named phase" -- they need opposite histogram
+    # treatment, and the default erases the difference.
+    axis_was_specified = understanding.group_by is not None
     group_by = understanding.group_by
     if understanding.query_type != "relationship":
         group_by = group_by or DEFAULT_GROUP_BY.get(understanding.query_type, "phase")
@@ -894,6 +904,7 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
         reconcile_plan_semantics(
             query_type=understanding.query_type,
             group_by=group_by,
+            axis_was_specified=axis_was_specified,
             viz_type=viz_type,
             network_kind=network_kind,
             compare_entities=compare_entities,

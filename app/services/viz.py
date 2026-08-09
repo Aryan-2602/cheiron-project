@@ -99,11 +99,11 @@ def applied_scope(plan: QueryPlan) -> str:
 
     # "trials" sits right after the head, so qualifiers read as qualifiers:
     # "Pembrolizumab trials in the United States", not "Pembrolizumab in the
-    # United States trials".
-    phrase = " ".join(part for part in [f"{head} trials" if head else "", *qualifiers] if part)
-    phrase = phrase.strip()
-    if not phrase:
-        return "Clinical trials"
+    # United States trials". A filter-only question has no head, and falling
+    # back only when the *whole* phrase was empty left titles like
+    # "(phase 3) by lead sponsor" with no subject at all.
+    subject = f"{head} trials" if head else "Clinical trials"
+    phrase = " ".join(part for part in [subject, *qualifiers] if part).strip()
     return phrase[:1].upper() + phrase[1:]
 
 

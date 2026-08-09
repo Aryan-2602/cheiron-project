@@ -259,6 +259,26 @@ def build_meta(
 ) -> Meta:
     warnings = list(plan.warnings) + list(fetched.warnings) + list(extra_warnings)
 
+    # A question with predicates but no population scope has no upstream
+    # parameter that narrows the registry -- there is no date filter, and a
+    # phase or status clause still leaves hundreds of thousands of trials. The
+    # fetch cap then takes the first max_studies in ClinicalTrials.gov's own
+    # order, which is not a random sample. The cap itself is already disclosed;
+    # what a reader cannot tell from that line alone is that the *shape* of the
+    # chart inherits that ordering.
+    entities = plan.entities
+    has_scope = any(
+        (entities.drugs, entities.conditions, entities.sponsors, entities.countries)
+    )
+    if not has_scope and fetched.store.truncated:
+        warnings.append(
+            "This question named no drug, condition, sponsor, or country, so the "
+            "trials below are a capped slice of the whole registry in its default "
+            "order rather than a random sample. Differences between the bars or "
+            "years reflect that ordering as much as real activity -- add a "
+            "condition or drug for a figure that can be relied on."
+        )
+
     if aggregation is not None:
         if aggregation.multi_valued:
             warnings.append(
