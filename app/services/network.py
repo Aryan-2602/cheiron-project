@@ -39,6 +39,16 @@ from app.models.schemas import (
 #: "Standard of care" are not drugs and would dominate a co-occurrence graph.
 DRUG_TYPES = {"DRUG", "BIOLOGICAL", "COMBINATION_PRODUCT"}
 
+#: Above this many agents in one trial, co-occurrence pairs stop describing a
+#: studied combination and start describing a catalogue -- a basket trial or a
+#: registry entry listing every arm of a platform study. Pairs grow as the
+#: square of the count, so the cost grows fastest exactly where the meaning
+#: runs out: measured, 200 trials x 400 interventions took 46s and 863MB.
+#:
+#: Set well above any real combination therapy, so ordinary oncology trials
+#: are untouched.
+MAX_ENTITIES_PER_RECORD = 40
+
 #: Interventions that appear in a large share of trials and carry no
 #: relationship information -- keeping them makes every graph a star centred on
 #: "Placebo".
@@ -342,6 +352,11 @@ def _prune(
         _membership_from_edges(kept_nodes, kept_edges),
         key=lambda n: (-n.size, n.id),
     )
+    # Report what was drawn, not the cap. Recomputing membership drops nodes
+    # whose every edge was pruned away, so "truncated to 30 nodes" could
+    # describe a graph of 27 -- a number the reader can count for themselves.
+    if truncated is not None:
+        truncated = len(kept_nodes)
     return kept_nodes, kept_edges, truncated
 
 
@@ -376,11 +391,25 @@ def build_cooccurrence_network(
     pairs: dict[tuple[str, str], set[str]] = defaultdict(set)
     originals = _merge_sources(resolutions)
 
+    dense_skipped = 0
     for nct_id, record in records.items():
         entities = _extract(extract, record, resolutions)
         for key, label in entities:
             members[key].add(nct_id)
             labels[key].append(label)
+        if len(entities) > MAX_ENTITIES_PER_RECORD:
+            # Pairs grow with the square of the agent count, and this is the
+            # one unbounded resource left in a project that caps the fetch, the
+            # candidate pool, the node count, the join, and the title.
+            #
+            # The whole trial is skipped rather than its first N agents kept:
+            # keeping a prefix invents a co-occurrence structure that is an
+            # artifact of sort order, and the *absence* of a pair is something
+            # the drawing cannot show and the reader cannot question. Skipping
+            # is order-independent, and it is disclosed. The node itself
+            # survives, so nothing disappears from the graph unannounced.
+            dense_skipped += 1
+            continue
         # An unordered pair, keyed consistently so (a,b) and (b,a) are one edge.
         for (left, _), (right, _) in combinations(entities, 2):
             pairs[(min(left, right), max(left, right))].add(nct_id)
@@ -409,6 +438,7 @@ def build_cooccurrence_network(
         edges=kept_edges,
         truncated_to_top_n=truncated,
         min_edge_weight=min_edge_weight,
+        dense_records_skipped=dense_skipped,
     )
 
 
@@ -514,8 +544,10 @@ def build_bipartite_network(
         _membership_from_edges(nodes.values(), edges),
         key=lambda n: (n.kind, -n.size, n.id),
     )
+    # As in _prune: the drawn count, not the cap, because recomputing
+    # membership drops any node whose every edge was pruned away.
     truncated = (
-        max_left + max_right
+        len(kept_nodes)
         if len(left_members) > max_left or len(right_members) > max_right
         else None
     )

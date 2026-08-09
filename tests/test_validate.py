@@ -21,7 +21,11 @@ from app.services.aggregate import aggregate
 from app.services.dimensions import DIMENSIONS
 from app.services.network import build_cooccurrence_network
 from app.services.store import StudyStore
-from app.services.validate import ValidationFailure, validate_response
+from app.services.validate import (
+    ValidationFailure,
+    _check_series_completeness,
+    validate_response,
+)
 from app.services.viz import build_chart_spec, build_network_spec
 from tests.conftest import make_record
 
@@ -751,3 +755,40 @@ class TestNetworkCitationEvidence:
             meta=Meta(total_studies_processed=len(store), api_urls=store.api_urls),
         )
         validate_response(response, store, network=network)
+
+
+class TestSeriesCompleteness:
+    """A series whose search returned nothing produces no rows, so it used to
+    vanish from a chart whose title still named it. A reader comparing three
+    drugs and seeing two bars cannot tell an absent series from a zero."""
+
+    def spec(self, series):
+        return VisualizationSpec(
+            type="grouped_bar_chart",
+            title="Comparison",
+            encoding=Encoding(
+                x=FieldRef(field="phase", label="Phase", type="nominal"),
+                y=FieldRef(field="trial_count", label="Trials", type="quantitative"),
+                color=FieldRef(field="series", label="Series", type="nominal"),
+            ),
+            data=[
+                {"phase": "Phase 3", "series": name, "trial_count": 1,
+                 "total_supporting_trials": 1, "citations": []}
+                for name in series
+            ],
+        )
+
+    def test_a_missing_series_is_a_validation_failure(self):
+        with pytest.raises(ValidationFailure, match="promised series"):
+            _check_series_completeness(
+                self.spec(["Pembrolizumab"]), ["Pembrolizumab", "Nivolumab"]
+            )
+
+    def test_every_promised_series_present_passes(self):
+        _check_series_completeness(
+            self.spec(["Pembrolizumab", "Nivolumab"]),
+            ["Pembrolizumab", "Nivolumab"],
+        )
+
+    def test_a_non_comparison_chart_is_unaffected(self):
+        _check_series_completeness(self.spec([]), None)

@@ -39,6 +39,7 @@ from app.services.ctgov import (
 from app.services.dimensions import extract_start_year, get_dimension
 from app.services.drug_resolver import resolve_all
 from app.services.network import (
+    MAX_ENTITIES_PER_RECORD,
     build_bipartite_network,
     build_cooccurrence_network,
     rank_candidate_names,
@@ -382,14 +383,27 @@ def build_meta(
             f"Graph truncated to {network.truncated_to_top_n} nodes for "
             f"readability, by {how}."
         )
-        # A node's size counts every fetched trial it appears in, which is the
-        # question a reader asks of a node and what its citations show. Edges,
-        # though, only exist between surviving nodes -- so a hub can look
-        # larger than its drawn connections explain.
+        # Describes what the builders actually do. Node membership is
+        # recomputed from surviving edges after pruning, so a node's size and
+        # its citations both describe the drawn graph. The previous wording
+        # said the opposite -- that sizes counted every fetched trial -- which
+        # had been true before pruning learned to recompute them, and a reader
+        # correcting for a discrepancy that no longer exists is misled just as
+        # surely as one who was told nothing.
         warnings.append(
-            "Node sizes count every fetched trial the node appears in, including "
-            "trials whose other drugs were pruned from the drawing, so a node can "
-            "be larger than its visible edges alone would suggest."
+            "Node sizes count the trials supporting a drawn connection, so a "
+            "node pruned away takes its trials with it: a node here can be "
+            "smaller than the full fetched sample would make it."
+        )
+    if network is not None and network.dense_records_skipped:
+        skipped = network.dense_records_skipped
+        warnings.append(
+            f"{skipped:,} {'trial lists' if skipped == 1 else 'trials list'} more "
+            f"than {MAX_ENTITIES_PER_RECORD} agents, which reads as a catalogue "
+            f"rather than a studied combination; "
+            f"{'its' if skipped == 1 else 'their'} co-occurrences are not drawn, "
+            f"though {'its' if skipped == 1 else 'their'} agents still appear as "
+            f"nodes."
         )
     if network is not None and network.min_edge_weight > 1:
         warnings.append(
@@ -623,6 +637,7 @@ async def run_pipeline(
         aggregation=aggregation,
         network=network,
         max_citations_per_datum=plan.max_citations_per_datum,
+        expected_series=fetched.series_membership,
     )
 
 

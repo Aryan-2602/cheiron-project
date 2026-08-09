@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from collections.abc import Collection
 
 from app.models.schemas import (
     AggregationResult,
@@ -270,10 +271,12 @@ def _citation_targets(
     if aggregation is None:
         return [(row, None, None) for row in spec.data]
     # Rows are index-aligned with the aggregation -- _check_counts has already
-    # asserted that, and runs first.
+    # asserted that, and runs first. strict=True so a future change that breaks
+    # the alignment fails here rather than silently validating a prefix and
+    # leaving the surplus rows uncited and unchecked.
     return [
         (row, set(datum.nct_ids), aggregation.dimension)
-        for row, datum in zip(spec.data, aggregation.data, strict=False)
+        for row, datum in zip(spec.data, aggregation.data, strict=True)
     ]
 
 
@@ -394,6 +397,28 @@ def _check_meta(response: QueryResponse, store: StudyStore) -> None:
         raise ValidationFailure("meta must record the upstream API URLs actually called")
 
 
+def _check_series_completeness(
+    spec: VisualizationSpec, expected_series: Collection[str] | None
+) -> None:
+    """Every promised comparison series must appear in the chart.
+
+    A series whose search returned nothing produces no rows, so it used to
+    vanish from a chart whose title still named it -- and a reader comparing
+    three drugs and seeing two bars has no way to tell an absent series from a
+    zero. Zero-fill puts it back; this asserts the zero-fill actually ran,
+    independently of the aggregator that was supposed to do it.
+    """
+    if not expected_series:
+        return
+    published = {row.get("series") for row in spec.data if row.get("series")}
+    missing = sorted(set(expected_series) - published)
+    if missing:
+        raise ValidationFailure(
+            f"comparison promised series {missing} but the chart contains no row "
+            f"for them"
+        )
+
+
 def validate_response(
     response: QueryResponse,
     store: StudyStore,
@@ -401,12 +426,14 @@ def validate_response(
     aggregation: AggregationResult | None = None,
     network: NetworkResult | None = None,
     max_citations_per_datum: int | None = None,
+    expected_series: Collection[str] | None = None,
 ) -> QueryResponse:
     """Run every grounding check. Raises :class:`ValidationFailure` on any breach."""
     _check_schema(response)
     _check_non_empty(response)
     _check_encoding_matches_data(response.visualization)
     _check_counts(response.visualization, aggregation, network)
+    _check_series_completeness(response.visualization, expected_series)
     _check_citations(
         response.visualization,
         store,

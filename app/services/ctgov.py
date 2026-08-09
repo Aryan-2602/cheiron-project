@@ -480,6 +480,11 @@ class CTGovClient:
 #: the previous behaviour, going over this is disclosed rather than silent.
 MAX_JOINED_VALUES = 5
 
+#: Comparison series, each of which costs its own upstream search. Matches
+#: MAX_JOINED_VALUES: a chart with more than five series stops being readable
+#: at about the same point the request count stops being reasonable.
+MAX_COMPARE_ENTITIES = 5
+
 #: Operators that mean a value is already an expression; nesting one inside
 #: another OR would change its meaning.
 #:
@@ -598,7 +603,21 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
         # place the keys are minted, rather than resting on a distant caller.
         seen_labels: set[str] = set()
         duplicate_notes: list[str] = []
-        for entity in plan.compare_entities:
+        compared = plan.compare_entities
+        if len(compared) > MAX_COMPARE_ENTITIES:
+            # One upstream search *each*, so this is the only place in the
+            # project where a single question's request count is set by the
+            # model rather than by us. Truncating rather than erroring: five
+            # charted series plus a note naming the rest answers most of the
+            # question, where a 400 answers none of it.
+            duplicate_notes.append(
+                f"Compared the first {MAX_COMPARE_ENTITIES} of "
+                f"{len(compared)} entities ("
+                f"{', '.join(compared[MAX_COMPARE_ENTITIES:])} omitted); each "
+                f"series costs a separate upstream search."
+            )
+            compared = compared[:MAX_COMPARE_ENTITIES]
+        for entity in compared:
             key = series_key(entity)
             if key in seen_labels:
                 duplicate_notes.append(

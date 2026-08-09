@@ -332,8 +332,15 @@ class NetworkResult(BaseModel):
     kind: NetworkKind
     nodes: list[NetworkNode]
     edges: list[NetworkEdge]
+    #: How many nodes were actually drawn, when the graph was capped. The cap
+    #: itself would overstate it: nodes whose every edge was pruned away are
+    #: dropped, so the reader can count fewer than the number reported.
     truncated_to_top_n: int | None = None
     min_edge_weight: int = 1
+    #: Trials excluded from pair-building for listing implausibly many agents.
+    #: Their nodes still exist; only their co-occurrences are missing, which is
+    #: why this is reported separately from node truncation.
+    dense_records_skipped: int = 0
 
 
 # --------------------------------------------------------------------------

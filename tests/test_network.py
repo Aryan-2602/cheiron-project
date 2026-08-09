@@ -3,6 +3,7 @@
 import pytest
 
 from app.services.network import (
+    MAX_ENTITIES_PER_RECORD,
     build_bipartite_network,
     build_cooccurrence_network,
     extract_drugs,
@@ -573,3 +574,60 @@ class TestPostPruneNodeMembership:
         assert all(n.size == len(set(n.nct_ids)) for n in network.nodes)
         for node in network.nodes:
             assert set(node.nct_ids) == self.visible_trials(network, node.id)
+
+
+class TestDenseRecordsAreSkippedNotTruncated:
+    """Pairs grow as the square of a trial's agent count, and this was the one
+    unbounded resource in a project that caps the fetch, the candidate pool,
+    the node count, the join and the title. Measured before the cap: 200 trials
+    x 400 interventions took 46s and 863MB.
+
+    The whole trial is skipped rather than its first N agents kept. Keeping a
+    prefix would invent a co-occurrence structure that is an artifact of sort
+    order, and the *absence* of a pair is something the drawing cannot show
+    and the reader cannot question.
+    """
+
+    def records(self, dense=1, dense_size=100, normal=2):
+        records = {
+            f"NCT9{i:07d}": trial(
+                f"NCT9{i:07d}", [f"Agent{j:03d}" for j in range(dense_size)]
+            )
+            for i in range(dense)
+        }
+        for i in range(normal):
+            for rep in (0, 1):
+                nct = f"NCT1{i * 2 + rep:07d}"
+                records[nct] = trial(nct, ["Alpha", "Beta"])
+        return records
+
+    def test_a_dense_trial_contributes_no_pairs(self):
+        network = build_cooccurrence_network(self.records())
+        assert network.dense_records_skipped == 1
+        # Only the ordinary trials' pair survives.
+        assert [(e.source, e.target) for e in network.edges] == [
+            ("drug:alpha", "drug:beta")
+        ]
+
+    def test_the_skip_is_order_independent(self):
+        """A prefix cap would give different graphs for different orderings of
+        the same corpus. Skipping cannot."""
+        records = self.records(dense=2)
+        forward = build_cooccurrence_network(records)
+        reversed_ = build_cooccurrence_network(dict(reversed(list(records.items()))))
+        assert [(e.source, e.target, e.weight) for e in forward.edges] == [
+            (e.source, e.target, e.weight) for e in reversed_.edges
+        ]
+        assert forward.dense_records_skipped == reversed_.dense_records_skipped == 2
+
+    def test_a_trial_at_the_cap_is_still_paired(self):
+        """The bound must not touch real combination therapy."""
+        network = build_cooccurrence_network(
+            self.records(dense=2, dense_size=MAX_ENTITIES_PER_RECORD, normal=0)
+        )
+        assert network.dense_records_skipped == 0
+        assert network.edges
+
+    def test_nothing_is_skipped_in_an_ordinary_corpus(self):
+        network = build_cooccurrence_network(self.records(dense=0))
+        assert network.dense_records_skipped == 0

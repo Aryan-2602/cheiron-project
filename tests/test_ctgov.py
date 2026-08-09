@@ -7,6 +7,7 @@ import respx
 
 from app.models.schemas import ExtractedEntities, QueryPlan, YearRange
 from app.services.ctgov import (
+    MAX_COMPARE_ENTITIES,
     AggFilter,
     CTGovClient,
     CTGovError,
@@ -794,3 +795,39 @@ class TestExclusionCountsAsAPredicate:
         assert self.params(query="trials about long covid fatigue") == {
             "query.term": "trials about long covid fatigue"
         }
+
+
+class TestComparisonCardinality:
+    """Comparison is the one path where the model's output sets how many
+    upstream requests a single question makes -- one search per series, with
+    no bound. Every other resource here is explicitly capped."""
+
+    def plan(self, n):
+        names = [f"Drug{i:03d}" for i in range(n)]
+        return QueryPlan(
+            query="compare " + " and ".join(names),
+            query_type="comparison",
+            group_by="phase",
+            viz_type="grouped_bar_chart",
+            compare_entities=names,
+            compare_entity_kind="drug",
+            entities=ExtractedEntities(
+                drugs=names, conditions=[], sponsors=[], phases=[],
+                statuses=[], countries=[], year_range=None,
+            ),
+        )
+
+    def test_the_search_count_is_bounded(self):
+        searches, _notes = build_searches(self.plan(100))
+        assert len(searches) == MAX_COMPARE_ENTITIES
+
+    def test_the_dropped_series_are_named(self):
+        _searches, notes = build_searches(self.plan(8))
+        note = next(n for n in notes if "first 5 of 8" in n)
+        assert "Drug005" in note and "Drug007" in note
+        assert "Drug000" not in note
+
+    def test_a_comparison_within_the_cap_is_untouched(self):
+        searches, notes = build_searches(self.plan(MAX_COMPARE_ENTITIES))
+        assert len(searches) == MAX_COMPARE_ENTITIES
+        assert not any("omitted" in n for n in notes)

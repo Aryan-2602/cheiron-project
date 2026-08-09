@@ -21,7 +21,12 @@ from app.pipeline import (
     fetch,
     run_pipeline,
 )
-from app.services.ctgov import CTGovClient, CTGovError, build_searches
+from app.services.ctgov import (
+    CTGovClient,
+    CTGovError,
+    CTGovSearch,
+    build_searches,
+)
 from app.services.store import StudyStore
 from tests.conftest import make_record
 
@@ -1222,10 +1227,17 @@ class TestClientSideStatusWarningIsAccurate:
 
 
 class TestPrunedNetworkDisclosure:
+    """The note must describe what pruning actually does.
+
+    It used to say node sizes counted every fetched trial -- true before
+    pruning learned to recompute membership from surviving edges, and false
+    afterwards. A reader correcting for a discrepancy that no longer exists is
+    misled as surely as one told nothing, so this asserts the disclosure and
+    the numbers agree rather than just that a warning fired.
+    """
+
     @respx.mock
-    async def test_truncation_discloses_that_node_sizes_are_global(self):
-        """A hub keeps its true trial count while its edges are subgraph-only,
-        so it can look larger than the drawing explains."""
+    async def test_truncation_discloses_that_sizes_describe_the_drawn_graph(self):
         mock_rxnorm_unmatched()
         # Each pair appears twice, so it clears the default min_edge_weight,
         # and there are more partners than the node cap.
@@ -1243,7 +1255,67 @@ class TestPrunedNetworkDisclosure:
             query_type="relationship", viz_type="network_graph",
             group_by=None, network_kind="drug_drug",
         )
-        assert any("Node sizes count every fetched trial" in w for w in response.meta.warnings)
+        assert any(
+            "count the trials supporting a drawn connection" in w
+            for w in response.meta.warnings
+        )
+        # The claim the old wording made -- that sizes count every fetched
+        # trial -- must not reappear.
+        assert not any(
+            "count every fetched trial" in w for w in response.meta.warnings
+        )
+
+    @respx.mock
+    async def test_the_reported_count_is_the_nodes_actually_drawn(self):
+        """Dropping nodes whose every edge was pruned can leave fewer than the
+        cap, and "truncated to 30" describing a 27-node graph is a number the
+        reader can count for themselves."""
+        mock_rxnorm_unmatched()
+        mock_studies(
+            [
+                make_record(
+                    f"NCT{i * 2 + rep:08d}",
+                    interventions=[("DRUG", "HubDrug"), ("DRUG", f"Partner{i}")],
+                )
+                for i in range(40)
+                for rep in (0, 1)
+            ]
+        )
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            group_by=None, network_kind="drug_drug",
+        )
+        drawn = len(response.visualization.data[0]["nodes"])
+        assert any(f"truncated to {drawn} nodes" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_a_dense_trials_missing_pairs_are_disclosed(self):
+        """Its agents still appear as nodes, so only the co-occurrences are
+        missing -- and a missing edge is exactly what a drawing cannot show."""
+        mock_rxnorm_unmatched()
+        mock_studies(
+            [
+                make_record(
+                    "NCT00000009",
+                    interventions=[("DRUG", f"Agent{j:03d}") for j in range(100)],
+                ),
+                *[
+                    make_record(
+                        f"NCT0000000{i}",
+                        interventions=[("DRUG", "Alpha"), ("DRUG", "Beta")],
+                    )
+                    for i in (1, 2)
+                ],
+            ]
+        )
+        response = await run(
+            query_type="relationship", viz_type="network_graph",
+            group_by=None, network_kind="drug_drug",
+        )
+        assert any(
+            "more than 40 agents" in w and "co-occurrences are not drawn" in w
+            for w in response.meta.warnings
+        )
 
     @respx.mock
     async def test_an_untruncated_graph_does_not_carry_the_note(self):
@@ -1253,7 +1325,7 @@ class TestPrunedNetworkDisclosure:
             query_type="relationship", viz_type="network_graph",
             group_by=None, network_kind="drug_drug",
         )
-        assert not any("Node sizes count every fetched trial" in w for w in response.meta.warnings)
+        assert not any("drawn connection" in w for w in response.meta.warnings)
 
 
 class TestEmptyComparisonSeries:
@@ -1362,6 +1434,9 @@ class TestEveryPromisedSeriesIsRegistered:
         )
 
     async def fetch_series(self, n_series, max_studies):
+        """Searches are built here rather than via build_searches, which caps a
+        comparison at MAX_COMPARE_ENTITIES. What is under test is fetch()'s
+        budget split, and it must stay correct for any list it is handed."""
         respx.get(f"{BASE}/version").mock(
             return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-09"})
         )
@@ -1372,7 +1447,7 @@ class TestEveryPromisedSeriesIsRegistered:
             compare_entities=names, compare_entity_kind="drug",
             drugs=names, max_studies=max_studies,
         )
-        searches, _ = build_searches(plan_obj)
+        searches = [CTGovSearch(intr=name, label=name) for name in names]
         async with CTGovClient() as client:
             fetched = await fetch(plan_obj, searches, client)
         return searches, fetched
