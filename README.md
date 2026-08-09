@@ -548,6 +548,8 @@ There is no code path that emits a raw filter string.
 
 That both catches a silent-filter regression and gives the user a useful answer instead of a bare zero.
 
+**`OR` is a real set union inside `query.*`; a comma is an intersection.** Both are silent, so the only way to distinguish them is to count. Pembrolizumab returns 2,922 trials and Nivolumab 2,016; `Pembrolizumab OR Nivolumab` returns 4,648 and `Pembrolizumab, Nivolumab` returns 290 — and `2922 + 2016 − 290 = 4648` closes exactly. This is why every extracted value reaches the query instead of only the first: asking about "pembrolizumab and nivolumab" searches for both, and the union reading is stated in `meta.assumptions` rather than applied silently. The comma form is never emitted — it reads as a list and behaves as an `AND`. Comparison queries are unaffected: each compared entity keeps its own search, which is what makes per-series membership exact. The join is capped at five values, and truncating past that is disclosed as a warning.
+
 **Request field names do not map mechanically to response paths.** `Phase` → `designModule.phases`, `StartDate` → `statusModule.startDateStruct.date`. Every mapping used here was confirmed against a live response and is pinned by `tests/test_dimensions.py`, which runs every extractor against a captured API page and fails if any stops finding values.
 
 **Other verified behaviour:** `pageSize` defaults to 10 if omitted (max 1000) so it is always set explicitly; pagination is `pageToken` only, with no offset; `phases` is always an array; date granularity varies (`2024-08-22`, `2024-08`, `2024` all appear); `GET /stats/field/values` returns 500.

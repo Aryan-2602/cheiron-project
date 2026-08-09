@@ -381,7 +381,10 @@ async def run_pipeline(
             "This question cannot be answered from ClinicalTrials.gov registry data."
         )
 
-    searches = build_searches(plan)
+    searches, search_notes = build_searches(plan)
+    # How multiple extracted values were combined is an interpretation the
+    # reader should see, not a silent choice.
+    plan.assumptions = [*plan.assumptions, *search_notes]
     owns_client = client is None
     client = client or CTGovClient()
 

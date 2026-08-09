@@ -375,18 +375,92 @@ def _first(values: Iterable[str]) -> str | None:
     return None
 
 
-def build_searches(plan: Any) -> list[CTGovSearch]:
+#: Ceiling on how many extracted values are joined into one query expression,
+#: so a pathological extraction cannot build an unbounded query string. Unlike
+#: the previous behaviour, going over this is disclosed rather than silent.
+MAX_JOINED_VALUES = 5
+
+#: Operators that mean a value is already an expression; nesting one inside
+#: another OR would change its meaning.
+_EXPRESSION_MARKERS = (" or ", " and ", ",")
+
+
+def join_values(values: Iterable[str]) -> tuple[str | None, list[str]]:
+    """Combine several extracted values into one query expression.
+
+    ``OR`` performs a true set union in the ``query.*`` parameters -- verified
+    live, and confirmed by inclusion-exclusion: ``query.intr=Pembrolizumab``
+    returns 2,922, ``Nivolumab`` 2,016, their comma (intersection) form 290,
+    and ``Pembrolizumab OR Nivolumab`` exactly 4,648 = 2922 + 2016 - 290.
+
+    Taking only the first value -- as this once did -- answered a narrower
+    question than the one asked and disclosed nothing. Union is also the safe
+    reading of an ambiguous phrase like "melanoma and lung cancer trials",
+    because it cannot silently exclude trials the user may have meant.
+
+    Returns the expression and any warnings.
+    """
+    cleaned = [v.strip() for v in values if v and v.strip()]
+    if not cleaned:
+        return None, []
+
+    warnings: list[str] = []
+    if len(cleaned) > MAX_JOINED_VALUES:
+        warnings.append(
+            f"Used the first {MAX_JOINED_VALUES} of {len(cleaned)} values "
+            f"({', '.join(cleaned[MAX_JOINED_VALUES:])} omitted) to keep the "
+            f"upstream query bounded."
+        )
+        cleaned = cleaned[:MAX_JOINED_VALUES]
+
+    if len(cleaned) == 1:
+        return cleaned[0], warnings
+
+    # A value that is already an expression is passed through untouched rather
+    # than nested inside another OR, which would change what it means.
+    if any(m in v.lower() for v in cleaned for m in _EXPRESSION_MARKERS):
+        note = (
+            f"Used {cleaned[0]!r} only: another extracted value already contains "
+            f"a search operator, so combining them could change its meaning."
+        )
+        return cleaned[0], [*warnings, note]
+
+    return " OR ".join(cleaned), warnings
+
+
+def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
     """Translate a :class:`~app.models.schemas.QueryPlan` into upstream searches.
 
     Comparison queries produce one search per compared entity so that series
     membership is exactly "the trials this search returned" -- no client-side
     guessing about which trial belongs to which series.
+
+    Returns the searches and any warnings about how values were combined.
     """
     entities = plan.entities
-    base_intr = _first(entities.drugs)
-    base_cond = _first(entities.conditions)
-    base_spons = _first(entities.sponsors)
-    base_locn = _first(entities.countries)
+    # Notes are attributed to the field they describe. The comparison path
+    # replaces one field per series, so a note about how that field's values
+    # were combined would disclose an interpretation that was never applied.
+    notes_by_field: dict[str, list[str]] = {}
+
+    def combine(field: str, values: list[str], label: str) -> str | None:
+        expression, warnings = join_values(values)
+        notes = list(warnings)
+        if expression and len(values) > 1 and " OR " in expression:
+            notes.append(
+                f"Interpreted the {len(values)} {label} values as trials matching "
+                f"any of them ({expression})."
+            )
+        notes_by_field[field] = notes
+        return expression
+
+    def notes_except(field: str | None = None) -> list[str]:
+        return [n for f, ns in notes_by_field.items() if f != field for n in ns]
+
+    base_intr = combine("drug", entities.drugs, "drug")
+    base_cond = combine("condition", entities.conditions, "condition")
+    base_spons = combine("sponsor", entities.sponsors, "sponsor")
+    base_locn = combine("country", entities.countries, "country")
 
     agg: list[AggFilter] = []
     # aggFilters expresses only a single phase, and repeating the key does not
@@ -415,7 +489,9 @@ def build_searches(plan: Any) -> list[CTGovSearch]:
                     label=entity,
                 )
             )
-        return searches
+        # The comparison path is untouched: each compared entity keeps its own
+        # search, which is what makes per-series membership exact.
+        return searches, notes_except(kind)
 
     search = CTGovSearch(
         intr=base_intr,
@@ -428,4 +504,4 @@ def build_searches(plan: Any) -> list[CTGovSearch]:
     # still hits real data rather than returning the entire registry.
     if not any((search.intr, search.cond, search.spons, search.locn)):
         search = CTGovSearch(term=plan.query, agg_filters=tuple(agg))
-    return [search]
+    return [search], notes_except()

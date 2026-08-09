@@ -252,24 +252,26 @@ class TestBuildSearches:
         )
 
     def test_drug_becomes_query_intr(self):
-        searches = build_searches(self.plan(drugs=["Pembrolizumab"]))
+        searches, _ = build_searches(self.plan(drugs=["Pembrolizumab"]))
         assert len(searches) == 1
         assert searches[0].intr == "Pembrolizumab"
 
     def test_phase_entity_becomes_a_bare_number_agg_filter(self):
-        searches = build_searches(self.plan(drugs=["X"], phases=[3]))
+        searches, _ = build_searches(self.plan(drugs=["X"], phases=[3]))
         assert searches[0].agg_filters[0].render() == "phase:3"
 
     def test_recruiting_status_becomes_the_one_verified_status_filter(self):
-        searches = build_searches(self.plan(conditions=["melanoma"], statuses=["recruiting"]))
+        plan = self.plan(conditions=["melanoma"], statuses=["recruiting"])
+        searches, _ = build_searches(plan)
         assert "status:rec" in [f.render() for f in searches[0].agg_filters]
 
     def test_unverified_status_is_not_sent_upstream(self):
-        searches = build_searches(self.plan(conditions=["melanoma"], statuses=["completed"]))
+        plan = self.plan(conditions=["melanoma"], statuses=["completed"])
+        searches, _ = build_searches(plan)
         assert searches[0].agg_filters == ()
 
     def test_comparison_produces_one_search_per_entity(self):
-        searches = build_searches(
+        searches, _ = build_searches(
             self.plan(
                 query_type="comparison",
                 viz_type="grouped_bar_chart",
@@ -281,7 +283,7 @@ class TestBuildSearches:
         assert [s.intr for s in searches] == ["Pembrolizumab", "Nivolumab"]
 
     def test_comparison_keeps_shared_filters_on_every_series(self):
-        searches = build_searches(
+        searches, _ = build_searches(
             self.plan(
                 query_type="comparison",
                 viz_type="grouped_bar_chart",
@@ -293,5 +295,105 @@ class TestBuildSearches:
         assert all(s.cond == "melanoma" for s in searches)
 
     def test_falls_back_to_free_text_when_no_entity_was_extracted(self):
-        searches = build_searches(self.plan(query="how many trials are there"))
+        searches, _ = build_searches(self.plan(query="how many trials are there"))
         assert searches[0].term == "how many trials are there"
+
+
+class TestMultipleExtractedValues:
+    """Extra extracted values used to be dropped on the floor. ``OR`` is a
+    verified set union in ``query.*`` (2,922 + 2,016 - 290 = 4,648), so they
+    are unioned instead -- and the reading is disclosed."""
+
+    plan = TestBuildSearches.plan
+
+    def test_multiple_drugs_are_unioned_into_one_expression(self):
+        searches, notes = build_searches(
+            self.plan(drugs=["Pembrolizumab", "Nivolumab"])
+        )
+        assert len(searches) == 1
+        assert searches[0].intr == "Pembrolizumab OR Nivolumab"
+        assert any("either" in n or "any of them" in n for n in notes)
+
+    def test_multiple_conditions_are_unioned(self):
+        searches, _ = build_searches(
+            self.plan(conditions=["melanoma", "lung cancer"])
+        )
+        assert searches[0].cond == "melanoma OR lung cancer"
+
+    def test_a_single_value_is_unchanged_and_gains_no_note(self):
+        searches, notes = build_searches(self.plan(drugs=["Pembrolizumab"]))
+        assert searches[0].intr == "Pembrolizumab"
+        assert notes == []
+
+    def test_every_extracted_value_survives_into_the_query(self):
+        """The regression itself: nothing extracted is silently discarded."""
+        searches, _ = build_searches(
+            self.plan(
+                drugs=["Pembrolizumab", "Nivolumab"],
+                conditions=["melanoma", "lung cancer"],
+                sponsors=["Merck", "BMS"],
+                countries=["France", "Japan"],
+            )
+        )
+        params = searches[0].to_params(page_size=10)
+        blob = " ".join(params.values())
+        for value in ("Nivolumab", "lung cancer", "BMS", "Japan"):
+            assert value in blob
+
+    def test_comparison_still_gets_one_search_per_entity(self):
+        """The union must not leak into the comparison path, where per-series
+        membership is what makes the grouping exact."""
+        searches, _ = build_searches(
+            self.plan(
+                query_type="comparison",
+                viz_type="grouped_bar_chart",
+                compare_entities=["Pembrolizumab", "Nivolumab"],
+                compare_entity_kind="drug",
+            )
+        )
+        assert len(searches) == 2
+        assert all(" OR " not in (s.intr or "") for s in searches)
+
+    def test_comparison_does_not_disclose_a_union_it_never_applied(self):
+        """The compared field is replaced per series, so a note about how its
+        values were combined would describe an interpretation never used."""
+        searches, notes = build_searches(
+            self.plan(
+                query_type="comparison",
+                viz_type="grouped_bar_chart",
+                drugs=["Pembrolizumab", "Nivolumab"],
+                compare_entities=["Pembrolizumab", "Nivolumab"],
+                compare_entity_kind="drug",
+            )
+        )
+        assert [s.intr for s in searches] == ["Pembrolizumab", "Nivolumab"]
+        assert notes == []
+
+    def test_comparison_still_discloses_unions_on_untouched_fields(self):
+        """Only the compared field is exempt -- a shared filter that really was
+        unioned applies to every series and must still be disclosed."""
+        searches, notes = build_searches(
+            self.plan(
+                query_type="comparison",
+                viz_type="grouped_bar_chart",
+                conditions=["melanoma", "lung cancer"],
+                compare_entities=["Pembrolizumab", "Nivolumab"],
+                compare_entity_kind="drug",
+            )
+        )
+        assert all(s.cond == "melanoma OR lung cancer" for s in searches)
+        assert any("condition values" in n for n in notes)
+
+    def test_over_cap_truncation_is_disclosed(self):
+        drugs = [f"Drug{i}" for i in range(8)]
+        searches, notes = build_searches(self.plan(drugs=drugs))
+        assert searches[0].intr.count(" OR ") == 4  # 5 values kept
+        assert "Drug5" not in searches[0].intr
+        assert any("first 5 of 8" in n for n in notes)
+
+    def test_a_value_that_is_already_an_expression_is_not_nested(self):
+        searches, notes = build_searches(
+            self.plan(drugs=["Pembrolizumab OR Nivolumab", "Atezolizumab"])
+        )
+        assert searches[0].intr == "Pembrolizumab OR Nivolumab"
+        assert any("search operator" in n for n in notes)

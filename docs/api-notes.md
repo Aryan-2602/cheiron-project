@@ -41,6 +41,26 @@ API, and several widely-repeated secondary sources turned out to be wrong.
 - `pageToken` — pass the `nextPageToken` from the previous response for the next page. **No offset-based pagination exists.**
 - `countTotal=true` — include on first request to get `totalCount` in one call
 
+### ✅ Combining several values in one `query.*` parameter — verified live
+
+`OR` is a true set **union**; a comma is an **intersection**. Both are silent —
+neither errors, so the only way to tell them apart is to count.
+
+| request | `totalCount` |
+| --- | --- |
+| `query.intr=Pembrolizumab` | 2,922 |
+| `query.intr=Nivolumab` | 2,016 |
+| `query.intr=Pembrolizumab OR Nivolumab` | **4,648** |
+| `query.intr=Pembrolizumab, Nivolumab` | 290 |
+
+Inclusion–exclusion closes exactly: `2922 + 2016 − 290 = 4648`. The same holds
+for `query.cond` (`3743 + 14425 − 652 = 17516`).
+
+This is why `build_searches` joins multiple extracted values with `" OR "`
+rather than keeping only the first. The comma form is deliberately never
+emitted: it looks like a list and behaves like an `AND`, which is the kind of
+silent narrowing this file exists to record.
+
 ### ⚠️ DOES NOT EXIST — confirmed 400 error live
 - `filter.phase=PHASE3` → **`{"error": "unknown parameter"}` (HTTP 400)**
   Multiple third-party doc sources (GitHub reference docs, dev.to tutorials,
@@ -162,6 +182,14 @@ curl -s "https://clinicaltrials.gov/api/v2/studies?query.intr=Pembrolizumab&page
 
 # Confirms aggFilters=phase:3 (bare number) is correct
 curl -s "https://clinicaltrials.gov/api/v2/studies?query.intr=Pembrolizumab&pageSize=2&aggFilters=phase:3"
+
+# Confirms OR is a union and comma is an intersection (compare the totalCounts:
+# 2922, 2016, 4648, 290 -- and 2922 + 2016 - 290 == 4648)
+for q in "Pembrolizumab" "Nivolumab" "Pembrolizumab OR Nivolumab" "Pembrolizumab, Nivolumab"; do
+  curl -s -G "https://clinicaltrials.gov/api/v2/studies" \
+    --data-urlencode "query.intr=$q" -d countTotal=true -d pageSize=1 |
+    python3 -c "import json,sys; print(json.load(sys.stdin)['totalCount'])"
+done
 ```
 
 ## Open items to verify during implementation (not yet tested live)

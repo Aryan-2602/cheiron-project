@@ -599,3 +599,31 @@ class TestFilterProvenance:
         mock_studies(SAMPLE)
         response = await run()
         assert response.meta.filters == {"intervention": "Pembrolizumab"}
+
+
+class TestMultiValueInterpretation:
+    """Extra extracted values used to be dropped before the request was built.
+    They now reach the query, and the union reading is disclosed."""
+
+    @respx.mock
+    async def test_both_drugs_reach_the_upstream_query(self):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        route = respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(
+                200, json={"studies": SAMPLE, "totalCount": len(SAMPLE)}
+            )
+        )
+        response = await run(drugs=["Pembrolizumab", "Nivolumab"])
+        url = str(route.calls[0].request.url)
+        assert "Pembrolizumab+OR+Nivolumab" in url or "Pembrolizumab OR Nivolumab" in url
+        assert any(
+            "Pembrolizumab OR Nivolumab" in a for a in response.meta.assumptions
+        ), response.meta.assumptions
+
+    @respx.mock
+    async def test_a_single_drug_adds_no_assumption(self):
+        mock_studies(SAMPLE)
+        response = await run()
+        assert not any("OR" in a for a in response.meta.assumptions)
