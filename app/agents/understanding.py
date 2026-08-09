@@ -36,6 +36,7 @@ from app.models.schemas import (
     QueryUnderstanding,
     YearRange,
 )
+from app.services.ctgov import series_key
 
 logger = logging.getLogger(__name__)
 
@@ -512,17 +513,6 @@ def ground_entities(
     return grounded, warnings
 
 
-def _series_key(entity: str) -> str:
-    """Identity of a comparison series: case- and whitespace-insensitive.
-
-    Two entities that share a key provably fetch the same trials -- verified
-    live that ``query.intr`` is case-insensitive (Aspirin / aspirin / ASPIRIN
-    all return 2,172). Deliberately no looser than that: stemming or fuzzy
-    matching here would merge genuinely distinct drugs into one series.
-    """
-    return " ".join(entity.split()).casefold()
-
-
 def ground_compare_entities(
     compare_entities: list[str], query: str
 ) -> tuple[list[str], list[str]]:
@@ -548,7 +538,7 @@ def ground_compare_entities(
             )
             continue
         stripped = entity.strip()
-        key = _series_key(stripped)
+        key = series_key(stripped)
         if key in seen:
             # First occurrence wins and keeps its original casing, so series
             # order and labels stay deterministic.

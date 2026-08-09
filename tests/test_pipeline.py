@@ -811,3 +811,60 @@ class TestMixedStatusSemantics:
         response = await run()
         assert response.meta.filters == {"intervention": "Pembrolizumab"}
         assert not any("duplicate" in w for w in response.meta.warnings)
+
+    @respx.mock
+    async def test_membership_key_count_always_equals_labelled_search_count(self):
+        """The invariant stated directly rather than inferred: every labelled
+        search must own exactly one membership entry, so none can be lost to a
+        dict-key collision. Duplicates are collapsed before any search runs."""
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        route = respx.get(f"{BASE}/studies")
+        route.side_effect = [
+            httpx.Response(
+                200, json={"studies": [make_record(f"NCT0000000{i}")], "totalCount": 1}
+            )
+            for i in range(1, 5)
+        ]
+        plan_obj = plan(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            compare_entities=["Pembrolizumab", "pembrolizumab", "Nivolumab"],
+            compare_entity_kind="drug",
+        )
+        searches, notes = build_searches(plan_obj)
+        async with CTGovClient() as client:
+            fetched = await fetch(plan_obj, searches, client)
+        labelled = [s for s in searches if s.label]
+        assert len(fetched.series_membership) == len(labelled)
+        assert len(fetched.filters) == len(labelled)
+        # And the duplicate never reached the network.
+        assert route.call_count == len(labelled)
+        assert any("duplicate" in n for n in notes)
+
+    @respx.mock
+    async def test_a_single_compare_entity_does_not_produce_a_one_series_chart(self):
+        """Comparison mode with fewer than two distinct entities falls back to
+        a plain distribution rather than charting a degenerate comparison."""
+        from app.agents.understanding import build_plan
+        from app.models.schemas import QueryUnderstanding
+
+        understanding = QueryUnderstanding(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            group_by="phase",
+            compare_entities=["Aspirin", "aspirin"],
+            compare_entity_kind="drug",
+            network_kind=None,
+            assumptions=[],
+            entities=ExtractedEntities(
+                drugs=["Aspirin"], conditions=[], sponsors=[], phases=[],
+                statuses=[], countries=[], year_range=None,
+            ),
+        )
+        built = build_plan(
+            QueryRequest(query="compare Aspirin and aspirin trials"), understanding
+        )
+        assert built.compare_entities == []
+        assert built.viz_type == "bar_chart"

@@ -777,3 +777,19 @@ class TestStatusWordBoundaries:
         assert _match_statuses("not-yet-recruiting trials")[0] == [
             "NOT_YET_RECRUITING"
         ]
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "recruited patients",
+            "trials that recruited 500 patients",
+            "recruitment is ongoing",
+            "recruiter contact details",
+        ],
+    )
+    def test_recruited_and_recruitment_are_not_recruiting(self, query):
+        """Reported as a possible overlap. "recruiting" is not a substring of
+        any of these, and whole-word matching keeps it that way."""
+        positive, negated = _match_statuses(query)
+        assert positive == []
+        assert negated == []

@@ -335,7 +335,7 @@
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by lead sponsor, rendered as a bar chart.",
       "assumptions": [
-        "'this drug' refers to a drug mentioned in prior context, but no specific drug name appears in this message."
+        "The specific drug is not named in the question, so no entity could be extracted from the text."
       ],
       "warnings": [],
       "sorting": "trial count descending",

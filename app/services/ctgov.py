@@ -49,6 +49,21 @@ DEFAULT_FIELDS: tuple[str, ...] = (
 VERIFIED_STATUS_CODES = {"rec"}
 
 
+def series_key(entity: str) -> str:
+    """Identity of a comparison series: case- and whitespace-insensitive.
+
+    ``fetch`` keys series membership and provenance by :attr:`CTGovSearch.label`,
+    so two entities sharing a key would collide there. They also provably fetch
+    the same trials -- verified live that ``query.intr`` is case-insensitive
+    (Aspirin / aspirin / ASPIRIN all return 2,172). Deliberately no looser than
+    that: stemming or fuzzy matching would merge genuinely distinct drugs.
+
+    Lives here, next to the label it protects, so the query builder and the
+    grounding stage cannot drift apart on what counts as the same series.
+    """
+    return " ".join(entity.split()).casefold()
+
+
 def normalize_statuses(statuses: Iterable[str]) -> set[str]:
     """Requested statuses as canonical ``overallStatus`` values.
 
@@ -495,7 +510,21 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
     if plan.compare_entities and plan.compare_entity_kind:
         kind = plan.compare_entity_kind
         searches: list[CTGovSearch] = []
+        # Labels become dict keys in fetch(), so a duplicate would overwrite an
+        # earlier series' membership and provenance. ground_compare_entities
+        # already collapses equivalents -- this keeps the guarantee local to the
+        # place the keys are minted, rather than resting on a distant caller.
+        seen_labels: set[str] = set()
+        duplicate_notes: list[str] = []
         for entity in plan.compare_entities:
+            key = series_key(entity)
+            if key in seen_labels:
+                duplicate_notes.append(
+                    f"Ignored duplicate comparison entity {entity!r}: it would "
+                    f"have replaced an earlier series with the same name."
+                )
+                continue
+            seen_labels.add(key)
             searches.append(
                 CTGovSearch(
                     intr=entity if kind == "drug" else base_intr,
@@ -506,9 +535,9 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
                     label=entity,
                 )
             )
-        # The comparison path is untouched: each compared entity keeps its own
-        # search, which is what makes per-series membership exact.
-        return searches, notes_except(kind)
+        # Each compared entity keeps its own search, which is what makes
+        # per-series membership exact.
+        return searches, [*notes_except(kind), *duplicate_notes]
 
     search = CTGovSearch(
         intr=base_intr,

@@ -13,6 +13,7 @@ from app.services.ctgov import (
     CTGovSearch,
     build_searches,
     normalize_statuses,
+    series_key,
 )
 from app.services.store import StudyStore
 from tests.conftest import make_record
@@ -460,3 +461,70 @@ class TestNormalizeStatuses:
 
     def test_empty_input_gives_an_empty_set(self):
         assert normalize_statuses([]) == set()
+
+
+class TestComparisonLabelUniqueness:
+    """Labels become dict keys in fetch(), so a duplicate would overwrite an
+    earlier series. ground_compare_entities collapses equivalents first; this
+    keeps the guarantee local to where the keys are minted, so it survives a
+    caller that skips grounding."""
+
+    plan = TestBuildSearches.plan
+
+    def comparison(self, entities):
+        return self.plan(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            compare_entities=entities,
+            compare_entity_kind="drug",
+        )
+
+    @pytest.mark.parametrize(
+        "entities",
+        [
+            ["Aspirin", "Aspirin"],
+            ["Aspirin", "aspirin"],
+            ["  Aspirin ", "ASPIRIN"],
+            ["Aspirin", "Aspirin", "aspirin"],
+        ],
+    )
+    def test_duplicate_entities_never_produce_duplicate_labels(self, entities):
+        searches, notes = build_searches(self.comparison(entities))
+        labels = [s.label for s in searches]
+        assert len(labels) == len(set(labels))
+        assert len(searches) == 1
+        # Never silent: the drop is disclosed through the existing notes channel.
+        assert any("duplicate" in n for n in notes)
+
+    def test_distinct_entities_all_survive(self):
+        searches, notes = build_searches(
+            self.comparison(["Pembrolizumab", "Nivolumab", "Atezolizumab"])
+        )
+        assert [s.label for s in searches] == [
+            "Pembrolizumab",
+            "Nivolumab",
+            "Atezolizumab",
+        ]
+        assert not any("duplicate" in n for n in notes)
+
+    def test_first_occurrence_wins_and_order_is_deterministic(self):
+        entities = ["Nivolumab", "Pembrolizumab", "nivolumab"]
+        for _ in range(5):
+            searches, _ = build_searches(self.comparison(entities))
+            assert [s.label for s in searches] == ["Nivolumab", "Pembrolizumab"]
+
+    def test_a_duplicate_does_not_cost_an_upstream_search(self):
+        """The collision used to be resolved after both searches had run."""
+        searches, _ = build_searches(self.comparison(["Aspirin", "aspirin"]))
+        assert len(searches) == 1
+
+
+class TestSeriesKey:
+    def test_collapses_case_and_surrounding_whitespace(self):
+        assert series_key("  Aspirin  ") == series_key("aspirin") == "aspirin"
+
+    def test_collapses_internal_whitespace(self):
+        assert series_key("Drug  A") == series_key("Drug A")
+
+    def test_distinct_names_keep_distinct_keys(self):
+        assert series_key("Aspirin") != series_key("Ibuprofen")
