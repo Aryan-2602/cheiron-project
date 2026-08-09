@@ -61,6 +61,53 @@ rather than keeping only the first. The comma form is deliberately never
 emitted: it looks like a list and behaves like an `AND`, which is the kind of
 silent narrowing this file exists to record.
 
+### ✅ Multiple values inside ONE `aggFilters` key — verified live 2026-08-09
+
+Values are **space-separated** and union. The comma separates *different keys*,
+not values of the same key — repeating a key silently keeps only one of them.
+
+| request | `totalCount` | |
+| --- | --- | --- |
+| `status:rec` | 64,847 | |
+| `status:com` | 326,301 | |
+| `status:rec com` | **391,148** | = 64,847 + 326,301 exactly (statuses are disjoint) |
+| `status:rec com ter` | **425,230** | = + 34,082 exactly |
+| `status:rec,status:com` | 326,301 | ⚠️ repeated key — one value silently wins |
+| `status:rec\|com` | 0 | ⚠️ silent failure |
+| `status:rec OR status:com` | HTTP 400 | loud failure |
+
+Same for phase, where the union is visibly *less* than the sum because a trial
+can hold several phases:
+
+| request | `totalCount` |
+| --- | --- |
+| `phase:2` | 89,652 |
+| `phase:3` | 49,614 |
+| `phase:2 3` | **131,704** (< 139,266 — combined Phase 2/3 trials counted once) |
+
+Sampling the union confirms a genuine mix (`PHASE2`, `PHASE3`, `PHASE1/PHASE2`,
+`PHASE2/PHASE3`), not one filter winning.
+
+### ✅ `aggFilters` status codes — nine verified, two are traps
+
+Each verified by checking the filtered sample contains **only** that status:
+
+| code | status | count |
+| --- | --- | --- |
+| `rec` | RECRUITING | 64,847 |
+| `com` | COMPLETED | 326,301 |
+| `act` | ACTIVE_NOT_RECRUITING | 21,858 |
+| `not` | NOT_YET_RECRUITING | 29,086 |
+| `enr` | ENROLLING_BY_INVITATION | 5,236 |
+| `ter` | TERMINATED | 34,082 |
+| `sus` | SUSPENDED | 1,750 |
+| `wit` | WITHDRAWN | 16,627 |
+| `unk` | UNKNOWN | 95,858 |
+
+⚠️ `status:avail` and `status:no_lon` both return **HTTP 200 with zero results**
+— the same silent-failure shape as `phase:PHASE3`. AVAILABLE and
+NO_LONGER_AVAILABLE are therefore filtered client-side.
+
 ### ⚠️ DOES NOT EXIST — confirmed 400 error live
 - `filter.phase=PHASE3` → **`{"error": "unknown parameter"}` (HTTP 400)**
   Multiple third-party doc sources (GitHub reference docs, dev.to tutorials,

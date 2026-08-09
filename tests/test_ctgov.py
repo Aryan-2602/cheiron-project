@@ -5,7 +5,7 @@ import httpx
 import pytest
 import respx
 
-from app.models.schemas import ExtractedEntities, QueryPlan
+from app.models.schemas import ExtractedEntities, QueryPlan, YearRange
 from app.services.ctgov import (
     AggFilter,
     CTGovClient,
@@ -50,8 +50,25 @@ class TestAggFilter:
 
     def test_only_verified_status_codes_accepted(self):
         assert AggFilter.status("rec").render() == "status:rec"
+        # "avail" returns HTTP 200 with zero results -- the silent-failure trap.
         with pytest.raises(ValueError, match="not live-verified"):
-            AggFilter.status("com")
+            AggFilter.status("avail")
+
+    def test_multiple_values_render_as_a_space_separated_union(self):
+        """Verified live: rec 64,847 + com 326,301 = "status:rec com" 391,148."""
+        assert AggFilter.status("rec", "com").render() == "status:com rec"
+        # phase:2 89,652 + phase:3 49,614 -> "phase:2 3" 131,704 (overlap once).
+        assert AggFilter.phase(2, 3).render() == "phase:2 3"
+
+    def test_multi_value_rendering_is_order_independent(self):
+        assert AggFilter.status("com", "rec") == AggFilter.status("rec", "com")
+        assert AggFilter.phase(3, 2) == AggFilter.phase(2, 3)
+
+    def test_empty_multi_value_is_rejected(self):
+        with pytest.raises(ValueError):
+            AggFilter.phase()
+        with pytest.raises(ValueError):
+            AggFilter.status()
 
 
 class TestParams:
@@ -242,7 +259,7 @@ class TestBuildSearches:
             phases=kwargs.pop("phases", []),
             statuses=kwargs.pop("statuses", []),
             countries=kwargs.pop("countries", []),
-            year_range=None,
+            year_range=kwargs.pop("year_range", None),
         )
         return QueryPlan(
             query=kwargs.pop("query", "a question"),
@@ -268,7 +285,8 @@ class TestBuildSearches:
         assert "status:rec" in [f.render() for f in searches[0].agg_filters]
 
     def test_unverified_status_is_not_sent_upstream(self):
-        plan = self.plan(conditions=["melanoma"], statuses=["completed"])
+        """AVAILABLE has no live-verified code, so it is filtered client-side."""
+        plan = self.plan(conditions=["melanoma"], statuses=["AVAILABLE"])
         searches, _ = build_searches(plan)
         assert searches[0].agg_filters == ()
 
@@ -413,25 +431,30 @@ class TestStatusAggFilter:
         searches, _ = build_searches(self.plan(drugs=["X"], statuses=statuses))
         return searches[0].to_params(page_size=10).get("aggFilters")
 
-    def test_sole_recruiting_still_filters_upstream(self):
-        """The optimisation must survive -- it is the one verified status code."""
+    def test_sole_recruiting_filters_upstream(self):
         assert self.agg_filters(["RECRUITING"]) == "status:rec"
 
     @pytest.mark.parametrize(
-        "statuses",
+        "statuses,expected",
         [
-            ["RECRUITING", "COMPLETED"],
-            ["RECRUITING", "TERMINATED"],
-            ["ACTIVE_NOT_RECRUITING", "RECRUITING"],
+            (["RECRUITING", "COMPLETED"], "status:com rec"),
+            (["RECRUITING", "TERMINATED"], "status:rec ter"),
+            (["ACTIVE_NOT_RECRUITING", "RECRUITING"], "status:act rec"),
         ],
     )
-    def test_mixed_statuses_never_filter_upstream(self, statuses):
-        """An upstream filter here would exclude records the other requested
-        status needs, and no union could recover them afterwards."""
-        assert self.agg_filters(statuses) is None
+    def test_mixed_statuses_union_upstream(self, statuses, expected):
+        """Values inside one aggFilters key union, verified live, so a mixed
+        request is expressed in a single clause instead of being fetched broad
+        and narrowed afterwards."""
+        assert self.agg_filters(statuses) == expected
 
-    def test_a_non_recruiting_status_never_filters_upstream(self):
-        assert self.agg_filters(["COMPLETED"]) is None
+    def test_any_verified_status_filters_upstream(self):
+        assert self.agg_filters(["COMPLETED"]) == "status:com"
+
+    def test_an_unverified_status_keeps_the_whole_request_client_side(self):
+        """A partial upstream filter would silently drop AVAILABLE, since its
+        code returns zero results rather than an error."""
+        assert self.agg_filters(["COMPLETED", "AVAILABLE"]) is None
 
     @pytest.mark.parametrize(
         "statuses",
@@ -528,3 +551,80 @@ class TestSeriesKey:
 
     def test_distinct_names_keep_distinct_keys(self):
         assert series_key("Aspirin") != series_key("Ibuprofen")
+
+
+class TestPopulationScopeVsPredicates:
+    """A question has three separable parts and only two describe the
+    population: scope (drug/condition/sponsor/country), predicates (phase,
+    status, years), and the analytical instruction. Using the whole question as
+    query.term whenever no scope was named ANDed the analytical wording into
+    the retrieval predicate -- verified live, aggFilters=phase:3 alone returns
+    49,614 trials and 0 with the question text attached."""
+
+    plan = TestBuildSearches.plan
+
+    def params(self, **kwargs):
+        searches, _ = build_searches(self.plan(**kwargs))
+        return {
+            k: v
+            for k, v in searches[0].to_params(page_size=10).items()
+            if k not in ("fields", "pageSize")
+        }
+
+    def test_phase_only_query_sends_the_filter_and_no_free_text(self):
+        params = self.params(
+            query="How are Phase 3 trials distributed across sponsors?",
+            phases=[3],
+            group_by="sponsor",
+        )
+        assert params == {"aggFilters": "phase:3"}
+
+    def test_multi_phase_only_query_sends_the_union_and_no_free_text(self):
+        params = self.params(query="Phase 2 and 3 trials by sponsor", phases=[2, 3])
+        assert params == {"aggFilters": "phase:2 3"}
+
+    def test_status_only_query_sends_the_filter_and_no_free_text(self):
+        params = self.params(
+            query="Which countries have the most recruiting trials?",
+            statuses=["RECRUITING"],
+            group_by="country",
+        )
+        assert params == {"aggFilters": "status:rec"}
+
+    def test_completed_only_query_sends_the_filter_and_no_free_text(self):
+        params = self.params(
+            query="How are completed trials distributed across phases?",
+            statuses=["COMPLETED"],
+        )
+        assert params == {"aggFilters": "status:com"}
+
+    def test_year_only_query_sends_no_free_text(self):
+        """No verified date parameter exists, so the years are enforced
+        client-side -- but the question must still not become a search term."""
+        params = self.params(
+            query="How many trials started each year from 2020 to 2024?",
+            year_range=YearRange(start=2020, end=2024),
+            query_type="time_trend",
+            group_by="start_year",
+        )
+        assert params == {}
+
+    def test_phase_and_status_query_sends_both_filters(self):
+        params = self.params(
+            query="Phase 3 recruiting trials by sponsor",
+            phases=[3],
+            statuses=["RECRUITING"],
+            group_by="sponsor",
+        )
+        assert params["aggFilters"] == "phase:3,status:rec"
+        assert "query.term" not in params
+
+    def test_a_named_scope_is_still_used(self):
+        params = self.params(query="pembrolizumab trials by phase", drugs=["Pembrolizumab"])
+        assert params == {"query.intr": "Pembrolizumab"}
+
+    def test_free_text_fallback_survives_for_a_query_with_nothing_structured(self):
+        """The fallback is for questions carrying neither scope nor predicate --
+        it must not be removed, only stopped from firing over a filter."""
+        params = self.params(query="trials about long covid fatigue")
+        assert params == {"query.term": "trials about long covid fatigue"}

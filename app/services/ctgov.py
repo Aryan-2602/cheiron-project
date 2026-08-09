@@ -44,9 +44,28 @@ DEFAULT_FIELDS: tuple[str, ...] = (
     "LocationCountry",
 )
 
-#: Only ``status:rec`` was confirmed live. Other abbreviations are treated as
-#: unverified and handled by client-side filtering instead (see the pipeline).
-VERIFIED_STATUS_CODES = {"rec"}
+#: ``overallStatus`` value -> ``aggFilters`` code, each confirmed live on
+#: 2026-08-09 by checking that the filtered sample contains *only* that status:
+#: rec 64,847 / com 326,301 / act 21,858 / not 29,086 / enr 5,236 /
+#: ter 34,082 / sus 1,750 / wit 16,627 / unk 95,858.
+#:
+#: AVAILABLE and NO_LONGER_AVAILABLE are deliberately absent: ``status:avail``
+#: and ``status:no_lon`` both return HTTP 200 with zero results -- the same
+#: silent-failure trap as ``phase:PHASE3``. Anything not listed here is
+#: filtered client-side instead.
+STATUS_FILTER_CODES: dict[str, str] = {
+    "RECRUITING": "rec",
+    "COMPLETED": "com",
+    "ACTIVE_NOT_RECRUITING": "act",
+    "NOT_YET_RECRUITING": "not",
+    "ENROLLING_BY_INVITATION": "enr",
+    "TERMINATED": "ter",
+    "SUSPENDED": "sus",
+    "WITHDRAWN": "wit",
+    "UNKNOWN": "unk",
+}
+
+VERIFIED_STATUS_CODES = frozenset(STATUS_FILTER_CODES.values())
 
 
 def series_key(entity: str) -> str:
@@ -94,20 +113,31 @@ class AggFilter:
     value: str
 
     @classmethod
-    def phase(cls, phase: int) -> AggFilter:
-        if phase not in (1, 2, 3, 4):
-            raise ValueError(f"phase must be 1-4, got {phase!r}")
-        # Bare number, verified live. "PHASE3" returns 200 with zero results.
-        return cls(key="phase", value=str(phase))
+    def phase(cls, *phases: int) -> AggFilter:
+        if not phases:
+            raise ValueError("at least one phase is required")
+        for phase in phases:
+            if phase not in (1, 2, 3, 4):
+                raise ValueError(f"phase must be 1-4, got {phase!r}")
+        # Bare numbers, verified live. "PHASE3" returns 200 with zero results.
+        # Space-separated values are a true union: phase:2 = 89,652,
+        # phase:3 = 49,614, "phase:2 3" = 131,704 -- fewer than the sum,
+        # because a combined Phase 2/3 trial is counted once.
+        return cls(key="phase", value=" ".join(str(p) for p in sorted(set(phases))))
 
     @classmethod
-    def status(cls, code: str) -> AggFilter:
-        code = code.lower()
-        if code not in VERIFIED_STATUS_CODES:
-            raise ValueError(
-                f"status code {code!r} is not live-verified; filter client-side instead"
-            )
-        return cls(key="status", value=code)
+    def status(cls, *codes: str) -> AggFilter:
+        if not codes:
+            raise ValueError("at least one status code is required")
+        lowered = sorted({c.lower() for c in codes})
+        for code in lowered:
+            if code not in VERIFIED_STATUS_CODES:
+                raise ValueError(
+                    f"status code {code!r} is not live-verified; filter client-side instead"
+                )
+        # Verified union: rec = 64,847, com = 326,301, "status:rec com" =
+        # 391,148 -- exactly the sum, statuses being mutually exclusive.
+        return cls(key="status", value=" ".join(lowered))
 
     def render(self) -> str:
         return f"{self.key}:{self.value}"
@@ -491,21 +521,21 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
     base_locn = combine("country", entities.countries, "country")
 
     agg: list[AggFilter] = []
-    # aggFilters expresses only a single phase, and repeating the key does not
-    # OR them. So exactly one requested phase is filtered upstream (cheap and
-    # verified); two or more are left unfiltered here and OR-ed client-side by
-    # apply_client_side_filters, the same way unverified statuses are handled.
-    # Truncating to the first phase instead -- as this once did -- silently
-    # answered a different question than the one asked.
-    valid_phases = [p for p in entities.phases if p in (1, 2, 3, 4)]
-    if len(valid_phases) == 1:
-        agg.append(AggFilter.phase(valid_phases[0]))
-    # Only when RECRUITING is the *sole* requested status. Applying it whenever
-    # any requested status was recruiting turned a union into an intersection:
-    # ["RECRUITING", "COMPLETED"] fetched only recruiting trials upstream and
-    # then kept only completed ones client-side, charting a confident zero.
-    if normalize_statuses(entities.statuses) == {"RECRUITING"}:
-        agg.append(AggFilter.status("rec"))
+    # Values within one aggFilters key are space-separated and union, verified
+    # live. So every requested phase goes upstream in one clause rather than
+    # being fetched unfiltered and narrowed afterwards -- which spent the fetch
+    # budget on trials that were about to be discarded.
+    valid_phases = sorted({p for p in entities.phases if p in (1, 2, 3, 4)})
+    if valid_phases:
+        agg.append(AggFilter.phase(*valid_phases))
+    # Likewise for status, but only when *every* requested status has a
+    # live-verified code. A code that is not verified returns HTTP 200 with
+    # zero results rather than an error, so a partial upstream filter would
+    # silently drop the statuses it could not express; those fall back to the
+    # client-side union in apply_client_side_filters.
+    wanted_statuses = normalize_statuses(entities.statuses)
+    if wanted_statuses and wanted_statuses <= set(STATUS_FILTER_CODES):
+        agg.append(AggFilter.status(*(STATUS_FILTER_CODES[s] for s in wanted_statuses)))
 
     if plan.compare_entities and plan.compare_entity_kind:
         kind = plan.compare_entity_kind
@@ -546,8 +576,26 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
         locn=base_locn,
         agg_filters=tuple(agg),
     )
-    # Nothing structured to search on: fall back to free-text so the request
-    # still hits real data rather than returning the entire registry.
-    if not any((search.intr, search.cond, search.spons, search.locn)):
+    # A question has three separable parts, and only two of them describe the
+    # population: the *scope* (drug, condition, sponsor, country), the
+    # *predicates* (phase, status, year range), and the *analytical
+    # instruction* ("distributed across sponsors", "which countries").
+    #
+    # Free-text is the last resort for a question that carries none of the
+    # first two -- never a way to fill in for a missing scope when predicates
+    # exist. Sending the whole question as query.term alongside a filter ANDs
+    # the analytical wording into the retrieval predicate, which matches
+    # nothing: verified live, aggFilters=phase:3 returns 49,614 trials on its
+    # own and 0 with "How are Phase 3 trials distributed across sponsors?"
+    # attached.
+    has_scope = any((search.intr, search.cond, search.spons, search.locn))
+    year_range = entities.year_range
+    has_predicate = bool(
+        agg
+        or entities.phases
+        or entities.statuses
+        or (year_range and (year_range.start is not None or year_range.end is not None))
+    )
+    if not has_scope and not has_predicate:
         search = CTGovSearch(term=plan.query, agg_filters=tuple(agg))
     return [search], notes_except()

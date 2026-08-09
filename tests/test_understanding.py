@@ -575,21 +575,24 @@ class TestStatusNegation:
         assert self.agg_filters_for(query) is None
 
     @pytest.mark.parametrize(
-        "query,expected",
+        "query,expected,upstream",
         [
-            ("active, not recruiting", "ACTIVE_NOT_RECRUITING"),
-            ("active not recruiting", "ACTIVE_NOT_RECRUITING"),
-            ("not yet recruiting", "NOT_YET_RECRUITING"),
-            ("not-yet-recruiting trials", "NOT_YET_RECRUITING"),
+            ("active, not recruiting", "ACTIVE_NOT_RECRUITING", "status:act"),
+            ("active not recruiting", "ACTIVE_NOT_RECRUITING", "status:act"),
+            ("not yet recruiting", "NOT_YET_RECRUITING", "status:not"),
+            ("not-yet-recruiting trials", "NOT_YET_RECRUITING", "status:not"),
         ],
     )
-    def test_specific_statuses_are_not_confused_with_recruiting(self, query, expected):
+    def test_specific_statuses_are_not_confused_with_recruiting(
+        self, query, expected, upstream
+    ):
         """These contain "recruiting" and a "not", but are their own statuses --
-        the negation check must not fire on the "not" that belongs to them."""
+        the negation check must not fire on the "not" that belongs to them, and
+        each has its own live-verified upstream code."""
         positive, negated = _match_statuses(query)
         assert positive == [expected]
         assert negated == []
-        assert self.agg_filters_for(query) is None
+        assert self.agg_filters_for(query) == upstream
 
     def test_plain_recruiting_still_reaches_the_upstream_filter(self):
         """The one live-verified status filter must keep working."""

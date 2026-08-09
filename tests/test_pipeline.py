@@ -4,6 +4,8 @@ These tests run the real pipeline -- fetch, aggregate, format, validate -- so
 they cover the wiring between stages that unit tests cannot.
 """
 
+from typing import ClassVar
+
 import httpx
 import pytest
 import respx
@@ -456,68 +458,60 @@ PHASE_MIX = [
 
 
 class TestPhaseFiltering:
-    """aggFilters carries only one phase, so a multi-phase request has to be
-    OR-ed client-side. Truncating to the first phase silently answered a
-    different question."""
+    """Values inside one aggFilters key are space-separated and union (verified
+    live: phase:2 89,652 + phase:3 49,614 -> "phase:2 3" 131,704, the overlap
+    counted once). So every requested phase goes upstream in one clause."""
+
+    def upstream_filter(self, route):
+        from urllib.parse import parse_qs, urlparse
+
+        return parse_qs(urlparse(str(route.calls[0].request.url)).query).get(
+            "aggFilters", [None]
+        )[0]
+
+    def mock_route(self, studies):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        return respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(
+                200, json={"studies": studies, "totalCount": len(studies)}
+            )
+        )
 
     @respx.mock
     async def test_single_phase_is_filtered_upstream(self):
-        respx.get(f"{BASE}/version").mock(
-            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
-        )
-        route = respx.get(f"{BASE}/studies").mock(
-            return_value=httpx.Response(
-                200, json={"studies": [PHASE_MIX[2]], "totalCount": 1}
-            )
-        )
+        route = self.mock_route([PHASE_MIX[2]])
         await run(phases=[3])
-        assert "aggFilters=phase%3A3" in str(route.calls[0].request.url)
+        assert self.upstream_filter(route) == "phase:3"
 
     @respx.mock
-    async def test_multiple_phases_are_not_truncated_to_the_first(self):
-        mock_studies(PHASE_MIX)
-        response = await run(phases=[2, 3])
-        cited = {
-            c["nct_id"]
-            for row in response.visualization.data
-            for c in row["citations"]
-        }
-        # The union: phase 2, phase 3, and the combined 1/2 trial.
-        assert cited == {"NCT00000002", "NCT00000003", "NCT00000005"}
-        # Not just phase 2's results, and not phase 1 or 4 alone.
-        assert "NCT00000001" not in cited
-        assert "NCT00000004" not in cited
-
-    @respx.mock
-    async def test_multiple_phases_send_no_upstream_phase_filter(self):
-        respx.get(f"{BASE}/version").mock(
-            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
-        )
-        route = respx.get(f"{BASE}/studies").mock(
-            return_value=httpx.Response(
-                200, json={"studies": PHASE_MIX, "totalCount": 5}
-            )
-        )
+    async def test_multiple_phases_union_in_one_upstream_clause(self):
+        """Previously fetched unfiltered and narrowed afterwards, which spent
+        the fetch budget on trials that were about to be discarded."""
+        route = self.mock_route(PHASE_MIX)
         await run(phases=[2, 3])
-        assert "aggFilters" not in str(route.calls[0].request.url)
+        assert self.upstream_filter(route) == "phase:2 3"
 
     @respx.mock
-    async def test_multi_phase_narrowing_is_disclosed(self):
-        mock_studies(PHASE_MIX)
+    async def test_phases_are_not_truncated_to_the_first(self):
+        route = self.mock_route(PHASE_MIX)
+        await run(phases=[2, 3])
+        assert self.upstream_filter(route) == "phase:2 3"
+
+    @respx.mock
+    async def test_no_client_side_phase_narrowing_warning_is_emitted(self):
+        """Nothing is narrowed after fetching any more, so claiming it would be
+        untrue."""
+        self.mock_route(PHASE_MIX)
         response = await run(phases=[2, 3])
-        assert any(
-            "phase 2, 3" in w and "client-side" in w for w in response.meta.warnings
-        )
+        assert not any("phase" in w and "client-side" in w for w in response.meta.warnings)
 
     @respx.mock
-    async def test_combined_phase_trial_matches_either_requested_phase(self):
-        """A Phase 1/2 study is genuinely evidence for both."""
-        mock_studies([PHASE_MIX[4]])
-        response = await run(phases=[1, 4])
-        cited = {
-            c["nct_id"] for row in response.visualization.data for c in row["citations"]
-        }
-        assert cited == {"NCT00000005"}
+    async def test_duplicate_and_unordered_phases_normalise(self):
+        route = self.mock_route(PHASE_MIX)
+        await run(phases=[3, 2, 3])
+        assert self.upstream_filter(route) == "phase:2 3"
 
 
 class TestFetchCap:
@@ -683,19 +677,24 @@ class TestComparisonSeriesAreNeverLost:
 
 
 class TestMixedStatusSemantics:
-    """Several requested statuses mean "status is any of these". Two decision
-    points each assumed they were the only one -- build_searches filtered
-    upstream to recruiting, then apply_client_side_filters kept only the other
-    status -- so every mixed-status request charted a confident zero."""
+    """Several requested statuses mean "status is any of these". Nine statuses
+    have a live-verified aggFilters code and union upstream in one clause; the
+    rest fall back to the client-side union."""
 
     STATUSES = ("RECRUITING", "COMPLETED", "TERMINATED", "ACTIVE_NOT_RECRUITING")
+    CODE_FOR: ClassVar[dict[str, str]] = {
+        "rec": "RECRUITING",
+        "com": "COMPLETED",
+        "ter": "TERMINATED",
+        "act": "ACTIVE_NOT_RECRUITING",
+    }
 
     def registry(self):
         return {s: make_record(f"NCT_{s}", status=s) for s in self.STATUSES}
 
     async def run_with(self, statuses):
-        """Drives the real fetch with an upstream that honours aggFilters, so
-        the intersection bug would actually reproduce."""
+        """Drives the real fetch with an upstream that honours aggFilters the
+        way the live API does, so a wrong filter would actually show up."""
         registry = self.registry()
         respx.get(f"{BASE}/version").mock(
             return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
@@ -703,9 +702,11 @@ class TestMixedStatusSemantics:
         plan_obj = plan(statuses=statuses)
         searches, _ = build_searches(plan_obj)
         agg = searches[0].to_params(page_size=10).get("aggFilters")
-        served = (
-            [registry["RECRUITING"]] if agg == "status:rec" else list(registry.values())
-        )
+        if agg and agg.startswith("status:"):
+            wanted = {self.CODE_FOR[c] for c in agg.split("status:", 1)[1].split()}
+            served = [r for s, r in registry.items() if s in wanted]
+        else:
+            served = list(registry.values())
         respx.get(f"{BASE}/studies").mock(
             return_value=httpx.Response(
                 200, json={"studies": served, "totalCount": len(served)}
@@ -724,28 +725,28 @@ class TestMixedStatusSemantics:
         assert kept == {"RECRUITING"}
 
     @respx.mock
-    async def test_sole_other_status_filters_client_side(self):
+    async def test_sole_other_status_also_filters_upstream(self):
         agg, kept = await self.run_with(["COMPLETED"])
-        assert agg is None
+        assert agg == "status:com"
         assert kept == {"COMPLETED"}
 
     @respx.mock
     async def test_recruiting_and_completed_is_a_union(self):
         agg, kept = await self.run_with(["RECRUITING", "COMPLETED"])
-        assert agg is None, "an upstream filter would exclude the completed trials"
+        assert agg == "status:com rec"
         assert kept == {"RECRUITING", "COMPLETED"}
 
     @respx.mock
     async def test_recruiting_and_terminated_is_a_union(self):
         agg, kept = await self.run_with(["RECRUITING", "TERMINATED"])
-        assert agg is None
+        assert agg == "status:rec ter"
         assert kept == {"RECRUITING", "TERMINATED"}
 
     @respx.mock
     async def test_active_not_recruiting_and_recruiting_is_a_union(self):
         """These two are genuinely different statuses, so both must survive."""
         agg, kept = await self.run_with(["ACTIVE_NOT_RECRUITING", "RECRUITING"])
-        assert agg is None
+        assert agg == "status:act rec"
         assert kept == {"ACTIVE_NOT_RECRUITING", "RECRUITING"}
 
     @respx.mock
@@ -757,29 +758,26 @@ class TestMixedStatusSemantics:
     @respx.mock
     async def test_an_unknown_status_matches_nothing_without_breaking_the_union(self):
         agg, kept = await self.run_with(["COMPLETED", "NOT_A_REAL_STATUS"])
-        assert agg is None
+        assert agg is None, "an unverified code would silently return nothing"
         assert kept == {"COMPLETED"}
 
-    @respx.mock
-    async def test_the_union_is_disclosed_and_its_wording_is_stable(self):
-        registry = self.registry()
-        respx.get(f"{BASE}/version").mock(
-            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
-        )
-        respx.get(f"{BASE}/studies").mock(
-            return_value=httpx.Response(
-                200,
-                json={"studies": list(registry.values()), "totalCount": len(registry)},
-            )
-        )
-        plan_obj = plan(statuses=["RECRUITING", "COMPLETED"])
+    def test_a_client_side_union_is_disclosed_with_stable_wording(self):
+        """AVAILABLE has no verified code, so this pair genuinely lands in the
+        client-side union -- the only path that still needs a disclosure."""
+        registry = {
+            s: make_record(f"NCT_{s}", status=s)
+            for s in ("AVAILABLE", "NO_LONGER_AVAILABLE", "COMPLETED")
+        }
         store = StudyStore()
         store.add_records(registry.values())
-        warnings = apply_client_side_filters(store, plan_obj)
+        warnings = apply_client_side_filters(
+            store, plan(statuses=["AVAILABLE", "NO_LONGER_AVAILABLE"])
+        )
         text = " ".join(warnings)
         # sorted(), so the disclosure never inherits set iteration order.
-        assert "COMPLETED, RECRUITING" in text
+        assert "AVAILABLE, NO_LONGER_AVAILABLE" in text
         assert "any of" in text
+        assert set(store.records) == {"NCT_AVAILABLE", "NCT_NO_LONGER_AVAILABLE"}
 
     @respx.mock
     async def test_per_search_provenance_is_not_overwritten(self):

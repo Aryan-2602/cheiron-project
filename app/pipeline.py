@@ -29,13 +29,14 @@ from app.models.schemas import (
 )
 from app.services.aggregate import aggregate, zero_fill_years
 from app.services.ctgov import (
+    STATUS_FILTER_CODES,
     CTGovClient,
     CTGovError,
     CTGovSearch,
     build_searches,
     normalize_statuses,
 )
-from app.services.dimensions import extract_phases, extract_start_year, get_dimension
+from app.services.dimensions import extract_start_year, get_dimension
 from app.services.drug_resolver import resolve_all
 from app.services.network import (
     build_bipartite_network,
@@ -129,50 +130,30 @@ async def fetch(
 def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
     """Apply filters that cannot be trusted to the upstream API.
 
-    Two cases end up here, both for the same reason -- the corresponding
-    upstream parameter is either unverified or absent, and sending an unverified
-    filter risks a silently-empty result rather than a loud failure:
+    What lands here is what the upstream API cannot express safely -- sending
+    an unverified filter risks a silently-empty result rather than a loud
+    failure:
 
-    * **Status** other than ``recruiting``. Only ``status:rec`` was confirmed
-      live; other abbreviations are guesses.
+    * **Statuses with no verified ``aggFilters`` code.** Nine statuses map to a
+      live-verified code and are unioned upstream; AVAILABLE and
+      NO_LONGER_AVAILABLE return HTTP 200 with zero results upstream, so they
+      are matched here instead.
     * **Year ranges.** There is no verified date-range parameter, so "since
       2015" is enforced against the start date already present in each record.
-    * **Multiple phases.** ``aggFilters`` carries only one phase and repeating
-      the key does not OR them, so a request for phases 2 *and* 3 is fetched
-      unfiltered and OR-ed here. Phases are multi-valued per trial, so a
-      combined Phase 1/2 study legitimately matches a request for either.
+
+    Phases are no longer among them: values within one ``aggFilters`` key are
+    space-separated and union, so every requested phase goes upstream.
 
     Filtering locally is exact and keeps citations intact, because the records
     being filtered are the same ones the citations point at.
     """
     warnings: list[str] = []
 
-    wanted_phases = {p for p in plan.entities.phases if p in (1, 2, 3, 4)}
-    if len(wanted_phases) > 1:
-        wanted_enum = {f"PHASE{p}" for p in wanted_phases}
-        before = len(store.records)
-        store.records = {
-            nct_id: record
-            for nct_id, record in store.records.items()
-            # Intersection, not equality: a Phase 1/2 trial matches either.
-            if wanted_enum & set(extract_phases(record))
-        }
-        warnings.append(
-            f"Filtered to phase {', '.join(str(p) for p in sorted(wanted_phases))} "
-            f"client-side ({len(store.records):,} of {before:,} fetched trials); "
-            f"ClinicalTrials.gov accepts only one phase per search, so a "
-            f"multi-phase request is narrowed after fetching."
-        )
-
-    # A union, not an intersection: several requested statuses mean "status is
-    # any of these", matching how multiple phases are already handled above.
-    # RECRUITING is deliberately kept in the set -- stripping it assumed the
-    # upstream filter had already applied, which is only true when it was the
-    # sole request, and that assumption emptied every mixed-status result.
+    # Phases and verified statuses are filtered upstream in one aggFilters
+    # clause each, so nothing is left to do here for them. Only statuses with
+    # no live-verified code reach the client-side union below.
     wanted_status = normalize_statuses(plan.entities.statuses)
-    if wanted_status == {"RECRUITING"}:
-        # Already filtered upstream by aggFilters=status:rec; re-applying it
-        # here would be a no-op, and the warning would be misleading.
+    if wanted_status <= set(STATUS_FILTER_CODES):
         wanted_status = set()
     if wanted_status:
         before = len(store.records)
