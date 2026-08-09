@@ -23,10 +23,12 @@ from app.agents.understanding import (
 )
 from app.models.schemas import (
     ExtractedEntities,
+    QueryPlan,
     QueryRequest,
     QueryUnderstanding,
     YearRange,
 )
+from app.services.ctgov import build_searches
 
 
 def understanding(**kwargs):
@@ -514,3 +516,63 @@ class TestMalformedCompletion:
             response = client.post("/api/v1/query", json={"query": "trials by phase"})
         assert response.status_code == 502
         assert response.json()["detail"]["error"]["code"] == "LLM_ERROR"
+
+
+class TestCompareEntityDeduplication:
+    """Series membership and provenance are keyed by label in fetch(), so two
+    entities normalising to one label made the second overwrite the first --
+    losing a series and misattributing the survivor's ids."""
+
+    QUERY = "compare Aspirin and aspirin and Ibuprofen trials"
+
+    def test_exact_duplicates_collapse_to_one_series(self):
+        kept, warnings = ground_compare_entities(["Aspirin", "Aspirin"], self.QUERY)
+        assert kept == ["Aspirin"]
+        assert any("duplicate" in w for w in warnings)
+
+    def test_case_only_duplicates_collapse(self):
+        """query.intr is case-insensitive upstream (Aspirin/aspirin/ASPIRIN all
+        return 2,172), so these fetch identical trials."""
+        kept, _ = ground_compare_entities(["Aspirin", "aspirin"], self.QUERY)
+        assert kept == ["Aspirin"]
+        kept, _ = ground_compare_entities(["Aspirin", "ASPIRIN"], self.QUERY)
+        assert kept == ["Aspirin"]
+
+    def test_whitespace_variants_collapse(self):
+        kept, _ = ground_compare_entities(["Aspirin", "  Aspirin  "], self.QUERY)
+        assert kept == ["Aspirin"]
+
+    def test_distinct_entities_are_never_merged(self):
+        """The guard against over-merging: only provably-equivalent names go."""
+        kept, warnings = ground_compare_entities(["Aspirin", "Ibuprofen"], self.QUERY)
+        assert kept == ["Aspirin", "Ibuprofen"]
+        assert warnings == []
+
+    def test_first_occurrence_wins_and_order_is_deterministic(self):
+        kept, _ = ground_compare_entities(
+            ["aspirin", "Ibuprofen", "Aspirin"], self.QUERY
+        )
+        assert kept == ["aspirin", "Ibuprofen"]
+        for _ in range(5):
+            assert ground_compare_entities(
+                ["aspirin", "Ibuprofen", "Aspirin"], self.QUERY
+            )[0] == ["aspirin", "Ibuprofen"]
+
+    def test_duplicates_produce_one_search_not_two(self):
+        """The consequence that mattered: one series, one upstream call."""
+        kept, _ = ground_compare_entities(["Aspirin", "aspirin"], self.QUERY)
+        plan = QueryPlan(
+            query=self.QUERY,
+            query_type="comparison",
+            group_by="phase",
+            viz_type="grouped_bar_chart",
+            compare_entities=kept,
+            compare_entity_kind="drug",
+            entities=ExtractedEntities(
+                drugs=[], conditions=[], sponsors=[], phases=[], statuses=[],
+                countries=[], year_range=None,
+            ),
+        )
+        searches, _ = build_searches(plan)
+        labels = [s.label for s in searches]
+        assert len(labels) == len(set(labels)), "labels must be unique keys"

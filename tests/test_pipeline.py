@@ -627,3 +627,49 @@ class TestMultiValueInterpretation:
         mock_studies(SAMPLE)
         response = await run()
         assert not any("OR" in a for a in response.meta.assumptions)
+
+
+class TestComparisonSeriesAreNeverLost:
+    """fetch() keys membership and provenance by search label. Two entities
+    normalising to one label made the second search overwrite the first's ids
+    *and* its filters -- a series vanished, and the survivor's label was
+    attached to the other search's trials."""
+
+    @respx.mock
+    async def test_distinct_entities_each_keep_their_own_membership(self):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        route = respx.get(f"{BASE}/studies")
+        route.side_effect = [
+            httpx.Response(200, json={"studies": SAMPLE[:2], "totalCount": 2}),
+            httpx.Response(200, json={"studies": SAMPLE[2:3], "totalCount": 1}),
+        ]
+        response = await run(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind="drug",
+        )
+        # One key per labelled search: nothing was overwritten.
+        assert set(response.meta.filters) == {"Pembrolizumab", "Nivolumab"}
+
+    def test_deduplicated_entities_cannot_collide_in_the_membership_dict(self):
+        """Grounding removes the duplicate, so fetch() never sees two searches
+        competing for one key."""
+        from app.agents.understanding import ground_compare_entities
+        from app.services.ctgov import build_searches
+
+        query = "compare Aspirin and aspirin trials"
+        kept, warnings = ground_compare_entities(["Aspirin", "aspirin"], query)
+        plan_obj = plan(
+            query=query,
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            compare_entities=kept,
+            compare_entity_kind="drug",
+        )
+        searches, _ = build_searches(plan_obj)
+        labels = [s.label for s in searches if s.label]
+        assert len(labels) == len(set(labels))
+        assert any("duplicate" in w for w in warnings)

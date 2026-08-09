@@ -415,23 +415,53 @@ def ground_entities(
     return grounded, warnings
 
 
+def _series_key(entity: str) -> str:
+    """Identity of a comparison series: case- and whitespace-insensitive.
+
+    Two entities that share a key provably fetch the same trials -- verified
+    live that ``query.intr`` is case-insensitive (Aspirin / aspirin / ASPIRIN
+    all return 2,172). Deliberately no looser than that: stemming or fuzzy
+    matching here would merge genuinely distinct drugs into one series.
+    """
+    return " ".join(entity.split()).casefold()
+
+
 def ground_compare_entities(
     compare_entities: list[str], query: str
 ) -> tuple[list[str], list[str]]:
-    """Comparison series must be named in the question too.
+    """Comparison series must be named in the question too, and be distinct.
 
     These drive one upstream search each, so an invented entity would not just
     mislabel a series -- it would fetch and chart trials nobody asked about.
+
+    Equivalent entities are collapsed here rather than in the fetch layer,
+    which keys series membership and provenance by label: two entities that
+    normalise to one label made the second search silently overwrite the
+    first's ids *and* its filters, losing a series outright. Fixing it here
+    means one series is one thing, instead of inventing a disambiguated label
+    for what is really a duplicate.
     """
     kept, warnings = [], []
+    seen: dict[str, str] = {}
     for entity in compare_entities:
-        if _appears_in(entity, query):
-            kept.append(entity.strip())
-        else:
+        if not _appears_in(entity, query):
             warnings.append(
                 f"Ignored comparison entity {entity!r}: it does not appear in "
                 f"the question."
             )
+            continue
+        stripped = entity.strip()
+        key = _series_key(stripped)
+        if key in seen:
+            # First occurrence wins and keeps its original casing, so series
+            # order and labels stay deterministic.
+            warnings.append(
+                f"Ignored duplicate comparison entity {stripped!r}: it names the "
+                f"same series as {seen[key]!r}."
+            )
+            continue
+        seen[key] = stripped
+        kept.append(stripped)
     return kept, warnings
 
 
