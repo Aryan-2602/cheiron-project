@@ -12,6 +12,7 @@ import pytest
 from app.agents.understanding import (
     UnderstandingError,
     _appears_in,
+    _match_statuses,
     build_plan,
     call_llm,
     extract_phases_from_query,
@@ -518,6 +519,110 @@ class TestMalformedCompletion:
         assert response.json()["detail"]["error"]["code"] == "LLM_ERROR"
 
 
+class TestStatusNegation:
+    """A status named negatively must never become the positive filter. Before
+    this guard, "trials that are not recruiting" sent aggFilters=status:rec --
+    precisely the opposite set, applied upstream and silently."""
+
+    def agg_filters_for(self, query):
+        """The wire value is where the harm was, so assert on it directly."""
+        statuses, _ = _match_statuses(query)
+        plan = QueryPlan(
+            query=query,
+            query_type="distribution",
+            group_by="phase",
+            viz_type="bar_chart",
+            entities=ExtractedEntities(
+                drugs=["aspirin"], conditions=[], sponsors=[], phases=[],
+                statuses=statuses, countries=[], year_range=None,
+            ),
+        )
+        searches, _ = build_searches(plan)
+        return searches[0].to_params(page_size=10).get("aggFilters")
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("recruiting studies", ["RECRUITING"]),
+            ("completed", ["COMPLETED"]),
+            ("terminated", ["TERMINATED"]),
+            ("withdrawn", ["WITHDRAWN"]),
+            ("enrolling by invitation", ["ENROLLING_BY_INVITATION"]),
+            ("suspended trials", ["SUSPENDED"]),
+        ],
+    )
+    def test_positive_statuses_are_unchanged(self, query, expected):
+        assert _match_statuses(query) == (expected, [])
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "not recruiting studies",
+            "show trials that are not recruiting",
+            "non-recruiting studies",
+            "trials that aren't recruiting",
+            "no longer recruiting",
+            "trials not currently recruiting",
+            "trials other than recruiting",
+            "all trials excluding recruiting ones",
+        ],
+    )
+    def test_negated_recruiting_is_never_read_as_recruiting(self, query):
+        positive, negated = _match_statuses(query)
+        assert "RECRUITING" not in positive
+        assert negated == ["RECRUITING"]
+        # The real damage was upstream, so pin the emitted filter too.
+        assert self.agg_filters_for(query) is None
+
+    @pytest.mark.parametrize(
+        "query,expected",
+        [
+            ("active, not recruiting", "ACTIVE_NOT_RECRUITING"),
+            ("active not recruiting", "ACTIVE_NOT_RECRUITING"),
+            ("not yet recruiting", "NOT_YET_RECRUITING"),
+            ("not-yet-recruiting trials", "NOT_YET_RECRUITING"),
+        ],
+    )
+    def test_specific_statuses_are_not_confused_with_recruiting(self, query, expected):
+        """These contain "recruiting" and a "not", but are their own statuses --
+        the negation check must not fire on the "not" that belongs to them."""
+        positive, negated = _match_statuses(query)
+        assert positive == [expected]
+        assert negated == []
+        assert self.agg_filters_for(query) is None
+
+    def test_plain_recruiting_still_reaches_the_upstream_filter(self):
+        """The one live-verified status filter must keep working."""
+        assert self.agg_filters_for("recruiting melanoma trials") == "status:rec"
+
+    def test_a_clause_boundary_stops_the_negation_spreading(self):
+        """In "not completed and recruiting" the "and" starts a new clause, so
+        only completed is excluded."""
+        assert _match_statuses("not completed and recruiting") == (
+            ["RECRUITING"], ["COMPLETED"]
+        )
+
+    def test_negation_after_a_positive_status_applies_only_to_its_own_term(self):
+        assert _match_statuses("completed but not recruiting") == (
+            ["COMPLETED"], ["RECRUITING"]
+        )
+
+    def test_a_status_both_requested_and_excluded_is_not_filtered_on(self):
+        """Contradictory, so the safe reading wins: acting on the positive is
+        the failure mode this exists to prevent."""
+        positive, negated = _match_statuses("recruiting and not recruiting")
+        assert "RECRUITING" not in positive
+        assert "RECRUITING" in negated
+
+    def test_the_exclusion_is_disclosed_rather_than_silently_dropped(self):
+        grounded, warnings = ground_entities(
+            understanding(conditions=["melanoma"]),
+            "show me melanoma trials that are not recruiting",
+        )
+        assert grounded.statuses == []
+        assert any("exclusion is not supported" in w for w in warnings)
+
+
 class TestCompareEntityDeduplication:
     """Series membership and provenance are keyed by label in fetch(), so two
     entities normalising to one label made the second overwrite the first --
@@ -576,3 +681,13 @@ class TestCompareEntityDeduplication:
         searches, _ = build_searches(plan)
         labels = [s.label for s in searches]
         assert len(labels) == len(set(labels)), "labels must be unique keys"
+
+    def test_a_negated_status_is_not_also_reported_as_unsupported(self):
+        """The question does name it, negatively -- so the generic "does not
+        support it" message would be wrong alongside the exclusion notice."""
+        _, warnings = ground_entities(
+            understanding(conditions=["melanoma"], statuses=["recruiting"]),
+            "melanoma trials that are not recruiting",
+        )
+        assert not any("does not support" in w for w in warnings)
+        assert any("exclusion is not supported" in w for w in warnings)

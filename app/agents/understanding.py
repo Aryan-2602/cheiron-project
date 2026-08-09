@@ -310,25 +310,91 @@ def extract_years_from_query(query: str) -> set[int]:
     return {int(y) for y in _YEAR.findall(query)}
 
 
-def extract_statuses_from_query(query: str) -> list[str]:
-    """Trial statuses the user actually named, as API enum values.
+#: Words that flip a status mention into an exclusion. Checked only against the
+#: text immediately before a match, and only after longer phrases have been
+#: masked -- so the "not" belonging to "not yet recruiting" or "active, not
+#: recruiting" is already consumed and can never reach this check.
+_NEGATION_CUES = (
+    "not",
+    "non",
+    "n't",
+    "no longer",
+    "never",
+    "except",
+    "excluding",
+    "other than",
+    "without",
+)
+
+#: Scanning back stops here, so a negation in one clause cannot reach into the
+#: next: in "not completed and recruiting", the "and" protects "recruiting".
+_CLAUSE_BOUNDARIES = frozenset({"and", "or", "but", "plus", "also"})
+
+#: How many words back a cue may sit, which covers an intervening adverb
+#: ("not currently recruiting") without reaching across a whole clause.
+_NEGATION_LOOKBACK = 3
+
+
+def _is_negated(text_before: str) -> bool:
+    """True when the words immediately preceding a status match negate it.
+
+    Walks back a few words rather than requiring the cue to be adjacent, so
+    "not currently recruiting" is caught, and stops at a clause boundary so
+    "not completed and recruiting" leaves the recruiting request intact.
+    """
+    words = text_before.replace(",", " , ").replace(";", " ; ").split()
+    tail: list[str] = []
+    for word in reversed(words[-_NEGATION_LOOKBACK:]):
+        if word in _CLAUSE_BOUNDARIES or word in {",", ";"}:
+            break
+        tail.insert(0, word)
+    if not tail:
+        return False
+    # "non-recruiting" and "aren't recruiting" attach the cue to the match or
+    # to the preceding word, so the joined tail is checked as well as each
+    # token -- that also covers the two-word cues ("no longer", "other than").
+    joined = " ".join(tail).rstrip("-")
+    if any(joined.endswith(cue) for cue in _NEGATION_CUES):
+        return True
+    return any(word.rstrip("-") in _NEGATION_CUES for word in tail)
+
+
+def _match_statuses(query: str) -> tuple[list[str], list[str]]:
+    """Statuses the question asks *for* and statuses it asks to *exclude*.
 
     Longer phrases are matched and masked out first, so "not yet recruiting"
-    cannot also register as "recruiting".
+    cannot also register as "recruiting". A match whose preceding text carries
+    a negation cue is recorded as excluded rather than requested -- without
+    that check, "trials that are not recruiting" matched the bare substring
+    and filtered to exactly the opposite set.
     """
     haystack = query.lower()
     found: list[str] = []
+    negated: list[str] = []
     phrases = sorted(
         ((phrase, status) for status, ps in STATUS_VOCABULARY.items() for phrase in ps),
         key=lambda pair: -len(pair[0]),
     )
     for phrase, status in phrases:
+        # Every occurrence, not just the first: in "recruiting and not
+        # recruiting" the second mention is the one carrying the negation.
         index = haystack.find(phrase)
-        if index >= 0:
-            if status not in found:
-                found.append(status)
+        while index >= 0:
+            bucket = negated if _is_negated(haystack[:index]) else found
+            if status not in bucket:
+                bucket.append(status)
             haystack = haystack[:index] + " " * len(phrase) + haystack[index + len(phrase) :]
-    return found
+            index = haystack.find(phrase, index + len(phrase))
+    # A status asked for and excluded in the same question is contradictory;
+    # excluding wins, because acting on the positive reading is the failure
+    # mode this exists to prevent.
+    found = [s for s in found if s not in negated]
+    return found, negated
+
+
+def extract_statuses_from_query(query: str) -> list[str]:
+    """Trial statuses the user actually named, as API enum values."""
+    return _match_statuses(query)[0]
 
 
 def ground_entities(
@@ -374,13 +440,27 @@ def ground_entities(
 
     # Statuses: likewise, and this also keeps an unrecognised status string out
     # of the client-side filter, where it would have matched no trial at all.
-    grounded_statuses = extract_statuses_from_query(query)
+    grounded_statuses, negated_statuses = _match_statuses(query)
     for status in entities.statuses:
         normalized = status.strip().upper().replace(" ", "_")
+        if normalized in negated_statuses:
+            # The question does name this status -- negatively. The exclusion
+            # warning below explains it; "does not support it" would be wrong.
+            continue
         if normalized and normalized not in grounded_statuses:
             warnings.append(
                 f"Ignored status {status!r}: the question does not support it."
             )
+    if negated_statuses:
+        # There is no way to express "every status except X" in a search, and
+        # inventing one is out of scope. An honest superset plus this
+        # disclosure beats filtering to the exact opposite of the request.
+        excluded = ", ".join(s.replace("_", " ").lower() for s in negated_statuses)
+        warnings.append(
+            f"Read the question as excluding {excluded} trials. Filtering by "
+            f"status exclusion is not supported, so no status filter was "
+            f"applied and trials of every status are included below."
+        )
 
     # Year bounds: the value must be written in the question. Note this grounds
     # *which* years may be used, not which end of the range each belongs to --
