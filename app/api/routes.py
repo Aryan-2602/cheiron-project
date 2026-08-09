@@ -10,14 +10,17 @@ a broken grounding check -- are non-2xx and say why.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 
 from app.agents.understanding import UnderstandingError
 from app.core.logging import truncate
 from app.models.schemas import (
     Encoding,
     ErrorBody,
+    ErrorCode,
     ErrorResponse,
     FieldRef,
     QueryRequest,
@@ -96,11 +99,27 @@ def _empty_response(error: EmptyResultError) -> QueryResponse:
     )
 
 
+def _error(status_code: int, code: ErrorCode, message: str, **details: Any) -> JSONResponse:
+    """A response whose body *is* an ErrorResponse.
+
+    HTTPException nests the payload under "detail", so the runtime body was
+    {"detail": {"error": ...}} while OpenAPI advertised the bare model. Sending
+    it directly makes the documented schema true.
+    """
+    body = ErrorResponse(error=ErrorBody(code=code, message=message, details=details))
+    return JSONResponse(status_code=status_code, content=body.model_dump())
+
+
 @router.post(
     "/query",
     response_model=QueryResponse,
     responses={
-        422: {"model": ErrorResponse, "description": "Question not answerable"},
+        # 400, not 422: FastAPI already uses 422 for request-schema violations
+        # with its own body shape, and two different shapes on one status code
+        # force callers to sniff. This one is a well-formed request asking an
+        # unanswerable question.
+        400: {"model": ErrorResponse, "description": "Question not answerable"},
+        422: {"description": "Request body failed schema validation"},
         502: {"model": ErrorResponse, "description": "LLM or upstream API failure"},
         500: {"model": ErrorResponse, "description": "Response failed validation"},
     },
@@ -126,32 +145,18 @@ async def query(request: QueryRequest) -> QueryResponse:
         return _empty_response(exc)
     except UnsupportedQueryError as exc:
         _log_failure(request, code="UNSUPPORTED_QUERY", stage="understanding", exc=exc)
-        raise HTTPException(
-            status_code=422,
-            detail=ErrorResponse(
-                error=ErrorBody(code="UNSUPPORTED_QUERY", message=str(exc))
-            ).model_dump(),
-        ) from exc
+        return _error(400, "UNSUPPORTED_QUERY", str(exc))
     except UnderstandingError as exc:
         _log_failure(request, code="LLM_ERROR", stage="understanding", exc=exc)
-        raise HTTPException(
-            status_code=502,
-            detail=ErrorResponse(
-                error=ErrorBody(code="LLM_ERROR", message=str(exc))
-            ).model_dump(),
-        ) from exc
+        return _error(502, "LLM_ERROR", str(exc))
     except CTGovError as exc:
         _log_failure(request, code="UPSTREAM_ERROR", stage="fetch", exc=exc)
-        raise HTTPException(
-            status_code=502,
-            detail=ErrorResponse(
-                error=ErrorBody(
-                    code="UPSTREAM_ERROR",
-                    message="ClinicalTrials.gov could not be reached or returned an error.",
-                    details={"upstream": str(exc)},
-                )
-            ).model_dump(),
-        ) from exc
+        return _error(
+            502,
+            "UPSTREAM_ERROR",
+            "ClinicalTrials.gov could not be reached or returned an error.",
+            upstream=str(exc),
+        )
     except ValidationFailure as exc:
         # The response could not be grounded in the fetched records. Returning
         # an error is the correct outcome: a chart that renders but cannot be
@@ -159,14 +164,9 @@ async def query(request: QueryRequest) -> QueryResponse:
         # One ERROR line, here rather than in the validator, so a failure reads
         # as a single fault carrying both the failing check and the query.
         _log_failure(request, code="VALIDATION_ERROR", stage="validation", exc=exc)
-        raise HTTPException(
-            status_code=500,
-            detail=ErrorResponse(
-                error=ErrorBody(
-                    code="VALIDATION_ERROR",
-                    message="The generated response failed its grounding checks and "
-                    "was withheld.",
-                    details={"check": str(exc)},
-                )
-            ).model_dump(),
-        ) from exc
+        return _error(
+            500,
+            "VALIDATION_ERROR",
+            "The generated response failed its grounding checks and was withheld.",
+            check=str(exc),
+        )

@@ -518,7 +518,7 @@ class TestMalformedCompletion:
         ):
             response = client.post("/api/v1/query", json={"query": "trials by phase"})
         assert response.status_code == 502
-        assert response.json()["detail"]["error"]["code"] == "LLM_ERROR"
+        assert response.json()["error"]["code"] == "LLM_ERROR"
 
 
 class TestStatusNegation:

@@ -377,14 +377,15 @@ class TestHttpApi:
         assert body["visualization"]["data"] == []
         assert any("No trials matched" in w for w in body["meta"]["warnings"])
 
-    def test_unsupported_query_is_422_with_a_typed_code(self, monkeypatch):
+    def test_unsupported_query_is_400_with_a_typed_code(self, monkeypatch):
         async def fake(*args, **kwargs):
             raise UnsupportedQueryError("not answerable from registry data")
 
         monkeypatch.setattr("app.api.routes.run_pipeline", fake)
         response = self.client().post("/api/v1/query", json={"query": "what is love"})
-        assert response.status_code == 422
-        assert response.json()["detail"]["error"]["code"] == "UNSUPPORTED_QUERY"
+        # 400, not 422: FastAPI owns 422 for request-schema violations.
+        assert response.status_code == 400
+        assert response.json()["error"]["code"] == "UNSUPPORTED_QUERY"
 
     def test_upstream_failure_is_502(self, monkeypatch):
         async def fake(*args, **kwargs):
@@ -393,7 +394,7 @@ class TestHttpApi:
         monkeypatch.setattr("app.api.routes.run_pipeline", fake)
         response = self.client().post("/api/v1/query", json={"query": "a question"})
         assert response.status_code == 502
-        assert response.json()["detail"]["error"]["code"] == "UPSTREAM_ERROR"
+        assert response.json()["error"]["code"] == "UPSTREAM_ERROR"
 
     def test_a_response_failing_validation_is_withheld(self, monkeypatch):
         """A chart that cannot be traced to source data must not render."""
@@ -405,7 +406,7 @@ class TestHttpApi:
         monkeypatch.setattr("app.api.routes.run_pipeline", fake)
         response = self.client().post("/api/v1/query", json={"query": "a question"})
         assert response.status_code == 500
-        assert response.json()["detail"]["error"]["code"] == "VALIDATION_ERROR"
+        assert response.json()["error"]["code"] == "VALIDATION_ERROR"
 
 
 class TestCitationLimits:

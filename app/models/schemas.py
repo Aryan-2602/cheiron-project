@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # --------------------------------------------------------------------------
 # Shared vocabularies
@@ -116,6 +116,24 @@ class QueryRequest(BaseModel):
         description="Upper bound on studies fetched. Disclosed in meta.warnings "
         "whenever it truncates the result set.",
     )
+
+    @field_validator("query", mode="before")
+    @classmethod
+    def _strip_query(cls, value: Any) -> Any:
+        """Strip before the length rule, so "   " is too short rather than
+        three valid characters."""
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("drug_name", "condition", "sponsor", "country", mode="before")
+    @classmethod
+    def _normalize_override(cls, value: Any) -> Any:
+        """A whitespace-only override is an absent override, not a search for
+        spaces -- it would otherwise pin the entity to a value matching nothing.
+        """
+        if isinstance(value, str):
+            collapsed = " ".join(value.split())
+            return collapsed or None
+        return value
 
     @model_validator(mode="after")
     def _check_year_range(self) -> QueryRequest:
