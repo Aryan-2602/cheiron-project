@@ -36,7 +36,11 @@ from app.services.ctgov import (
     build_searches,
     normalize_statuses,
 )
-from app.services.dimensions import extract_start_year, get_dimension
+from app.services.dimensions import (
+    extract_start_year,
+    get_dimension,
+    protocol_module,
+)
 from app.services.drug_resolver import resolve_all
 from app.services.network import (
     MAX_ENTITIES_PER_RECORD,
@@ -210,11 +214,7 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
         store.records = {
             nct_id: record
             for nct_id, record in store.records.items()
-            if (
-                record.get("protocolSection", {})
-                .get("statusModule", {})
-                .get("overallStatus")
-            )
+            if protocol_module(record, "statusModule").get("overallStatus")
             in wanted_status
         }
         # sorted() so the disclosure text is stable rather than inheriting set
@@ -240,11 +240,7 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
             # A negative predicate, never an enumeration of "everything else":
             # a status outside our vocabulary is kept, which is what the
             # question asked for.
-            if (
-                record.get("protocolSection", {})
-                .get("statusModule", {})
-                .get("overallStatus")
-            )
+            if protocol_module(record, "statusModule").get("overallStatus")
             not in excluded
         }
         warnings.append(

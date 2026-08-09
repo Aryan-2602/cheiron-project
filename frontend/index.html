@@ -70,6 +70,11 @@
   .cite a { color: var(--accent); font-weight: 600; text-decoration: none; }
   .cite p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
   .hint { color: var(--muted); font-size: 13px; font-style: italic; }
+  /* A ClinicalTrials.gov URL with a full fields list is long enough to push the
+     card sideways; break it rather than scroll the page. */
+  details.hint a { color: var(--muted); word-break: break-all; }
+  details.hint summary { cursor: pointer; }
+  details.hint div { margin: 4px 0 0 12px; font-style: normal; }
   .pill { display: inline-block; background: var(--bg); border: 1px solid var(--line);
           border-radius: 10px; padding: 1px 7px; font-size: 11px; margin: 2px 2px 0 0; }
   .hidden { display: none; }
@@ -158,14 +163,24 @@ let network = null;    // vis-network instance
 
 // One per example on disk, so every documented output is reachable without
 // typing.
+/**
+ * One entry per file in examples/, with the query verbatim.
+ *
+ * Kept exactly 1:1 on purpose: the buttons are how a reviewer checks the demo
+ * against the committed responses, and a button whose wording had drifted from
+ * the file it claims to reproduce sends them comparing two different questions.
+ * The third element carries any structured override the example was captured
+ * with, so the structured-override example actually demonstrates one.
+ */
 const EXAMPLES = [
   ["Phase distribution", "How are lung cancer trials distributed across phases?"],
   ["Trials per year", "How has the number of trials for Pembrolizumab changed per year since 2015?"],
-  ["Comparison", "Compare trial phases for Pembrolizumab vs Nivolumab."],
-  ["Geographic", "Which countries have the most recruiting melanoma trials?"],
-  ["Enrollment histogram", "Show the enrollment-size distribution for melanoma trials."],
+  ["Comparison", "Compare phases for trials involving Pembrolizumab vs Nivolumab."],
   ["Drug ↔ drug network", "Which drugs frequently co-occur in combination studies with pembrolizumab?"],
   ["Sponsor ↔ drug network", "Show a network of sponsors and drugs for melanoma trials."],
+  ["Geographic", "Which countries have the most recruiting trials for melanoma?"],
+  ["Structured override", "How are trials for this drug distributed across sponsors?",
+   { drug_name: "Nivolumab", phase: "3", max_studies: "600" }],
 ];
 
 // ---------------------------------------------------------------- rendering
@@ -398,10 +413,40 @@ function renderMeta(meta) {
   }
   const src = document.createElement("p");
   src.className = "hint";
+  // Both counts when they differ: the gap is what says whether a small number
+  // reflects the registry or only the slice that was read.
+  const counts = meta.total_studies_fetched != null
+    && meta.total_studies_fetched !== meta.total_studies_processed
+      ? `${meta.total_studies_processed} of ${meta.total_studies_fetched} fetched trials processed`
+      : `${meta.total_studies_processed} trials processed`;
   src.textContent =
-    `${meta.total_studies_processed} trials processed · source ${meta.source}` +
+    `${counts} · source ${meta.source}` +
     (meta.data_as_of ? ` · data as of ${meta.data_as_of}` : "");
   box.appendChild(src);
+
+  // The upstream URLs, verbatim. meta.api_urls exists so any figure here can
+  // be reproduced by hand against ClinicalTrials.gov, and a demo that computes
+  // numbers without showing where they came from is asking to be taken on
+  // trust -- which is the opposite of what this response is built to avoid.
+  const urls = meta.api_urls || [];
+  if (urls.length) {
+    const details = document.createElement("details");
+    details.className = "hint";
+    const summary = document.createElement("summary");
+    summary.textContent = `${urls.length} upstream API ${urls.length === 1 ? "call" : "calls"}`;
+    details.appendChild(summary);
+    for (const url of urls) {
+      const line = document.createElement("div");
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = url;
+      line.appendChild(link);
+      details.appendChild(line);
+    }
+    box.appendChild(details);
+  }
 }
 
 /** The API returns two different error shapes; handle both explicitly. */
@@ -570,13 +615,23 @@ function clearOverrides() {
   refreshOverrideBadge();
 }
 
-for (const [label, query] of EXAMPLES) {
+for (const [label, query, overrides] of EXAMPLES) {
   const b = document.createElement("button");
   b.type = "button";
   b.textContent = label;
   // Examples are the known-good demo path, so they start from a clean slate
-  // rather than inheriting whatever was typed into the advanced panel earlier.
-  b.onclick = () => { clearOverrides(); $("query").value = query; run(); };
+  // rather than inheriting whatever was typed into the advanced panel earlier,
+  // then set only what this example was actually captured with.
+  b.onclick = () => {
+    clearOverrides();
+    for (const [name, value] of Object.entries(overrides || {})) {
+      const input = [...overrideInputs()].find((i) => i.name === name);
+      if (input) input.value = value;
+    }
+    refreshOverrideBadge();
+    $("query").value = query;
+    run();
+  };
   $("examples").appendChild(b);
 }
 

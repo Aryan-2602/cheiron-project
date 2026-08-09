@@ -61,7 +61,11 @@ class JsonFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
-            "time": datetime.now(timezone.utc).isoformat(),
+            # Second precision with a trailing Z, which is what the README
+            # documents and what reads cleanly in a terminal. isoformat()
+            # emitted "2026-08-09T23:41:02.123456+00:00" -- six digits of
+            # precision nothing here needs, in a shape the docs did not match.
+            "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "level": record.levelname,
             "name": record.name,
             "message": record.getMessage(),

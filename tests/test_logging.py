@@ -407,3 +407,37 @@ class TestNoSecretsOrPayloads:
 def test_messages_are_constant_not_interpolated(message):
     """Messages stay greppable because variable data lives in `extra`."""
     assert "%" not in message and "{" not in message
+
+
+class TestTimestampFormat:
+    """The README documents {"time": "2026-08-08T23:41:02Z"}. isoformat()
+    emitted six digits of sub-second precision and a +00:00 offset instead --
+    nothing here needs that precision, and a sample that does not match the
+    output is a doc that cannot be checked against the thing it describes."""
+
+    def payload(self):
+        import json
+        import logging
+
+        from app.core.logging import JsonFormatter
+
+        record = logging.LogRecord(
+            "test", logging.INFO, __file__, 1, "hello", None, None
+        )
+        return json.loads(JsonFormatter().format(record))
+
+    def test_the_timestamp_matches_the_documented_shape(self):
+        import re
+
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z",
+                            self.payload()["time"])
+
+    def test_it_is_parseable_as_utc(self):
+        """The trailing Z is the offset, so the string round-trips."""
+        from datetime import datetime, timezone
+
+        parsed = datetime.fromisoformat(
+            self.payload()["time"].replace("Z", "+00:00")
+        )
+        assert parsed.tzinfo == timezone.utc
+        assert parsed.microsecond == 0
