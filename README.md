@@ -145,7 +145,7 @@ Three independent mechanisms, in order of how early they act:
 
 For phases and statuses, reading the text is a *stronger* guarantee than checking the model's answer: the value provably comes from the user's words. The model's own extraction is kept only as a cross-check, and anything it proposed that the text does not support is dropped and reported in `meta.warnings` — so a divergence is visible rather than silently applied.
 
-**One honest limit.** Year *values* are grounded, but **which bound a year maps to is still the model's reading** — "since 2015" versus "before 2015". Full directional parsing was out of scope for this pass. The applied range is stated verbatim in `meta.warnings` ("Restricted to trials starting from 2015 client-side…"), so a misreading is visible in the response rather than hidden.
+**Year direction is read from the question too.** `since`/`from`/`after` bind a start, `before`/`until`/`through`/`up to` bind an end, and spans (`between X and Y`, `X to Y`, `X-Y`) bind both — so the model cannot reverse a range and silently return nothing. A range the question states outright wins over the model's; where the question gives no direction cue, the model's bounds are used but ordered first, with the reversal disclosed. The applied range is stated verbatim in `meta.warnings`.
 
 **3. Validation — every published value is re-derived before the response ships.** The validator receives the aggregator's own result alongside the formatted spec and recomputes each value from the pre-truncation id sets. It rejects any citation whose `nct_id` is not among the records actually fetched. A response that fails any check is withheld with HTTP 500 rather than returned — a chart that renders but cannot be traced to source data is worse than an error, because a reader has no way to tell it is wrong.
 
@@ -280,6 +280,7 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
 | `warnings` | Fetch truncation, multi-valued axes, missing data, client-side filtering, graph pruning. |
 | `sorting` | How rows are ordered, so a frontend does not re-sort them. |
 | `time_granularity` | `"year"` for time series, else `null`. |
+| `empty_reason` | `null` for a populated chart. `NO_MATCHING_TRIALS` when the search found nothing, `NO_CHARTABLE_DATA` when trials matched but the analysis produced no rows — the two are different answers and a caller may handle them differently. |
 
 ### Errors
 

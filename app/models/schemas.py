@@ -408,8 +408,9 @@ class QueryResponse(BaseModel):
 # 6. Errors
 # --------------------------------------------------------------------------
 
+# No code for emptiness: a well-formed question that matched nothing, or whose
+# analysis produced no rows, is a 200 carrying meta.empty_reason.
 ErrorCode = Literal[
-    "NO_RESULTS",
     "UNSUPPORTED_QUERY",
     "UPSTREAM_ERROR",
     "LLM_ERROR",

@@ -426,13 +426,6 @@ class CTGovClient:
 # --------------------------------------------------------------------------
 
 
-def _first(values: Iterable[str]) -> str | None:
-    for value in values:
-        if value and value.strip():
-            return value.strip()
-    return None
-
-
 #: Ceiling on how many extracted values are joined into one query expression,
 #: so a pathological extraction cannot build an unbounded query string. Unlike
 #: the previous behaviour, going over this is disclosed rather than silent.
