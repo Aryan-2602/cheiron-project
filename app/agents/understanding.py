@@ -722,6 +722,25 @@ COMPARE_KIND_SOURCES: dict[str, str] = {
 }
 
 
+def _infer_compare_kind(
+    compare_entities: list[str], entities: ExtractedEntities
+) -> str | None:
+    """Which entity list the compared names were grounded into, if any.
+
+    Deliberately evidence-based rather than a guess: with no grounded list
+    containing them there is nothing to infer from, and inventing a kind would
+    send the names to the wrong ClinicalTrials.gov field.
+    """
+    return next(
+        (
+            kind
+            for kind, field_name in COMPARE_KIND_SOURCES.items()
+            if set(getattr(entities, field_name, [])) & set(compare_entities)
+        ),
+        None,
+    )
+
+
 def reconcile_plan_semantics(
     *,
     query_type: str,
@@ -776,19 +795,22 @@ def reconcile_plan_semantics(
     # The compared entities came from grounding, so the list they appear in is
     # better evidence of their kind than the model's label. Querying
     # query.cond for drug names would return nothing and say nothing about it.
-    if compare_entities and compare_entity_kind:
-        source = COMPARE_KIND_SOURCES.get(compare_entity_kind)
+    #
+    # A *missing* kind matters as much as a wrong one: build_searches requires
+    # both, so two entities with kind=None built a single OR search while the
+    # chart stayed a grouped bar -- a union presented as a comparison.
+    if compare_entities:
+        source = COMPARE_KIND_SOURCES.get(compare_entity_kind or "")
         claimed = set(getattr(entities, source, [])) if source else set()
         if not claimed & set(compare_entities):
-            actual = next(
-                (
-                    kind
-                    for kind, field_name in COMPARE_KIND_SOURCES.items()
-                    if set(getattr(entities, field_name, [])) & set(compare_entities)
-                ),
-                None,
-            )
-            if actual:
+            actual = _infer_compare_kind(compare_entities, entities)
+            if actual and compare_entity_kind is None:
+                assumptions.append(
+                    f"Compared the entities as {actual}s, matching where they "
+                    f"were found in the question."
+                )
+                compare_entity_kind = actual
+            elif actual:
                 assumptions.append(
                     f"Compared the entities as {actual}s rather than "
                     f"{compare_entity_kind}s, matching where they were found in "
@@ -848,6 +870,18 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
     if understanding.query_type == "comparison" and len(compare_entities) < 2:
         # Nothing concrete to compare; fall back to a plain distribution so the
         # user still gets a grounded answer instead of an error.
+        #
+        # The survivor has to be promoted into the entity lists first. Clearing
+        # compare state without it dropped the entity from the population
+        # entirely -- "compare Pembrolizumab and <hallucinated>" searched the
+        # condition alone, and pembrolizumab vanished from a question that
+        # named it.
+        for survivor in compare_entities:
+            kind = compare_kind or _infer_compare_kind([survivor], entities)
+            field_name = COMPARE_KIND_SOURCES.get(kind or "", "drugs")
+            current = list(getattr(entities, field_name))
+            if not any(series_key(v) == series_key(survivor) for v in current):
+                setattr(entities, field_name, [*current, survivor])
         viz_type = "bar_chart"
         compare_entities, compare_kind = [], None
         assumptions.append(
@@ -868,6 +902,23 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
         )
     )
     assumptions.extend(semantic_notes)
+
+    # A grouped bar chart *is* a claim that the data has series, and series come
+    # only from labelled per-entity searches. Without a resolvable kind there is
+    # nothing to label them with, and the chart would ship one unlabelled series
+    # built from a union -- a comparison in appearance only. Guessing the field
+    # instead would send the names to the wrong ClinicalTrials.gov parameter.
+    if viz_type == "grouped_bar_chart" and not (
+        len(compare_entities) >= 2 and compare_kind
+    ):
+        viz_type = "bar_chart"
+        compare_entities, compare_kind = [], None
+        if not any("single distribution" in a for a in assumptions):
+            assumptions.append(
+                "Could not tell whether the compared values are drugs, "
+                "conditions, or sponsors, so a single distribution is shown "
+                "rather than a comparison of the wrong field."
+            )
 
     return QueryPlan(
         query=request.query,

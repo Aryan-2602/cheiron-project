@@ -1077,3 +1077,150 @@ class TestStatusVocabularyIsUnambiguous:
             if " " not in phrase and "-" not in phrase
         }
         assert not (singles & everyday), singles & everyday
+
+
+class TestComparisonNeverBecomesAUnion:
+    """build_searches needs both compare_entities and compare_entity_kind. With
+    a kind of None it built one OR search while the chart stayed a grouped bar
+    -- a union presented as a comparison, with no series to tell apart."""
+
+    def understanding(self, **kwargs):
+        return QueryUnderstanding(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            group_by="phase",
+            compare_entities=kwargs.pop("compare_entities", []),
+            compare_entity_kind=kwargs.pop("compare_entity_kind", None),
+            network_kind=None,
+            assumptions=[],
+            entities=ExtractedEntities(
+                drugs=kwargs.pop("drugs", []),
+                conditions=kwargs.pop("conditions", []),
+                sponsors=kwargs.pop("sponsors", []),
+                phases=[], statuses=[], countries=[], year_range=None,
+            ),
+        )
+
+    def searches_for(self, query, **kwargs):
+        plan = build_plan(QueryRequest(query=query), self.understanding(**kwargs))
+        searches, _ = build_searches(plan)
+        return plan, searches
+
+    def test_a_missing_kind_is_inferred_from_where_the_names_were_grounded(self):
+        plan, searches = self.searches_for(
+            "compare Pembrolizumab vs Nivolumab by phase",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind=None,
+            drugs=["Pembrolizumab", "Nivolumab"],
+        )
+        assert plan.compare_entity_kind == "drug"
+        assert [s.label for s in searches] == ["Pembrolizumab", "Nivolumab"]
+        assert all(" OR " not in (s.intr or "") for s in searches)
+
+    def test_an_inferred_kind_is_disclosed(self):
+        plan, _ = self.searches_for(
+            "compare Pembrolizumab vs Nivolumab by phase",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind=None,
+            drugs=["Pembrolizumab", "Nivolumab"],
+        )
+        assert any("Compared the entities as drugs" in a for a in plan.assumptions)
+
+    def test_conditions_are_inferred_as_conditions(self):
+        plan, searches = self.searches_for(
+            "compare melanoma vs lung cancer by phase",
+            compare_entities=["melanoma", "lung cancer"],
+            compare_entity_kind=None,
+            conditions=["melanoma", "lung cancer"],
+        )
+        assert plan.compare_entity_kind == "condition"
+        assert [s.cond for s in searches] == ["melanoma", "lung cancer"]
+
+    def test_an_unresolvable_kind_falls_back_rather_than_guessing_a_field(self):
+        """No grounded list holds them, so any kind would be a guess that sends
+        the names to the wrong ClinicalTrials.gov parameter."""
+        plan, searches = self.searches_for(
+            "compare Alpha vs Beta by phase", compare_entities=["Alpha", "Beta"]
+        )
+        assert plan.viz_type == "bar_chart"
+        assert plan.compare_entities == []
+        assert any("Could not tell whether" in a for a in plan.assumptions)
+
+    def test_a_grouped_bar_chart_always_has_at_least_two_labelled_searches(self):
+        """The invariant stated directly: the chart type is a claim about the
+        data having series."""
+        for kwargs, query in [
+            ({"compare_entities": ["Alpha", "Beta"]}, "compare Alpha vs Beta"),
+            (
+                {"compare_entities": ["Pembrolizumab"], "compare_entity_kind": "drug",
+                 "drugs": ["Pembrolizumab"]},
+                "compare Pembrolizumab by phase",
+            ),
+            (
+                {"compare_entities": ["Pembrolizumab", "Nivolumab"],
+                 "compare_entity_kind": "drug",
+                 "drugs": ["Pembrolizumab", "Nivolumab"]},
+                "compare Pembrolizumab vs Nivolumab",
+            ),
+        ]:
+            plan, searches = self.searches_for(query, **kwargs)
+            labelled = [s for s in searches if s.label]
+            assert plan.viz_type != "grouped_bar_chart" or len(labelled) >= 2
+
+
+class TestComparisonFallbackKeepsTheSurvivor:
+    """Clearing compare state without promoting the survivor dropped it from the
+    population: "compare Pembrolizumab and <hallucinated>" searched the
+    condition alone, and pembrolizumab vanished from a question that named it."""
+
+    def plan_for(self, query, **kwargs):
+        understanding = QueryUnderstanding(
+            query_type="comparison", viz_type="grouped_bar_chart", group_by="phase",
+            compare_entities=kwargs.pop("compare_entities"),
+            compare_entity_kind=kwargs.pop("compare_entity_kind", "drug"),
+            network_kind=None, assumptions=[],
+            entities=ExtractedEntities(
+                drugs=kwargs.pop("drugs", []),
+                conditions=kwargs.pop("conditions", []),
+                sponsors=kwargs.pop("sponsors", []),
+                phases=[], statuses=[], countries=[], year_range=None,
+            ),
+        )
+        return build_plan(QueryRequest(query=query), understanding)
+
+    def test_the_surviving_entity_reaches_the_search(self):
+        plan = self.plan_for(
+            "compare Pembrolizumab trials in melanoma by phase",
+            compare_entities=["Pembrolizumab", "Keytruda"],  # Keytruda fails grounding
+            conditions=["melanoma"],
+        )
+        assert plan.entities.drugs == ["Pembrolizumab"]
+        searches, _ = build_searches(plan)
+        assert searches[0].intr == "Pembrolizumab"
+        assert searches[0].cond == "melanoma"
+
+    def test_the_survivor_is_not_duplicated_when_already_extracted(self):
+        plan = self.plan_for(
+            "compare Pembrolizumab trials in melanoma by phase",
+            compare_entities=["Pembrolizumab", "Keytruda"],
+            drugs=["Pembrolizumab"],
+            conditions=["melanoma"],
+        )
+        assert plan.entities.drugs == ["Pembrolizumab"]
+
+    def test_a_surviving_condition_lands_in_conditions(self):
+        plan = self.plan_for(
+            "compare melanoma trials by phase",
+            compare_entities=["melanoma", "Sarcoma"],
+            compare_entity_kind="condition",
+        )
+        assert plan.entities.conditions == ["melanoma"]
+
+    def test_the_fallback_is_still_disclosed(self):
+        plan = self.plan_for(
+            "compare Pembrolizumab trials in melanoma by phase",
+            compare_entities=["Pembrolizumab", "Keytruda"],
+            conditions=["melanoma"],
+        )
+        assert plan.viz_type == "bar_chart"
+        assert any("single distribution" in a for a in plan.assumptions)
