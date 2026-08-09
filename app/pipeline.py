@@ -77,6 +77,7 @@ async def fetch(
     """
     result = FetchResult()
     membership: dict[str, set[str]] = {}
+    per_search_filters: dict[str, dict[str, Any]] = {}
     remaining_searches = len(searches)
 
     for search in searches:
@@ -101,10 +102,21 @@ async def fetch(
         result.warnings.extend(outcome.warnings)
         if search.label:
             membership[search.label] = outcome.nct_ids
-        result.filters.update(search.describe())
+            per_search_filters[search.label] = search.describe()
+        else:
+            result.filters.update(search.describe())
 
     if len(searches) > 1 and membership:
         result.series_membership = membership
+        # Keyed by series label, mirroring series_membership. Flattening every
+        # search into one dict let the last one overwrite the rest, so a
+        # comparison response reported only its final entity's filters and
+        # positively misattributed the others.
+        result.filters = {**result.filters, **per_search_filters}
+    elif per_search_filters:
+        # A single labelled search keeps the flat shape callers already parse.
+        result.filters.update(next(iter(per_search_filters.values())))
+
     return result
 
 

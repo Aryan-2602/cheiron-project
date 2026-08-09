@@ -564,3 +564,38 @@ class TestFetchCap:
         )
         response = await run(max_studies=150)
         assert response.meta.total_studies_processed == 150
+
+
+class TestFilterProvenance:
+    """meta.filters has to say which filters produced which series. Flattening
+    them meant a comparison reported only its last entity."""
+
+    @respx.mock
+    async def test_comparison_keys_filters_by_series(self):
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        route = respx.get(f"{BASE}/studies")
+        route.side_effect = [
+            httpx.Response(200, json={"studies": SAMPLE[:2], "totalCount": 2}),
+            httpx.Response(200, json={"studies": SAMPLE[2:], "totalCount": 2}),
+        ]
+        response = await run(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind="drug",
+        )
+        filters = response.meta.filters
+        # Both entities are present and correctly attributed -- previously the
+        # second silently overwrote the first.
+        assert set(filters) == {"Pembrolizumab", "Nivolumab"}
+        assert filters["Pembrolizumab"]["intervention"] == "Pembrolizumab"
+        assert filters["Nivolumab"]["intervention"] == "Nivolumab"
+
+    @respx.mock
+    async def test_single_search_keeps_the_flat_shape(self):
+        """The common case is unchanged, so this is not a breaking change."""
+        mock_studies(SAMPLE)
+        response = await run()
+        assert response.meta.filters == {"intervention": "Pembrolizumab"}

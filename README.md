@@ -270,7 +270,7 @@ Unknown fields are rejected (422). The optional structured fields exist so the e
 
 | Field | Description |
 |---|---|
-| `filters` | The filters actually applied upstream. |
+| `filters` | The filters actually applied upstream. **Shape varies by query type:** flat (`{"condition": "melanoma"}`) for a single-search query; keyed by series label (`{"Pembrolizumab": {...}, "Nivolumab": {...}}`) for a comparison, mirroring how the series themselves are keyed — a flat dict would let one series' filters overwrite another's. |
 | `source` | Always `clinicaltrials.gov`. |
 | `data_as_of` | `dataTimestamp` from the API's `/version` endpoint — when the registry data was current. |
 | `total_studies_processed` | Trials actually fetched and aggregated. |
