@@ -5,7 +5,7 @@ around it -- the part that decides what the model is *allowed* to influence.
 """
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -23,7 +23,9 @@ from app.agents.understanding import (
     extract_years_from_query,
     ground_compare_entities,
     ground_entities,
+    infer_network_kind,
     reconcile_viz_type,
+    understand,
 )
 from app.models.schemas import (
     ExtractedEntities,
@@ -496,17 +498,22 @@ class TestMalformedCompletion:
     as an IndexError that escapes to an unhandled 500."""
 
     def stub(self, choices):
+        """AsyncOpenAI's parse is a coroutine, so the stub must be awaitable --
+        which is itself the check that the pipeline awaits the call rather than
+        blocking the event loop on a synchronous client."""
         client = MagicMock()
-        client.chat.completions.parse.return_value = SimpleNamespace(choices=choices)
+        client.chat.completions.parse = AsyncMock(
+            return_value=SimpleNamespace(choices=choices)
+        )
         return client
 
     @pytest.mark.parametrize("choices", [[], None])
-    def test_absent_choices_raise_understanding_error(self, choices):
+    async def test_absent_choices_raise_understanding_error(self, choices):
         with (
             patch("app.agents.understanding._client", return_value=self.stub(choices)),
             pytest.raises(UnderstandingError, match="no completion choices"),
         ):
-            call_llm("how many trials by phase")
+            await call_llm("how many trials by phase")
 
     def test_route_returns_502_llm_error_not_500(self):
         from fastapi.testclient import TestClient
@@ -936,9 +943,10 @@ class TestYearRangeDirection:
         [
             ("trials since 2015", 2015, None),
             ("trials from 2015", 2015, None),
-            ("trials after 2015", 2015, None),
+            # Exclusive at year granularity: "after 2015" starts in 2016.
+            ("trials after 2015", 2016, None),
             ("trials starting in 2015", 2015, None),
-            ("trials before 2020", None, 2020),
+            ("trials before 2020", None, 2019),
             ("trials until 2020", None, 2020),
             ("trials through 2020", None, 2020),
             ("trials up to 2020", None, 2020),
@@ -1456,3 +1464,204 @@ class TestSurvivorPromotionUsesMembership:
             compare_entities=["Pembrolizumab"], drugs=["Pembrolizumab"],
         )
         assert plan.entities.drugs == ["Pembrolizumab"]
+
+
+class TestYearCueInclusivity:
+    """At year granularity "after 2015" excludes 2015 and "before 2020"
+    excludes 2020. Treating every cue as inclusive quietly widened the range by
+    a year at each end."""
+
+    @pytest.mark.parametrize(
+        "query,start,end",
+        [
+            ("trials since 2015", 2015, None),
+            ("trials from 2015", 2015, None),
+            ("trials starting in 2015", 2015, None),
+            ("trials after 2015", 2016, None),
+            ("trials later than 2015", 2016, None),
+            ("trials through 2020", None, 2020),
+            ("trials until 2020", None, 2020),
+            ("trials up to 2020", None, 2020),
+            ("trials by 2020", None, 2020),
+            ("trials before 2020", None, 2019),
+            ("trials prior to 2020", None, 2019),
+        ],
+    )
+    def test_each_cue_binds_the_year_with_the_right_inclusivity(
+        self, query, start, end
+    ):
+        assert extract_year_range_from_query(query) == YearRange(start=start, end=end)
+
+    @pytest.mark.parametrize(
+        "query",
+        ["between 2015 and 2020", "from 2015 to 2020", "trials 2015-2020",
+         "trials 2015–2020"],
+    )
+    def test_a_span_stays_inclusive_at_both_ends(self, query):
+        assert extract_year_range_from_query(query) == YearRange(start=2015, end=2020)
+
+    def test_a_bare_reversed_span_is_ordered(self):
+        """It states no direction, so ordering it is reading it."""
+        assert extract_year_range_from_query("trials 2020-2015") == YearRange(
+            start=2015, end=2020
+        )
+
+    def test_a_contradictory_directional_pair_is_not_inverted(self):
+        """"after 2020 and before 2015" is unanswerable as written. Swapping it
+        would turn it into a different, answerable question."""
+        assert extract_year_range_from_query(
+            "trials after 2020 and before 2015"
+        ) == YearRange(start=2021, end=2014)
+
+    def test_the_contradiction_is_disclosed(self):
+        _entities, warnings = ground_entities(
+            understanding(conditions=["melanoma"]),
+            "melanoma trials after 2020 and before 2015",
+        )
+        assert any("no trial can satisfy" in w for w in warnings)
+
+    @pytest.mark.parametrize(
+        "query", ["trials sponsored by Merck", "drugs by Pfizer", "studies by AstraZeneca"]
+    )
+    def test_a_by_phrase_without_a_year_is_not_an_end_cue(self, query):
+        assert extract_year_range_from_query(query) is None
+
+
+class TestNetworkKindReconciliation:
+    """Literal validation proves the model picked a *valid* enum, not the right
+    one. The question's own words settle it, exactly as they do for the chart
+    axis and the comparison kind."""
+
+    def plan_for(self, query, model_kind):
+        understanding = QueryUnderstanding(
+            query_type="relationship", viz_type="network_graph", group_by=None,
+            compare_entities=[], compare_entity_kind=None, network_kind=model_kind,
+            assumptions=[],
+            entities=ExtractedEntities(
+                drugs=[], conditions=["melanoma"], sponsors=[], phases=[],
+                statuses=[], countries=[], year_range=None,
+            ),
+        )
+        return build_plan(QueryRequest(query=query), understanding)
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "Which drugs frequently co-occur in melanoma combination studies?",
+            "Which drugs are combined with pembrolizumab?",
+            "Which drugs are studied together in melanoma trials?",
+            "Show the drug co-occurrence network for melanoma.",
+        ],
+    )
+    def test_co_occurrence_wording_corrects_a_sponsor_drug_guess(self, query):
+        plan = self.plan_for(query, "sponsor_drug")
+        assert plan.network_kind == "drug_drug"
+        assert any("rather than sponsor-drug" in a for a in plan.assumptions)
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "Show a network of sponsors and drugs in melanoma trials.",
+            "Show the sponsor-to-drug network for melanoma.",
+            "Which sponsors work on which drugs?",
+        ],
+    )
+    def test_sponsor_drug_wording_corrects_a_co_occurrence_guess(self, query):
+        plan = self.plan_for(query, "drug_drug")
+        assert plan.network_kind == "sponsor_drug"
+
+    def test_an_agreeing_model_choice_is_left_alone(self):
+        plan = self.plan_for("Which drugs co-occur in melanoma trials?", "drug_drug")
+        assert plan.network_kind == "drug_drug"
+        assert not any("rather than" in a for a in plan.assumptions)
+
+    def test_conflicting_evidence_keeps_the_model_proposal(self):
+        """"sponsors and drugs studied together" says both; a coin flip between
+        two valid readings is worse than the model's whole-sentence view."""
+        plan = self.plan_for(
+            "Show a network of sponsors and drugs studied together", "drug_drug"
+        )
+        assert plan.network_kind == "drug_drug"
+
+    def test_no_evidence_keeps_the_model_proposal(self):
+        plan = self.plan_for("Show a relationship graph for melanoma trials", "sponsor_drug")
+        assert plan.network_kind == "sponsor_drug"
+
+    def test_a_missing_kind_still_defaults_and_discloses(self):
+        plan = self.plan_for("Show a relationship graph for melanoma trials", None)
+        assert plan.network_kind == "drug_drug"
+        assert any("no relationship type" in a for a in plan.assumptions)
+
+    def test_sponsored_by_does_not_trigger_sponsor_evidence(self):
+        """Word boundaries: "sponsor" must not fire inside "sponsored"."""
+        assert infer_network_kind("drugs sponsored by Merck") is None
+
+    def test_a_non_relationship_query_is_untouched(self):
+        understanding = QueryUnderstanding(
+            query_type="distribution", viz_type="bar_chart", group_by="phase",
+            compare_entities=[], compare_entity_kind=None, network_kind=None,
+            assumptions=[],
+            entities=ExtractedEntities(
+                drugs=[], conditions=["melanoma"], sponsors=[], phases=[],
+                statuses=[], countries=[], year_range=None,
+            ),
+        )
+        plan = build_plan(
+            QueryRequest(query="Which drugs co-occur in melanoma trials by phase?"),
+            understanding,
+        )
+        assert plan.network_kind is None
+
+
+class TestUnderstandingIsAwaited:
+    """The one outbound call on the request path that was not awaited. A
+    synchronous client blocked the event-loop thread for the whole round trip,
+    so a slow completion stalled every other request the worker was serving."""
+
+    def test_call_llm_is_a_coroutine_function(self):
+        import inspect
+
+        assert inspect.iscoroutinefunction(call_llm)
+        assert inspect.iscoroutinefunction(understand)
+
+    def test_the_client_is_the_async_sdk(self):
+        from openai import AsyncOpenAI
+
+        import app.agents.understanding as module
+
+        assert module.AsyncOpenAI is AsyncOpenAI
+
+    async def test_the_parsed_output_propagates_through_the_await(self):
+        understanding = QueryUnderstanding(
+            query_type="distribution", viz_type="bar_chart", group_by="phase",
+            compare_entities=[], compare_entity_kind=None, network_kind=None,
+            assumptions=[],
+            entities=ExtractedEntities(
+                drugs=[], conditions=["melanoma"], sponsors=[], phases=[],
+                statuses=[], countries=[], year_range=None,
+            ),
+        )
+        client = MagicMock()
+        client.chat.completions.parse = AsyncMock(
+            return_value=SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(
+                    refusal=None, parsed=understanding
+                ))]
+            )
+        )
+        with patch("app.agents.understanding._client", return_value=client):
+            plan = await understand(QueryRequest(query="melanoma trials by phase"))
+        assert plan.group_by == "phase"
+        assert plan.entities.conditions == ["melanoma"]
+        client.chat.completions.parse.assert_awaited_once()
+
+    async def test_an_llm_failure_still_maps_to_understanding_error(self):
+        from openai import OpenAIError
+
+        client = MagicMock()
+        client.chat.completions.parse = AsyncMock(side_effect=OpenAIError("boom"))
+        with (
+            patch("app.agents.understanding._client", return_value=client),
+            pytest.raises(UnderstandingError, match="LLM request failed"),
+        ):
+            await understand(QueryRequest(query="melanoma trials by phase"))

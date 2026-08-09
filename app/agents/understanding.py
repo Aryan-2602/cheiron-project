@@ -26,7 +26,7 @@ import re
 import time
 from difflib import SequenceMatcher
 
-from openai import OpenAI, OpenAIError
+from openai import AsyncOpenAI, OpenAIError
 
 from app.core.config import settings
 from app.models.schemas import (
@@ -96,18 +96,26 @@ Use `assumptions` to record any interpretation you had to make, in one short \
 sentence each, so the user can see how their question was read."""
 
 
-def _client() -> OpenAI:
+def _client() -> AsyncOpenAI:
     api_key = settings.openai_api_key
     if not api_key:
         raise UnderstandingError(
             "No OpenAI API key configured. Set OPEN_AI_API_KEY (or OPENAI_API_KEY) "
             "in the environment or .env file."
         )
-    return OpenAI(api_key=api_key)
+    return AsyncOpenAI(api_key=api_key)
 
 
-def call_llm(query: str, *, model: str | None = None) -> QueryUnderstanding:
-    """Ask the model to classify one question. Raises :class:`UnderstandingError`."""
+async def call_llm(query: str, *, model: str | None = None) -> QueryUnderstanding:
+    """Ask the model to classify one question. Raises :class:`UnderstandingError`.
+
+    Async because this is the one outbound call on the request path that is not
+    already awaited. The synchronous client blocked the event-loop thread for
+    the whole round trip, so a single slow completion stalled every other
+    request the worker was serving -- a correctness-neutral but real
+    availability problem. Structured-output parsing is unchanged; AsyncOpenAI
+    exposes the same ``chat.completions.parse``.
+    """
     model = model or settings.LLM_MODEL
     started = time.perf_counter()
     # Prompt and completion are deliberately never logged -- only a summary of
@@ -118,7 +126,7 @@ def call_llm(query: str, *, model: str | None = None) -> QueryUnderstanding:
         return round((time.perf_counter() - started) * 1000, 1)
 
     try:
-        completion = _client().chat.completions.parse(
+        completion = await _client().chat.completions.parse(
             model=model,
             response_format=QueryUnderstanding,
             messages=[
@@ -336,15 +344,25 @@ _YEAR_SPAN = re.compile(
     re.IGNORECASE,
 )
 
-#: Cues that bind a single year to one end of the range.
-_YEAR_START_CUE = re.compile(
-    r"\b(?:since|from|after|starting(?:\s+in)?|beginning(?:\s+in)?|onwards?\s+from)\s+"
+#: Cues that bind a single year to one end of the range, split by whether the
+#: named year is itself included. At year granularity "after 2015" excludes
+#: 2015 and "before 2020" excludes 2020, while "since"/"from"/"through"/"up to"
+#: include theirs -- treating them all as inclusive quietly widened the range
+#: by a year on either side. Structured start_year/end_year stay inclusive,
+#: which is the documented contract.
+_YEAR_START_INCLUSIVE = re.compile(
+    r"\b(?:since|from|starting(?:\s+in)?|beginning(?:\s+in)?|onwards?\s+from)\s+"
     r"(19[89]\d|20[0-3]\d)\b",
     re.IGNORECASE,
 )
-_YEAR_END_CUE = re.compile(
-    r"\b(?:before|until|till|through|up\s+to|prior\s+to|by)\s+(19[89]\d|20[0-3]\d)\b",
-    re.IGNORECASE,
+_YEAR_START_EXCLUSIVE = re.compile(
+    r"\b(?:after|later\s+than)\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
+)
+_YEAR_END_INCLUSIVE = re.compile(
+    r"\b(?:until|till|through|up\s+to|by)\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
+)
+_YEAR_END_EXCLUSIVE = re.compile(
+    r"\b(?:before|prior\s+to|earlier\s+than)\s+(19[89]\d|20[0-3]\d)\b", re.IGNORECASE
 )
 
 
@@ -361,19 +379,26 @@ def extract_year_range_from_query(query: str) -> YearRange | None:
     """
     span = _YEAR_SPAN.search(query)
     if span:
+        # A bare span states no direction, so ordering it is reading it, not
+        # rewriting it: "2020-2015" can only have meant 2015 to 2020.
         low, high = sorted((int(span.group(1)), int(span.group(2))))
         return YearRange(start=low, end=high)
 
-    start_match = _YEAR_START_CUE.search(query)
-    end_match = _YEAR_END_CUE.search(query)
-    start = int(start_match.group(1)) if start_match else None
-    end = int(end_match.group(1)) if end_match else None
+    start = end = None
+    if match := _YEAR_START_INCLUSIVE.search(query):
+        start = int(match.group(1))
+    elif match := _YEAR_START_EXCLUSIVE.search(query):
+        start = int(match.group(1)) + 1
+    if match := _YEAR_END_INCLUSIVE.search(query):
+        end = int(match.group(1))
+    elif match := _YEAR_END_EXCLUSIVE.search(query):
+        end = int(match.group(1)) - 1
+
     if start is None and end is None:
         return None
-    if start is not None and end is not None and start > end:
-        # "after 2020 and before 2015" is not answerable as written; ordering
-        # the bounds is the reading that returns data rather than nothing.
-        start, end = end, start
+    # A contradictory pair ("after 2020 and before 2015") is left as written.
+    # Swapping it would rewrite the question into one that returns data, which
+    # is a different question; the honest answer is that nothing matches.
     return YearRange(start=start, end=end)
 
 
@@ -603,6 +628,21 @@ def ground_entities(
     # guaranteeing zero results.
     years_in_query = extract_years_from_query(query)
     grounded_range = extract_year_range_from_query(query)
+    if (
+        grounded_range is not None
+        and grounded_range.start is not None
+        and grounded_range.end is not None
+        and grounded_range.start > grounded_range.end
+    ):
+        # Kept as written. Swapping the bounds would turn an unanswerable
+        # question into an answerable one and chart the result as if it were
+        # what was asked.
+        warnings.append(
+            f"The question asks for trials starting after {grounded_range.start - 1} "
+            f"and before {grounded_range.end + 1}, which no trial can satisfy. "
+            f"The bounds were left as written rather than reordered, so no trials "
+            f"match."
+        )
     if grounded_range is not None and entities.year_range is not None:
         # The question stated the range outright, so it wins -- but say so when
         # the model proposed a different one, rather than dropping it silently.
@@ -742,9 +782,58 @@ REQUIRED_GROUP_BY: dict[str, str] = {
 #: service has. Any other axis means the chart type was the mistake.
 HISTOGRAM_GROUP_BY = "enrollment_bucket"
 
-# network_kind needs no reconciliation here: it is Literal-constrained in
-# QueryUnderstanding, so an unsupported value is rejected when the model's
-# response is parsed, and build_plan already defaults a missing one.
+#: Phrases that settle which network the question asks for. Literal validation
+#: proves the model picked a *valid* enum, not the *right* one -- the same gap
+#: reconciliation already closes for query_type, group_by, and comparison kind.
+#: Matched on word boundaries so "sponsor" cannot fire inside "sponsored".
+NETWORK_KIND_EVIDENCE: dict[str, tuple[str, ...]] = {
+    "sponsor_drug": (
+        "sponsors and drugs",
+        "sponsor and drug",
+        "drugs and sponsors",
+        "sponsor-to-drug",
+        "sponsor to drug",
+        "sponsor-drug",
+        "sponsor drug",
+        "sponsor network",
+        "which sponsors",
+        "between sponsors and drugs",
+    ),
+    "drug_drug": (
+        "co-occur",
+        "cooccur",
+        "co-occurrence",
+        "cooccurrence",
+        "drug co-occurrence",
+        "combination",
+        "combination therapy",
+        "combined with",
+        "studied together",
+        "used together",
+        "drug-drug",
+        "drug drug",
+    ),
+}
+
+_NETWORK_KIND_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple(
+    (re.compile(rf"\b{re.escape(phrase)}"), kind)
+    for kind, phrases in NETWORK_KIND_EVIDENCE.items()
+    for phrase in phrases
+)
+
+
+def infer_network_kind(query: str) -> str | None:
+    """The network the question's own words ask for, or None.
+
+    Returns None when the evidence is absent *or* conflicting ("a network of
+    sponsors and drugs studied together" says both), because a coin-flip
+    between two valid readings is worse than keeping the model's proposal --
+    which at least came from reading the whole sentence.
+    """
+    haystack = query.lower()
+    kinds = {kind for pattern, kind in _NETWORK_KIND_PATTERNS if pattern.search(haystack)}
+    return kinds.pop() if len(kinds) == 1 else None
+
 
 #: Which entity list a comparison of each kind must have been drawn from.
 COMPARE_KIND_SOURCES: dict[str, str] = {
@@ -922,12 +1011,26 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
             group_by = "start_year"
 
     network_kind = understanding.network_kind
-    if understanding.query_type == "relationship" and network_kind is None:
-        network_kind = "drug_drug"
-        assumptions.append(
-            "Interpreted as a drug co-occurrence network; no relationship type "
-            "was specified."
-        )
+    if understanding.query_type == "relationship":
+        # The question's own words outrank the model's pick, exactly as they do
+        # for the chart axis and the comparison kind. A valid enum is not a
+        # correct one: "which drugs co-occur" answered with sponsor_drug draws
+        # a different graph than the one asked for.
+        evidenced = infer_network_kind(request.query)
+        if evidenced and network_kind != evidenced:
+            if network_kind is not None:
+                assumptions.append(
+                    f"Built a {evidenced.replace('_', '-')} network rather than "
+                    f"{network_kind.replace('_', '-')}, matching how the question "
+                    f"describes the relationship."
+                )
+            network_kind = evidenced
+        if network_kind is None:
+            network_kind = "drug_drug"
+            assumptions.append(
+                "Interpreted as a drug co-occurrence network; no relationship type "
+                "was specified."
+            )
 
     compare_entities, compare_warnings = ground_compare_entities(
         understanding.compare_entities, request.query
@@ -1016,7 +1119,11 @@ def build_plan(request: QueryRequest, understanding: QueryUnderstanding) -> Quer
     )
 
 
-def understand(request: QueryRequest, *, model: str | None = None) -> QueryPlan:
-    """Full stage 1: LLM call plus deterministic grounding and reconciliation."""
-    understanding = call_llm(request.query, model=model)
+async def understand(request: QueryRequest, *, model: str | None = None) -> QueryPlan:
+    """Full stage 1: LLM call plus deterministic grounding and reconciliation.
+
+    Only the LLM call awaits; grounding and reconciliation stay synchronous
+    because they are pure CPU work over data already in hand.
+    """
+    understanding = await call_llm(request.query, model=model)
     return build_plan(request, understanding)

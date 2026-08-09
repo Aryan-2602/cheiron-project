@@ -55,6 +55,17 @@
   .err { background: #fdeaea; border-left: 3px solid #d33; padding: 12px;
          border-radius: 0 4px 4px 0; }
   .err code { font-size: 12px; color: #a11; }
+  /* An empty result is a correct answer, not a fault -- styling it like a
+     failure told the reader the service had broken. */
+  .info { background: #eef4fd; border-left: 3px solid #3b6fb6; padding: 12px;
+          border-radius: 0 4px 4px 0; }
+  .info code { font-size: 12px; color: #2d5d9f; }
+  /* Assumptions are how the question was read; warnings are caveats about the
+     numbers. Different things, so they do not share a colour. */
+  .assume { background: #f4f4f7; border-left: 3px solid #8a8f9a; padding: 8px 12px;
+            margin: 6px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+  .filters { font-size: 12px; color: var(--muted); margin: 8px 0 0;
+             word-break: break-word; }
   .cite { border-top: 1px solid var(--line); padding: 10px 0; font-size: 13px; }
   .cite a { color: var(--accent); font-weight: 600; text-decoration: none; }
   .cite p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
@@ -120,7 +131,9 @@
       <div class="card hidden" id="meta-card">
         <h2>How this was interpreted</h2>
         <p id="interpretation" style="margin:0"></p>
+        <div id="assumptions"></div>
         <div id="warnings"></div>
+        <p class="filters" id="applied-filters"></p>
       </div>
     </div>
 
@@ -343,6 +356,27 @@ function showCitations(row, label, valueKey) {
 function renderMeta(meta) {
   $("meta-card").classList.remove("hidden");
   $("interpretation").textContent = meta.query_interpretation || "";
+
+  // Assumptions are where the deterministic reconciliations announce
+  // themselves -- a corrected axis, an inferred comparison kind, a demoted
+  // chart. Rendering only warnings meant a viewer could not see any of it.
+  const assumed = $("assumptions");
+  assumed.innerHTML = "";
+  for (const a of meta.assumptions || []) {
+    const el = document.createElement("div");
+    el.className = "assume";
+    el.textContent = a;
+    assumed.appendChild(el);
+  }
+
+  // What was actually sent upstream, flat or keyed by series.
+  const filters = meta.filters || {};
+  const describe = (v) => typeof v === "object" && v !== null
+    ? Object.entries(v).map(([k, x]) => `${k}=${x}`).join(", ")
+    : v;
+  const applied = Object.entries(filters).map(([k, v]) => `${k}: ${describe(v)}`);
+  $("applied-filters").textContent = applied.length ? `Filters — ${applied.join(" · ")}` : "";
+
   const box = $("warnings");
   box.innerHTML = "";
   // Warnings carry the honesty of the response -- fetch caps, multi-valued
@@ -388,9 +422,9 @@ function describeError(status, body) {
   return { code: `HTTP ${status}`, message: "Unexpected error from the API." };
 }
 
-function showError(code, message) {
+function showError(code, message, severity = "card err") {
   const el = $("error");
-  el.classList.remove("hidden");
+  el.className = severity;
   el.innerHTML = `<strong>${escapeHtml(message)}</strong><br><code>${escapeHtml(code)}</code>`;
 }
 
@@ -488,7 +522,9 @@ async function run() {
       reason,
       reason === "NO_CHARTABLE_DATA"
         ? explanation || "Trials matched, but none had a value this chart can plot."
-        : "No trials matched this query. Try broadening the filters."
+        : "No trials matched this query. Try broadening the filters.",
+      // An empty result is a correct answer, so it must not look like a fault.
+      "card info"
     );
   }
 }

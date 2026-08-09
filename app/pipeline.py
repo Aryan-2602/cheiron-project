@@ -510,7 +510,7 @@ async def run_pipeline(
         EmptyResultError: no trials matched.
         ValidationFailure: the response failed a grounding check.
     """
-    plan = plan or understand(request)
+    plan = plan or await understand(request)
     if plan.query_type == "unsupported":
         raise UnsupportedQueryError(
             "This question cannot be answered from ClinicalTrials.gov registry data."
