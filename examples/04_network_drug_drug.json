@@ -3428,7 +3428,7 @@
       ],
       "query_interpretation": "Interpreted as a relationship question, rendered as a network graph.",
       "assumptions": [
-        "Interpreted 'frequently co-occur in combination studies' as a drug-drug relationship network centered on pembrolizumab."
+        "I interpreted 'co-occur in combination studies with pembrolizumab' as a drug-drug relationship query about combination trials."
       ],
       "warnings": [
         "Fetched 600 of 2,922 matching trials (capped at max_studies=600); figures below describe that sample, not the full result set.",

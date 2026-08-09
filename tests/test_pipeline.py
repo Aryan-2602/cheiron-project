@@ -11,8 +11,15 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.models.schemas import ExtractedEntities, QueryPlan, QueryRequest
-from app.pipeline import EmptyResultError, UnsupportedQueryError, run_pipeline
-from app.services.ctgov import CTGovClient, CTGovError
+from app.pipeline import (
+    EmptyResultError,
+    UnsupportedQueryError,
+    apply_client_side_filters,
+    fetch,
+    run_pipeline,
+)
+from app.services.ctgov import CTGovClient, CTGovError, build_searches
+from app.services.store import StudyStore
 from tests.conftest import make_record
 
 BASE = "https://clinicaltrials.gov/api/v2"
@@ -673,3 +680,134 @@ class TestComparisonSeriesAreNeverLost:
         labels = [s.label for s in searches if s.label]
         assert len(labels) == len(set(labels))
         assert any("duplicate" in w for w in warnings)
+
+
+class TestMixedStatusSemantics:
+    """Several requested statuses mean "status is any of these". Two decision
+    points each assumed they were the only one -- build_searches filtered
+    upstream to recruiting, then apply_client_side_filters kept only the other
+    status -- so every mixed-status request charted a confident zero."""
+
+    STATUSES = ("RECRUITING", "COMPLETED", "TERMINATED", "ACTIVE_NOT_RECRUITING")
+
+    def registry(self):
+        return {s: make_record(f"NCT_{s}", status=s) for s in self.STATUSES}
+
+    async def run_with(self, statuses):
+        """Drives the real fetch with an upstream that honours aggFilters, so
+        the intersection bug would actually reproduce."""
+        registry = self.registry()
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        plan_obj = plan(statuses=statuses)
+        searches, _ = build_searches(plan_obj)
+        agg = searches[0].to_params(page_size=10).get("aggFilters")
+        served = (
+            [registry["RECRUITING"]] if agg == "status:rec" else list(registry.values())
+        )
+        respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(
+                200, json={"studies": served, "totalCount": len(served)}
+            )
+        )
+        async with CTGovClient() as client:
+            fetched = await fetch(plan_obj, searches, client)
+        apply_client_side_filters(fetched.store, plan_obj)
+        kept = {n.replace("NCT_", "") for n in fetched.store.records}
+        return agg, kept
+
+    @respx.mock
+    async def test_sole_recruiting_uses_the_upstream_filter(self):
+        agg, kept = await self.run_with(["RECRUITING"])
+        assert agg == "status:rec"
+        assert kept == {"RECRUITING"}
+
+    @respx.mock
+    async def test_sole_other_status_filters_client_side(self):
+        agg, kept = await self.run_with(["COMPLETED"])
+        assert agg is None
+        assert kept == {"COMPLETED"}
+
+    @respx.mock
+    async def test_recruiting_and_completed_is_a_union(self):
+        agg, kept = await self.run_with(["RECRUITING", "COMPLETED"])
+        assert agg is None, "an upstream filter would exclude the completed trials"
+        assert kept == {"RECRUITING", "COMPLETED"}
+
+    @respx.mock
+    async def test_recruiting_and_terminated_is_a_union(self):
+        agg, kept = await self.run_with(["RECRUITING", "TERMINATED"])
+        assert agg is None
+        assert kept == {"RECRUITING", "TERMINATED"}
+
+    @respx.mock
+    async def test_active_not_recruiting_and_recruiting_is_a_union(self):
+        """These two are genuinely different statuses, so both must survive."""
+        agg, kept = await self.run_with(["ACTIVE_NOT_RECRUITING", "RECRUITING"])
+        assert agg is None
+        assert kept == {"ACTIVE_NOT_RECRUITING", "RECRUITING"}
+
+    @respx.mock
+    async def test_no_status_requested_keeps_everything(self):
+        agg, kept = await self.run_with([])
+        assert agg is None
+        assert kept == set(self.STATUSES)
+
+    @respx.mock
+    async def test_an_unknown_status_matches_nothing_without_breaking_the_union(self):
+        agg, kept = await self.run_with(["COMPLETED", "NOT_A_REAL_STATUS"])
+        assert agg is None
+        assert kept == {"COMPLETED"}
+
+    @respx.mock
+    async def test_the_union_is_disclosed_and_its_wording_is_stable(self):
+        registry = self.registry()
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        respx.get(f"{BASE}/studies").mock(
+            return_value=httpx.Response(
+                200,
+                json={"studies": list(registry.values()), "totalCount": len(registry)},
+            )
+        )
+        plan_obj = plan(statuses=["RECRUITING", "COMPLETED"])
+        store = StudyStore()
+        store.add_records(registry.values())
+        warnings = apply_client_side_filters(store, plan_obj)
+        text = " ".join(warnings)
+        # sorted(), so the disclosure never inherits set iteration order.
+        assert "COMPLETED, RECRUITING" in text
+        assert "any of" in text
+
+    @respx.mock
+    async def test_per_search_provenance_is_not_overwritten(self):
+        """meta.filters must retain one entry per labelled search, correctly
+        attributed -- a collision silently replaced one series' filters."""
+        respx.get(f"{BASE}/version").mock(
+            return_value=httpx.Response(200, json={"dataTimestamp": "2026-08-07"})
+        )
+        route = respx.get(f"{BASE}/studies")
+        route.side_effect = [
+            httpx.Response(200, json={"studies": SAMPLE[:2], "totalCount": 2}),
+            httpx.Response(200, json={"studies": SAMPLE[2:3], "totalCount": 1}),
+        ]
+        response = await run(
+            query_type="comparison",
+            viz_type="grouped_bar_chart",
+            compare_entities=["Pembrolizumab", "Nivolumab"],
+            compare_entity_kind="drug",
+        )
+        filters = response.meta.filters
+        assert set(filters) == {"Pembrolizumab", "Nivolumab"}
+        assert filters["Pembrolizumab"]["intervention"] == "Pembrolizumab"
+        assert filters["Nivolumab"]["intervention"] == "Nivolumab"
+
+    @respx.mock
+    async def test_an_ordinary_non_comparison_query_is_unaffected(self):
+        """The dedup guard must not touch the single-search path."""
+        mock_studies(SAMPLE)
+        response = await run()
+        assert response.meta.filters == {"intervention": "Pembrolizumab"}
+        assert not any("duplicate" in w for w in response.meta.warnings)

@@ -28,7 +28,13 @@ from app.models.schemas import (
     VisualizationSpec,
 )
 from app.services.aggregate import aggregate, zero_fill_years
-from app.services.ctgov import CTGovClient, CTGovError, CTGovSearch, build_searches
+from app.services.ctgov import (
+    CTGovClient,
+    CTGovError,
+    CTGovSearch,
+    build_searches,
+    normalize_statuses,
+)
 from app.services.dimensions import extract_phases, extract_start_year, get_dimension
 from app.services.drug_resolver import resolve_all
 from app.services.network import (
@@ -158,8 +164,16 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
             f"multi-phase request is narrowed after fetching."
         )
 
-    wanted_status = {s.strip().upper().replace(" ", "_") for s in plan.entities.statuses}
-    wanted_status = {s for s in wanted_status if s and not s.startswith("RECRUIT")}
+    # A union, not an intersection: several requested statuses mean "status is
+    # any of these", matching how multiple phases are already handled above.
+    # RECRUITING is deliberately kept in the set -- stripping it assumed the
+    # upstream filter had already applied, which is only true when it was the
+    # sole request, and that assumption emptied every mixed-status result.
+    wanted_status = normalize_statuses(plan.entities.statuses)
+    if wanted_status == {"RECRUITING"}:
+        # Already filtered upstream by aggFilters=status:rec; re-applying it
+        # here would be a no-op, and the warning would be misleading.
+        wanted_status = set()
     if wanted_status:
         before = len(store.records)
         store.records = {
@@ -172,10 +186,18 @@ def apply_client_side_filters(store: StudyStore, plan: QueryPlan) -> list[str]:
             )
             in wanted_status
         }
+        # sorted() so the disclosure text is stable rather than inheriting set
+        # iteration order.
+        listed = ", ".join(sorted(wanted_status))
+        reason = (
+            "only one status can be filtered upstream, so a multi-status "
+            "request is narrowed after fetching"
+            if len(wanted_status) > 1
+            else "the upstream filter code for this status is not live-verified"
+        )
         warnings.append(
-            f"Filtered to status {', '.join(sorted(wanted_status))} client-side "
-            f"({len(store.records):,} of {before:,} fetched trials); the upstream "
-            f"filter code for this status is not live-verified."
+            f"Kept trials whose status is any of {listed}, filtered client-side "
+            f"({len(store.records):,} of {before:,} fetched trials); {reason}."
         )
 
     years = plan.entities.year_range

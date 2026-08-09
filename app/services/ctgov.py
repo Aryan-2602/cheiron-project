@@ -49,6 +49,19 @@ DEFAULT_FIELDS: tuple[str, ...] = (
 VERIFIED_STATUS_CODES = {"rec"}
 
 
+def normalize_statuses(statuses: Iterable[str]) -> set[str]:
+    """Requested statuses as canonical ``overallStatus`` values.
+
+    Shared by the query builder and the client-side filter so both sides agree
+    on what was asked for. They normalised differently before, and a padded
+    value like ``"  RECRUITING  "`` slipped through both: the builder's
+    ``startswith`` test failed on the leading space, and the filter then
+    discarded it as already-handled-upstream, so no status filter was applied
+    anywhere. Also collapses duplicates and casing differences.
+    """
+    return {s.strip().upper().replace(" ", "_") for s in statuses if s and s.strip()}
+
+
 class CTGovError(RuntimeError):
     """Upstream API failure that the pipeline surfaces as UPSTREAM_ERROR."""
 
@@ -472,7 +485,11 @@ def build_searches(plan: Any) -> tuple[list[CTGovSearch], list[str]]:
     valid_phases = [p for p in entities.phases if p in (1, 2, 3, 4)]
     if len(valid_phases) == 1:
         agg.append(AggFilter.phase(valid_phases[0]))
-    if any(s.lower().startswith("recruit") for s in entities.statuses):
+    # Only when RECRUITING is the *sole* requested status. Applying it whenever
+    # any requested status was recruiting turned a union into an intersection:
+    # ["RECRUITING", "COMPLETED"] fetched only recruiting trials upstream and
+    # then kept only completed ones client-side, charting a confident zero.
+    if normalize_statuses(entities.statuses) == {"RECRUITING"}:
         agg.append(AggFilter.status("rec"))
 
     if plan.compare_entities and plan.compare_entity_kind:

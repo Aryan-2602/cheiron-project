@@ -191,7 +191,7 @@
       ],
       "query_interpretation": "Interpreted as a distribution question, grouped by phase, rendered as a bar chart.",
       "assumptions": [
-        "Read \"distributed across phases\" as a phase breakdown for lung cancer trials."
+        "Interpreted 'across phases' as grouping trials by phase."
       ],
       "warnings": [
         "Fetched 1,000 of 14,425 matching trials (capped at max_studies=1,000); figures below describe that sample, not the full result set.",

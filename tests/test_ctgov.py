@@ -12,6 +12,7 @@ from app.services.ctgov import (
     CTGovError,
     CTGovSearch,
     build_searches,
+    normalize_statuses,
 )
 from app.services.store import StudyStore
 from tests.conftest import make_record
@@ -397,3 +398,65 @@ class TestMultipleExtractedValues:
         )
         assert searches[0].intr == "Pembrolizumab OR Nivolumab"
         assert any("search operator" in n for n in notes)
+
+
+class TestStatusAggFilter:
+    """The upstream status:rec optimisation is only safe when RECRUITING is the
+    sole request. Applying it whenever *any* requested status was recruiting
+    turned a union into an intersection: the fetch returned recruiting trials
+    only, and the client-side pass then kept just the other status."""
+
+    plan = TestBuildSearches.plan
+
+    def agg_filters(self, statuses):
+        searches, _ = build_searches(self.plan(drugs=["X"], statuses=statuses))
+        return searches[0].to_params(page_size=10).get("aggFilters")
+
+    def test_sole_recruiting_still_filters_upstream(self):
+        """The optimisation must survive -- it is the one verified status code."""
+        assert self.agg_filters(["RECRUITING"]) == "status:rec"
+
+    @pytest.mark.parametrize(
+        "statuses",
+        [
+            ["RECRUITING", "COMPLETED"],
+            ["RECRUITING", "TERMINATED"],
+            ["ACTIVE_NOT_RECRUITING", "RECRUITING"],
+        ],
+    )
+    def test_mixed_statuses_never_filter_upstream(self, statuses):
+        """An upstream filter here would exclude records the other requested
+        status needs, and no union could recover them afterwards."""
+        assert self.agg_filters(statuses) is None
+
+    def test_a_non_recruiting_status_never_filters_upstream(self):
+        assert self.agg_filters(["COMPLETED"]) is None
+
+    @pytest.mark.parametrize(
+        "statuses",
+        [["recruiting"], ["  RECRUITING  "], ["Recruiting"], ["RECRUITING", "RECRUITING"]],
+    )
+    def test_normalisation_is_consistent(self, statuses):
+        """A padded or oddly-cased value used to fail the builder's startswith
+        test and then be discarded client-side too, so no filter applied
+        anywhere. Duplicates collapse to the same sole-status case."""
+        assert self.agg_filters(statuses) == "status:rec"
+
+    def test_empty_status_list_filters_nothing(self):
+        assert self.agg_filters([]) is None
+
+
+class TestNormalizeStatuses:
+    def test_trims_uppercases_and_collapses_duplicates(self):
+        assert normalize_statuses(["  recruiting ", "RECRUITING"]) == {"RECRUITING"}
+
+    def test_spaces_become_underscores(self):
+        assert normalize_statuses(["active not recruiting"]) == {
+            "ACTIVE_NOT_RECRUITING"
+        }
+
+    def test_blank_entries_are_dropped(self):
+        assert normalize_statuses(["", "   ", "COMPLETED"]) == {"COMPLETED"}
+
+    def test_empty_input_gives_an_empty_set(self):
+        assert normalize_statuses([]) == set()
