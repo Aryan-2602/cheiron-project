@@ -124,31 +124,16 @@ def build_excerpt(record: dict[str, Any], dimension: str) -> str:
     record that landed in an "unknown" bucket precisely because the field was
     absent.
     """
-    parts = COMPOSITE_EVIDENCE.get(dimension)
-    if parts:
-        # Both endpoints from their own real fields, so one citation verifies
-        # the whole edge. The title is carried once rather than per part.
-        title = _title(record)
-        rendered = "; ".join(
-            _render_field(record, part) for part in parts if EVIDENCE.get(part)
-        )
-        return f'"{title}" — {rendered}' if title else rendered
-
     title = _title(record)
-    entry = EVIDENCE.get(dimension)
-    if entry is None:
+    # One field, or several when the datum has several endpoints. The title is
+    # carried once either way.
+    parts = COMPOSITE_EVIDENCE.get(dimension, (dimension,))
+    known = [part for part in parts if part in EVIDENCE]
+    if not known:
         return f'"{title}"' if title else "(no title in record)"
 
-    path, reader = entry
-    value = reader(record)
-    if value in (None, [], ""):
-        return f'"{title}" — {path}: not reported' if title else f"{path}: not reported"
-    if isinstance(value, list):
-        rendered = ", ".join(str(v) for v in value)
-        rendered = f"[{rendered}]"
-    else:
-        rendered = f'"{value}"' if isinstance(value, str) else str(value)
-    return f'"{title}" — {path}: {rendered}' if title else f"{path}: {rendered}"
+    rendered = "; ".join(_render_field(record, part) for part in known)
+    return f'"{title}" — {rendered}' if title else rendered
 
 
 def _spread(nct_ids: list[str], limit: int) -> list[str]:
