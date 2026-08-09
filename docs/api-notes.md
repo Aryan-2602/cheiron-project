@@ -130,10 +130,10 @@ Combine multiple filters with commas:
 ```
 aggFilters=phase:3,status:rec
 ```
-Status values in `aggFilters` appear to use short/abbreviated codes (e.g.
-`status:rec` for recruiting, `status:com` for completed) — **only
-`status:rec` was directly confirmed live during this session; treat other
-status abbreviations as unverified until tested.**
+Note the comma separates **different keys**. To combine several values of the
+*same* key, space-separate them (`aggFilters=phase:2 3`) — see the union
+section above. Status codes were later verified individually; the table above
+supersedes the cautious note this section originally carried.
 
 **Still unverified / worth confirming before relying on it:** whether
 `filter.overallStatus` (a separate dot-namespaced param, distinct from
